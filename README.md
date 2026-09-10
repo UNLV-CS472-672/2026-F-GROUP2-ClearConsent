@@ -1,6 +1,6 @@
-# sv
+# 2026-F-GROUP2-ClearConsent
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+ClearConsent: Privacy Translator & Data Footprint Map
 
 ## Creating a project
 
