@@ -35,6 +35,12 @@ pinned.
 
 ## Verification results
 
+The complete sequence was repeated in a second fresh worktree of committed fix
+`d23b15b`, starting without dependencies or build output. Clean installation,
+check/lint, build, regeneration, and check/lint again all passed. Regeneration
+after the build produced no tracked diff, and the verification checkout remained
+clean. No local repair or formatting command was needed in that checkout.
+
 - `npm ci --no-audit --no-fund`: passed after lockfile repair.
 - `npm run check` before build: 0 errors, 0 warnings.
 - `npm run lint` before build: passed.
