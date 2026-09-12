@@ -69,6 +69,8 @@ Use the npm scripts rather than invoking `wrangler types` directly. The small
 wrapper in `scripts/worker-types.js` removes only the type import of the compiled
 SvelteKit Worker, working around
 [Wrangler issue #14181](https://github.com/cloudflare/workers-sdk/issues/14181).
+It retains `GlobalProps`, including an empty project declaration before the
+first build, so generated runtime references remain valid and output is stable.
 Without this workaround, generation changes after a build and TypeScript follows
 the import into generated JavaScript. Binding and runtime types remain checked
 for staleness, and application JavaScript/TypeScript checks remain enabled.

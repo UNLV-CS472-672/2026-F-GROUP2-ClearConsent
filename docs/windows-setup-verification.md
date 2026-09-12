@@ -17,7 +17,9 @@ package versions are preserved.
 
 - Repair the lockfile and pin the already-resolved Wrangler version, 4.130.0.
 - Generate and verify Cloudflare types through `scripts/worker-types.js`.
-  Remove only the generated SvelteKit Worker import and its empty container.
+  Remove only the generated SvelteKit Worker import. Retain `GlobalProps`,
+  including the runtime declaration referenced by other generated types. Ensure
+  the project declaration exists even before the first build for stable output.
   The wrapper compares the full normalized generated content rather than the
   upstream hash, which changes when build output exists.
 - Keep runtime and environment types, application `checkJs`, and strict
@@ -59,6 +61,20 @@ npm 11.19.0 reports install-script policy warnings for esbuild and workerd; the
 build and local preview nevertheless passed in this environment.
 
 ## Peer review still needed
+
+### Copilot review follow-up
+
+Removed the empty-interface deletion rule. In the tested Wrangler output it
+removed the tab-indented project declaration, while the separate space-indented
+runtime declaration remained present. Nevertheless, deleting declarations by
+that pattern was fragile and the documentation was too broad.
+
+The wrapper now retains both declarations and inserts an empty project
+`GlobalProps` when Wrangler omits it before the first build. Verified that
+`gen:check` and application checks pass with Worker output absent and restored;
+the production build and lint also pass. Runtime declarations are unchanged.
+
+### Remaining checks
 
 - Repeat the fresh-checkout sequence in the README on another Windows machine.
 - Run the same sequence on macOS or Linux and with the team's Node 22 setup.
