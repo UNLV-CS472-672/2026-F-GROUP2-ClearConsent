@@ -3,6 +3,10 @@
 ## Environment and reproduction
 
 Tested on Windows x64 with Node 24.20.0 and npm 11.19.0 on 2026-09-11.
+Microsoft Visual C++ Redistributable v14 is also required for the local
+Cloudflare development runtime. Without it, `npm run gen` can complete but the
+page served by `npm run dev` throws `Write EOF`; installing it allows the page
+to load, and uninstalling it reproduces the error.
 The fix branch starts from `origin/main` commit `14d9cfc` in a new Git worktree
 with no dependencies, build output, or local secret files copied into it.
 

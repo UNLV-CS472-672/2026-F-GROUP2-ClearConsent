@@ -8,6 +8,9 @@ Tailwind, and the Cloudflare Workers adapter.
 - Node.js `^22.13.0 || >=24` (Node 20 and 23 are unsupported).
 - npm; the Windows setup fix is verified with Node `24.20.0` and npm `11.19.0`.
 - Git.
+- Windows: Microsoft Visual C++ Redistributable v14, required by the local
+  Cloudflare development runtime. Install the architecture matching Windows
+  before running `npm run dev`.
 
 `.npmrc` enables `engine-strict` so unsupported Node versions fail installation.
 `.nvmrc` selects Node `22.20.0` for developers using a version manager. With
@@ -87,3 +90,22 @@ once; fresh checkouts receive the declared line endings automatically.
 
 See [Windows setup verification](docs/windows-setup-verification.md) for issue #4
 reproduction, results, and remaining peer-review checks.
+
+> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+
+## Testing
+
+See [Testing and CI](docs/testing-and-ci.md) for the test-file map, local setup,
+and CI workflow. Run the Vitest suite once, or keep it running while
+developing:
+
+```sh
+npm test
+npm run test:watch
+npx playwright install chromium
+npm run test:e2e
+```
+
+The end-to-end suite starts the local Vite development server automatically.
+CI installs Chromium with `npx playwright install --with-deps chromium` before
+running the suite.
