@@ -1,0 +1,254 @@
+{
+	"datasetVersion": "0.1.0",
+	"description": "Synthetic privacy-policy and EULA excerpts for comparing structured privacy extraction. All companies, products, and clauses are fictional.",
+	"reviewStatus": "draft-needs-human-review",
+	"cases": [
+		{
+			"id": "collection-account-and-device-data",
+			"title": "Account and device data collection",
+			"policyText": "When you create a Pine Harbor account, we collect your name, email address, and chosen username. Each time you use the app, we also record your device model, operating-system version, IP address, and the time and duration of your session. We use this information to operate your account, prevent abuse, and diagnose technical problems.",
+			"expectedFindings": [
+				{
+					"practice": "collection",
+					"dataCategories": ["identifiers", "contact_information"],
+					"purposes": ["account_operation"],
+					"recipients": [],
+					"summary": "Pine Harbor collects account identifiers and contact information to operate the user's account.",
+					"evidence": "When you create a Pine Harbor account, we collect your name, email address, and chosen username.",
+					"ambiguous": false
+				},
+				{
+					"practice": "collection",
+					"dataCategories": ["device_information", "network_information", "usage_data"],
+					"purposes": ["security", "diagnostics"],
+					"recipients": [],
+					"summary": "The app records device, network, and session information for abuse prevention and diagnostics.",
+					"evidence": "Each time you use the app, we also record your device model, operating-system version, IP address, and the time and duration of your session.",
+					"ambiguous": false
+				}
+			]
+		},
+		{
+			"id": "service-provider-sharing-no-sale",
+			"title": "Operational sharing without sale",
+			"policyText": "Blue Lantern does not sell personal information. We send email addresses to our email-delivery vendor so it can deliver account notices, and we send payment details directly to our payment processor to complete purchases. These vendors may use the information only to provide those services to us.",
+			"expectedFindings": [
+				{
+					"practice": "sharing",
+					"dataCategories": ["contact_information"],
+					"purposes": ["service_delivery"],
+					"recipients": ["email_delivery_provider"],
+					"summary": "Blue Lantern shares email addresses with an email-delivery provider for account notices.",
+					"evidence": "We send email addresses to our email-delivery vendor so it can deliver account notices",
+					"ambiguous": false
+				},
+				{
+					"practice": "sharing",
+					"dataCategories": ["payment_information"],
+					"purposes": ["transaction_processing"],
+					"recipients": ["payment_processor"],
+					"summary": "Payment details are shared with a payment processor to complete purchases.",
+					"evidence": "we send payment details directly to our payment processor to complete purchases",
+					"ambiguous": false
+				},
+				{
+					"practice": "sale",
+					"dataCategories": ["personal_information"],
+					"purposes": [],
+					"recipients": [],
+					"summary": "Blue Lantern states that it does not sell personal information.",
+					"evidence": "Blue Lantern does not sell personal information.",
+					"ambiguous": false,
+					"negated": true
+				}
+			]
+		},
+		{
+			"id": "advertising-sale-and-opt-out",
+			"title": "Advertising disclosure treated as a sale",
+			"policyText": "We disclose your advertising identifier, approximate location, and in-app activity to advertising networks so they can select ads and measure campaign performance. Some laws define this disclosure as a sale or sharing of personal information. You may opt out by selecting ‘Privacy Choices’ in the app settings.",
+			"expectedFindings": [
+				{
+					"practice": "sale_or_advertising_sharing",
+					"dataCategories": ["advertising_identifier", "approximate_location", "usage_data"],
+					"purposes": ["targeted_advertising", "advertising_measurement"],
+					"recipients": ["advertising_networks"],
+					"summary": "Advertising identifiers, approximate location, and app activity are disclosed to advertising networks for ad selection and measurement.",
+					"evidence": "We disclose your advertising identifier, approximate location, and in-app activity to advertising networks so they can select ads and measure campaign performance.",
+					"ambiguous": false
+				},
+				{
+					"practice": "opt_out",
+					"dataCategories": ["personal_information"],
+					"purposes": ["stop_sale_or_advertising_sharing"],
+					"recipients": [],
+					"summary": "Users can opt out of the disclosed sale or advertising sharing in app settings.",
+					"evidence": "You may opt out by selecting ‘Privacy Choices’ in the app settings.",
+					"ambiguous": false
+				}
+			]
+		},
+		{
+			"id": "retention-with-backups",
+			"title": "Defined retention periods and backup delay",
+			"policyText": "We keep support-chat transcripts for 24 months after a ticket is closed. Account profile information is retained while your account remains active. After account deletion, profile information is removed from active systems within 30 days, but encrypted backup copies may remain for up to 90 additional days before automatic deletion.",
+			"expectedFindings": [
+				{
+					"practice": "retention",
+					"dataCategories": ["support_communications"],
+					"purposes": [],
+					"recipients": [],
+					"summary": "Support-chat transcripts are retained for 24 months after a ticket closes.",
+					"evidence": "We keep support-chat transcripts for 24 months after a ticket is closed.",
+					"ambiguous": false
+				},
+				{
+					"practice": "retention",
+					"dataCategories": ["account_information"],
+					"purposes": [],
+					"recipients": [],
+					"summary": "Account profiles remain in active systems while the account is active, are removed within 30 days of deletion, and may remain in backups for another 90 days.",
+					"evidence": "After account deletion, profile information is removed from active systems within 30 days, but encrypted backup copies may remain for up to 90 additional days before automatic deletion.",
+					"ambiguous": false
+				}
+			]
+		},
+		{
+			"id": "deletion-right-with-exceptions",
+			"title": "Deletion right with legal exceptions",
+			"policyText": "You may request deletion of your account and personal information by emailing privacy@cedar.example. We will verify that you control the account before acting on the request. We may retain transaction records when required for tax, fraud-prevention, or legal-compliance purposes, even after granting the request.",
+			"expectedFindings": [
+				{
+					"practice": "deletion_right",
+					"dataCategories": ["account_information", "personal_information"],
+					"purposes": [],
+					"recipients": [],
+					"summary": "Users may request account and personal-information deletion by email after account ownership is verified.",
+					"evidence": "You may request deletion of your account and personal information by emailing privacy@cedar.example.",
+					"ambiguous": false
+				},
+				{
+					"practice": "retention_exception",
+					"dataCategories": ["transaction_records"],
+					"purposes": ["tax", "fraud_prevention", "legal_compliance"],
+					"recipients": [],
+					"summary": "Some transaction records may be retained after a deletion request for tax, fraud-prevention, or legal-compliance purposes.",
+					"evidence": "We may retain transaction records when required for tax, fraud-prevention, or legal-compliance purposes, even after granting the request.",
+					"ambiguous": false
+				}
+			]
+		},
+		{
+			"id": "qualified-security-claims",
+			"title": "Security measures without a guarantee",
+			"policyText": "We encrypt information while it travels between your device and our servers and restrict production-system access to authorized personnel. No storage or transmission method is completely secure, so we cannot guarantee that unauthorized access will never occur.",
+			"expectedFindings": [
+				{
+					"practice": "security",
+					"dataCategories": ["personal_information"],
+					"purposes": ["data_protection"],
+					"recipients": [],
+					"summary": "The service claims to use encryption in transit and access restrictions, but does not guarantee absolute security.",
+					"evidence": "We encrypt information while it travels between your device and our servers and restrict production-system access to authorized personnel.",
+					"ambiguous": false
+				}
+			]
+		},
+		{
+			"id": "childrens-data-parental-consent",
+			"title": "Children's data and parental consent",
+			"policyText": "Sprout Sketch is intended for children ages 8 through 12. Before a child can save a drawing online, we ask a parent for consent and collect the parent's email address. The child's saved drawing and display name are visible only to the child and parent. A parent may review or delete the child's information from the parent dashboard at any time.",
+			"expectedFindings": [
+				{
+					"practice": "collection",
+					"dataCategories": [
+						"parent_contact_information",
+						"child_display_name",
+						"child_user_content"
+					],
+					"purposes": ["parental_consent", "cloud_storage"],
+					"recipients": [],
+					"summary": "The child-directed service collects a parent's email and stores a child's display name and drawings after parental consent.",
+					"evidence": "Before a child can save a drawing online, we ask a parent for consent and collect the parent's email address.",
+					"ambiguous": false
+				},
+				{
+					"practice": "parental_deletion_right",
+					"dataCategories": ["child_personal_information"],
+					"purposes": [],
+					"recipients": [],
+					"summary": "A parent can review or delete the child's information through the parent dashboard.",
+					"evidence": "A parent may review or delete the child's information from the parent dashboard at any time.",
+					"ambiguous": false
+				}
+			]
+		},
+		{
+			"id": "ambiguous-trusted-partners",
+			"title": "Vague partner sharing",
+			"policyText": "We may provide certain information to trusted partners when doing so could help us improve your experience. Our partners are expected to handle information responsibly. Depending on the circumstances, this information might include details associated with your use of the service.",
+			"expectedFindings": [
+				{
+					"practice": "sharing",
+					"dataCategories": ["unspecified_service_usage_information"],
+					"purposes": ["experience_improvement"],
+					"recipients": ["unspecified_trusted_partners"],
+					"summary": "The policy may share unspecified service-usage information with unspecified trusted partners to improve the user experience.",
+					"evidence": "We may provide certain information to trusted partners when doing so could help us improve your experience.",
+					"ambiguous": true
+				}
+			]
+		},
+		{
+			"id": "retention-not-specified",
+			"title": "Missing retention information",
+			"policyText": "We collect your email address to send requested product updates. You can unsubscribe from marketing messages by using the link in any message. This notice does not state how long email addresses or subscription records are retained.",
+			"expectedFindings": [
+				{
+					"practice": "collection",
+					"dataCategories": ["contact_information"],
+					"purposes": ["product_updates", "marketing"],
+					"recipients": [],
+					"summary": "The service collects email addresses for product updates and marketing messages.",
+					"evidence": "We collect your email address to send requested product updates.",
+					"ambiguous": false
+				},
+				{
+					"practice": "insufficient_information",
+					"dataCategories": ["contact_information", "subscription_records"],
+					"purposes": ["retention"],
+					"recipients": [],
+					"summary": "The excerpt does not provide a retention period for email addresses or subscription records.",
+					"evidence": "This notice does not state how long email addresses or subscription records are retained.",
+					"ambiguous": true
+				}
+			]
+		},
+		{
+			"id": "precise-vs-approximate-location",
+			"title": "Precise location denied but approximate location collected",
+			"policyText": "Trail Clock does not request or collect GPS coordinates or other precise location information. We do derive an approximate city and country from your IP address when you sign in. We use that approximate location to detect suspicious sign-ins and to select the language shown in the app.",
+			"expectedFindings": [
+				{
+					"practice": "collection",
+					"dataCategories": ["precise_location"],
+					"purposes": [],
+					"recipients": [],
+					"summary": "Trail Clock states that it does not collect precise location information.",
+					"evidence": "Trail Clock does not request or collect GPS coordinates or other precise location information.",
+					"ambiguous": false,
+					"negated": true
+				},
+				{
+					"practice": "collection",
+					"dataCategories": ["network_information", "approximate_location"],
+					"purposes": ["security", "localization"],
+					"recipients": [],
+					"summary": "The service derives approximate city and country from IP addresses for sign-in security and language selection.",
+					"evidence": "We do derive an approximate city and country from your IP address when you sign in.",
+					"ambiguous": false
+				}
+			]
+		}
+	]
+}
