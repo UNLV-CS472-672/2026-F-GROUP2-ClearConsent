@@ -1,0 +1,144 @@
+{
+	"datasetVersion": "0.1.0",
+	"description": "Short public privacy-policy excerpts pinned to Open Terms Archive commits. Expected findings are draft labels awaiting independent human review.",
+	"reviewStatus": "draft-needs-human-review",
+	"cases": [
+		{
+			"id": "facebook-sharing-no-sale",
+			"title": "Sharing recipients and explicit no-sale claim",
+			"policyText": "We share certain information with:\n\n*   Advertisers who show ads on our Products\n*   Businesses we hire to market our Products for us\n*   Businesses we hire to do things like offer customer service or conduct surveys\n*   Researchers who use it to do things like innovate, advance technology, or improve people’s safety\n\nWe don’t sell your information, and we never will.",
+			"source": {
+				"service": "Facebook",
+				"document": "Privacy Policy",
+				"collection": "Platform Governance Archive v2",
+				"effectiveDate": "2026-07-23",
+				"archiveCommit": "53fdfebe3c470bb1433e830394e86fd699f485e7",
+				"archiveUrl": "https://github.com/OpenTermsArchive/pga-versions/blob/53fdfebe3c470bb1433e830394e86fd699f485e7/Facebook/Privacy%20Policy.md"
+			},
+			"expectedFindings": [
+				{
+					"practice": "sharing",
+					"dataCategories": ["unspecified_information"],
+					"purposes": ["advertising"],
+					"recipients": ["advertisers"],
+					"summary": "Facebook says it shares unspecified information with advertisers who show ads on its products.",
+					"evidence": "We share certain information with:\n\n*   Advertisers who show ads on our Products",
+					"ambiguous": true
+				},
+				{
+					"practice": "sharing",
+					"dataCategories": ["unspecified_information"],
+					"purposes": ["marketing"],
+					"recipients": ["marketing_providers"],
+					"summary": "Facebook says it shares unspecified information with businesses hired to market its products.",
+					"evidence": "Businesses we hire to market our Products for us",
+					"ambiguous": true
+				},
+				{
+					"practice": "sharing",
+					"dataCategories": ["unspecified_information"],
+					"purposes": ["customer_service", "surveys"],
+					"recipients": ["service_providers"],
+					"summary": "Facebook says it shares unspecified information with businesses hired for customer service or surveys.",
+					"evidence": "Businesses we hire to do things like offer customer service or conduct surveys",
+					"ambiguous": true
+				},
+				{
+					"practice": "sharing",
+					"dataCategories": ["unspecified_information"],
+					"purposes": ["research"],
+					"recipients": ["researchers"],
+					"summary": "Facebook says it shares unspecified information with researchers for research and safety work.",
+					"evidence": "Researchers who use it to do things like innovate, advance technology, or improve people’s safety",
+					"ambiguous": true
+				},
+				{
+					"practice": "sale",
+					"dataCategories": ["personal_information"],
+					"purposes": [],
+					"recipients": [],
+					"summary": "Facebook states that it does not sell user information.",
+					"evidence": "We don’t sell your information, and we never will.",
+					"ambiguous": false,
+					"negated": true
+				}
+			]
+		},
+		{
+			"id": "facebook-case-by-case-retention",
+			"title": "Retention without a fixed period",
+			"policyText": "We keep information as long as we need it to provide our Products, comply with legal obligations or protect our or other’s interests. We decide how long we need information on a case-by-case basis.",
+			"source": {
+				"service": "Facebook",
+				"document": "Privacy Policy",
+				"collection": "Platform Governance Archive v2",
+				"effectiveDate": "2026-07-23",
+				"archiveCommit": "53fdfebe3c470bb1433e830394e86fd699f485e7",
+				"archiveUrl": "https://github.com/OpenTermsArchive/pga-versions/blob/53fdfebe3c470bb1433e830394e86fd699f485e7/Facebook/Privacy%20Policy.md"
+			},
+			"expectedFindings": [
+				{
+					"practice": "retention",
+					"dataCategories": ["unspecified_information"],
+					"purposes": ["service_delivery", "legal_compliance", "protect_interests"],
+					"recipients": [],
+					"summary": "Retention is decided case by case based on service, legal, and protective needs; no fixed period is given.",
+					"evidence": "We decide how long we need information on a case-by-case basis.",
+					"ambiguous": true
+				}
+			]
+		},
+		{
+			"id": "spotify-search-query-retention",
+			"title": "Search-query retention with exceptions",
+			"policyText": "Subject to other applicable retention rules listed in this Section 6, we have set certain retention periods so that data expires after a specific period of time. For example, personal data you may input as part of search queries is deleted after 90 days.",
+			"source": {
+				"service": "Spotify",
+				"document": "Privacy Policy",
+				"collection": "Platform Governance Archive v2",
+				"effectiveDate": "2026-07-01",
+				"archiveCommit": "d5c33c897fc01686cf98a24b15c31076f7bd3bf1",
+				"archiveUrl": "https://github.com/OpenTermsArchive/pga-versions/blob/d5c33c897fc01686cf98a24b15c31076f7bd3bf1/Spotify/Privacy%20Policy.md"
+			},
+			"expectedFindings": [
+				{
+					"practice": "retention",
+					"dataCategories": ["search_query_data"],
+					"purposes": [],
+					"recipients": [],
+					"summary": "Personal data entered in search queries is deleted after 90 days, subject to other applicable retention rules.",
+					"evidence": "For example, personal data you may input as part of search queries is deleted after 90 days.",
+					"ambiguous": false
+				}
+			]
+		},
+		{
+			"id": "netflix-open-ended-retention",
+			"title": "Broad retention purposes without a deadline",
+			"policyText": "We may retain personal information as required or permitted by applicable laws and regulations, including to honor your choices, for our billing or records purposes, and as otherwise necessary to fulfill the purposes described in this Privacy Statement.",
+			"source": {
+				"service": "Netflix",
+				"document": "Privacy Statement",
+				"collection": "Open Terms Archive contrib",
+				"archiveCommit": "a52eeebce0633a9e3a9e24574c3e7218e0a16b30",
+				"archiveUrl": "https://github.com/OpenTermsArchive/contrib-versions/blob/a52eeebce0633a9e3a9e24574c3e7218e0a16b30/Netflix/Privacy%20Policy.md"
+			},
+			"expectedFindings": [
+				{
+					"practice": "retention",
+					"dataCategories": ["personal_information"],
+					"purposes": [
+						"legal_compliance",
+						"billing",
+						"recordkeeping",
+						"unspecified_policy_purposes"
+					],
+					"recipients": [],
+					"summary": "Netflix may retain personal information for legal, billing, records, and other stated policy purposes; this excerpt gives no fixed deadline.",
+					"evidence": "We may retain personal information as required or permitted by applicable laws and regulations",
+					"ambiguous": true
+				}
+			]
+		}
+	]
+}
