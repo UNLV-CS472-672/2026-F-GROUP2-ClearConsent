@@ -1,0 +1,42 @@
+{
+	"status": "manually_selected_anchors_not_complete_gold_labels",
+	"notes": "These known claims are withheld from model prompts. A cited line is only a coverage proxy; a person must still check interpretation and qualifications.",
+	"claims": [
+		{
+			"id": "spotify_search_retention_caveat",
+			"caseId": "spotify-full-privacy-policy",
+			"description": "Search-query data's 90-day deletion example is subject to other retention rules.",
+			"anchorLineIds": ["L0280"]
+		},
+		{
+			"id": "facebook_no_sale",
+			"caseId": "facebook-full-privacy-policy",
+			"description": "Meta explicitly says it does not sell information.",
+			"anchorLineIds": ["L1111", "L1113"]
+		},
+		{
+			"id": "facebook_access_correction",
+			"caseId": "facebook-full-privacy-policy",
+			"description": "Right to access and correct information, subject to applicable law.",
+			"anchorLineIds": ["L1469"]
+		},
+		{
+			"id": "facebook_withdraw_consent",
+			"caseId": "facebook-full-privacy-policy",
+			"description": "Consent can be withdrawn without invalidating earlier consent-based processing.",
+			"anchorLineIds": ["L1479"]
+		},
+		{
+			"id": "facebook_portability",
+			"caseId": "facebook-full-privacy-policy",
+			"description": "In certain cases and subject to law, users can port their information.",
+			"anchorLineIds": ["L1486"]
+		},
+		{
+			"id": "facebook_objection",
+			"caseId": "facebook-full-privacy-policy",
+			"description": "Users can object to and restrict certain processing.",
+			"anchorLineIds": ["L1508"]
+		}
+	]
+}
