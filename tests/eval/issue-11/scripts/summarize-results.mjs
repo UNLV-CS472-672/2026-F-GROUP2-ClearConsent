@@ -1,7 +1,10 @@
 import { readFile } from 'node:fs/promises';
+import { MODELS, actualCostUsd } from './eval-config.mjs';
 
 if (process.argv.length !== 3) {
-	console.error('Usage: node tests/eval/summarize-results.mjs tests/eval/results/run-....jsonl');
+	console.error(
+		'Usage: node tests/eval/issue-11/scripts/summarize-results.mjs tests/eval/issue-11/results/run-....jsonl'
+	);
 	process.exit(2);
 }
 
@@ -55,13 +58,18 @@ const summary = [...groups.entries()].map(([configuration, rows]) => {
 		configuration,
 		responses: rows.length,
 		schemaSuccessRate: sum((row) => Number(row.schemaValid)) / rows.length,
+		evidenceMetric:
+			records[0].dataset === 'grounded-full' ? 'source_line_id_resolution' : 'exact_quote',
 		exactEvidenceRate: sum((row) => Number(row.evidenceQuotesValid)) / rows.length,
 		meanLatencyMs: sum((row) => row.latencyMs) / rows.length,
 		inputTokens: sum((row) => row.usage?.input_tokens ?? 0),
 		outputTokens: sum((row) => row.usage?.output_tokens ?? 0),
 		reasoningTokens: sum((row) => row.usage?.output_tokens_details?.reasoning_tokens ?? 0),
-		costUsd: sum((row) => row.costUsd),
-		exactRepeatAgreement: `${matchingRepeatCases}/${byCase.size}`
+		costUsd: sum((row) => {
+			const model = MODELS.find((candidate) => candidate.id === row.model);
+			return model && row.usage ? actualCostUsd(model, row.usage) : (row.costUsd ?? 0);
+		}),
+		exactRepeatAgreement: records[0].repeats > 1 ? `${matchingRepeatCases}/${byCase.size}` : null
 	};
 });
 

@@ -1,5 +1,6 @@
 import { appendFile, mkdir, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { parseArgs } from 'node:util';
 import {
 	MODELS,
 	REASONING_EFFORTS,
@@ -15,17 +16,35 @@ import {
 	validateAnalysis
 } from './eval-config.mjs';
 
-const cases = await loadCases();
-const estimate = estimateMaximumCost(cases);
-
-if (process.argv.length === 3 && process.argv[2] === '--estimate') {
-	console.log(JSON.stringify(estimate, null, 2));
-	process.exit(0);
+const { values } = parseArgs({
+	options: {
+		estimate: { type: 'boolean' },
+		run: { type: 'boolean' },
+		model: { type: 'string' },
+		effort: { type: 'string' },
+		repeats: { type: 'string' }
+	}
+});
+if (Boolean(values.estimate) === Boolean(values.run)) {
+	throw new Error('Specify exactly one of --estimate or --run.');
+}
+const models = values.model ? MODELS.filter((model) => model.id === values.model) : MODELS;
+if (models.length === 0) throw new Error(`Unknown model: ${values.model}`);
+const reasoningEfforts = values.effort ? [values.effort] : REASONING_EFFORTS;
+if (reasoningEfforts.some((effort) => !REASONING_EFFORTS.includes(effort))) {
+	throw new Error(`Unsupported reasoning effort: ${values.effort}`);
+}
+const repeats = values.repeats === undefined ? REPEATS : Number(values.repeats);
+if (!Number.isInteger(repeats) || repeats < 1 || repeats > 5) {
+	throw new Error('--repeats must be an integer from 1 to 5.');
 }
 
-if (process.argv.length !== 3 || process.argv[2] !== '--run') {
-	console.error('Usage: node tests/eval/run-eval.mjs --estimate | --run');
-	process.exit(2);
+const cases = await loadCases();
+const estimate = estimateMaximumCost(cases, { models, reasoningEfforts, repeats });
+
+if (values.estimate) {
+	console.log(JSON.stringify(estimate, null, 2));
+	process.exit(0);
 }
 
 if (process.env.RUN_MODEL_EVALS !== '1') {
@@ -43,10 +62,10 @@ if (!Number.isFinite(approvedMaximum) || approvedMaximum < estimate.maximumUsd) 
 
 const digest = createHash('sha256')
 	.update(
-		JSON.stringify({ cases, INSTRUCTIONS, RESPONSE_SCHEMA, MODELS, REASONING_EFFORTS, REPEATS })
+		JSON.stringify({ cases, INSTRUCTIONS, RESPONSE_SCHEMA, models, reasoningEfforts, repeats })
 	)
 	.digest('hex');
-const resultsDirectory = new URL('./results/', import.meta.url);
+const resultsDirectory = new URL('../results/', import.meta.url);
 await mkdir(resultsDirectory, { recursive: true });
 const fileName = `run-${new Date().toISOString().replaceAll(':', '-')}-${digest.slice(0, 12)}.jsonl`;
 const outputFile = new URL(fileName, resultsDirectory);
@@ -57,9 +76,9 @@ await writeFile(
 		createdAt: new Date().toISOString(),
 		digest,
 		caseIds: cases.map((testCase) => testCase.id),
-		models: MODELS.map((model) => model.id),
-		reasoningEfforts: REASONING_EFFORTS,
-		repeats: REPEATS,
+		models: models.map((model) => model.id),
+		reasoningEfforts,
+		repeats,
 		estimate
 	})}\n`,
 	{ flag: 'wx' }
@@ -72,9 +91,9 @@ console.log(`Local results: ${outputFile.pathname}`);
 
 let spentUsd = 0;
 for (const testCase of cases) {
-	for (const model of MODELS) {
-		for (const effort of REASONING_EFFORTS) {
-			for (let repeat = 1; repeat <= REPEATS; repeat++) {
+	for (const model of models) {
+		for (const effort of reasoningEfforts) {
+			for (let repeat = 1; repeat <= repeats; repeat++) {
 				const request = buildRequest(testCase, model.id, effort);
 				const started = performance.now();
 				let response;
