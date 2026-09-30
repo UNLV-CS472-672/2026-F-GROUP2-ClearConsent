@@ -1,5 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { htmlToText } from './html';
+import { pdfToText } from './pdf';
 
 export async function extractFromUrl(input: string) {
 	let url: URL;
@@ -31,8 +32,10 @@ export async function extractFromUrl(input: string) {
 	let title, text;
 	if (contentType.includes('text/html')) {
 		({ title, text } = htmlToText(await res.text()));
+	} else if (contentType.includes('application/pdf')) {
+		({ title, text } = await pdfToText(await res.arrayBuffer(), url));
 	} else {
-		error(400, `Only HTML pages are supported (got ${contentType || 'unknown type'}).`);
+		error(400, `Only HTML pages and PDFs are supported (got ${contentType || 'unknown type'}).`);
 	}
 
 	if (!text) {
