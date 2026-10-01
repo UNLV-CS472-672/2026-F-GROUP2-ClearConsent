@@ -46,5 +46,8 @@
 		"vite": "^8.0.16",
 		"vitest": "^5.0.0",
 		"wrangler": "4.130.0"
+	},
+	"dependencies": {
+		"unpdf": "^1.8.1"
 	}
 }
