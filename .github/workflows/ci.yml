@@ -33,3 +33,9 @@ jobs:
         run: npm run build
       - name: Run end-to-end tests
         run: npm run test:e2e
+      - name: Deploy via Wrangler
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
