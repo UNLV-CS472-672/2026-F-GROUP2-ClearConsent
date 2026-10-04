@@ -6,7 +6,8 @@
 
 <div class="h-screen w-screen bg-slate-300">
 	<h1 class="font-lg flex justify-center font-bold">
-		You've met with a terrible fate, havent you?
+		<!-- You've met with a terrible fate, havent you? -->
+		 A reference, or something similar.
 	</h1>
 	<div class="flex flex-row justify-center">
 		<a href="/" rel="external" class="flex text-xs text-blue-800 underline hover:text-blue-500">

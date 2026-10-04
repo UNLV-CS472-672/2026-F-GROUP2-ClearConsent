@@ -26,7 +26,7 @@
 		<br>
 		<div class="inline-block flex-col items-center justify-center">
 			<fieldset>
-				<legend class="inline-block text-xl font-bold">Paste Plaintext</legend>
+				<legend class="text-xl font-bold">Paste Plaintext</legend>
 				<textarea
 					name="pastebox"
 					id="pastebox"
