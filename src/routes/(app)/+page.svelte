@@ -1,12 +1,15 @@
 <script lang="ts">
 	let buttonstyle: string =
 		'flex justify-center font-bold border-2 border-black hover:border-black bg-fuchsia-950 hover:bg-fuchsia-300 hover:shadow-md hover:shadow-black/50 transition duration-250 border-blue-500 rounded-xl mt-1 mb-1 mr-20 ml-20';
-	import { getloggedin, toggleloggedin } from '../tempstate.svelte';
+	import Card from "$lib/components/Card.svelte";
 	let loggedin: boolean = $state(false);
 </script>
 
 <div class="tempelements flex h-screen w-screen justify-center">
 	<main class="pagecontent flex flex-1 flex-col items-center justify-center gap-2">
+		<Card mono=true center=true>
+			Learn more
+		</Card>
 		<div
 			class="urls flex flex-col justify-center rounded-xl border border-black/50 bg-slate-200 shadow-sm shadow-black/35"
 		>

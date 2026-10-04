@@ -5,7 +5,7 @@
 <!-- Basic "tab" component for unordered lists. -->
 <li
 	class="tab {activepage === href
-		? 'border-b- text-blue-500'
+		? 'border-b-2 text-blue-500'
 		: 'text-black'} text-xl hover:text-blue-500 w-full justify-center relative"
 >
 	<span class="flex relative justify-center items-center h-full w-full">

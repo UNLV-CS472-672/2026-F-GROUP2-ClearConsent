@@ -1,9 +1,10 @@
 <script lang="ts">
-	let { children, cardtitle = '', mono = false, center = false } = $props();
+	let { children, cardtitle = '', mono = false, center = false, href=''} = $props();
 </script>
 
 <!--  Extremely basic card -->
 <div class="max-w-md min-w-50 rounded-xl bg-white/85 shadow-xs shadow-black/25 hover:bg-white hover:shadow-md hover:shadow-black/50">
+<a href={!href ? '#' : href} class="{!href ? 'cursor-default' : 'cursor-pointer'}">
 	<div>
 		{#if !mono}
 			<div class="flex h-15 items-center justify-center rounded-t-xl bg-black/85">
@@ -17,4 +18,5 @@
 			</p>
 		</div>
 	</div>
+</a>
 </div>

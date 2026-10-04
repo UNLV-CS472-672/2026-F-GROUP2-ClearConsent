@@ -2,7 +2,7 @@
 	import type { LayoutProps } from './$types';
 	let { children }: LayoutProps = $props();
 	let sidebarbuttonclass: string =
-		'font-bold text-lg text-black w-full text-center border-slate-600 bg-slate-300/10 hover:bg-slate-300 rounded-sm justify-center';
+		'font-bold text-lg text-black w-full text-center border-slate-600 bg-slate-300/10 hover:bg-slate-300 justify-center';
 	let expanded = $state(false);
 </script>
 
@@ -20,7 +20,7 @@
 			<div
 				class="{expanded
 					? 'opacity-100'
-					: 'opacity-0'}  flex m-auto h-full w-full flex-col items-center justify-center gap-1 rounded-r-sm bg-slate-400 shadow-md shadow-black transition-all duration-750"
+					: 'opacity-0'}  flex m-auto h-full w-full flex-col items-center justify-center gap-1 bg-slate-400 shadow-md shadow-black transition-all duration-750"
 			>
 				<a href="/dashboard/upload" class={sidebarbuttonclass}>Upload</a>
 				<!-- <hr class="mx-auto w-7/8 border-slate-600/70" /> -->
