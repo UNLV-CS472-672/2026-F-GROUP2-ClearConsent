@@ -6,9 +6,9 @@
 </script>
 
 <div class="tempelements flex h-screen w-screen justify-center">
-	<main class="pagecontent flex flex-1 flex-col items-center justify-center gap-2">
-		<Card mono=true center=true>
-			Learn more
+	<main class="pagecontent flex flex-1 flex-col items-center justify-center gap-15">
+		<Card center={true} href='/about' cardtitle='Learn More'>
+			Sample Text
 		</Card>
 		<div
 			class="urls flex flex-col justify-center rounded-xl border border-black/50 bg-slate-200 shadow-sm shadow-black/35"

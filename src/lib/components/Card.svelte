@@ -7,7 +7,7 @@
 <a href={!href ? '#' : href} class="{!href ? 'cursor-default' : 'cursor-pointer'}">
 	<div>
 		{#if !mono}
-			<div class="flex h-15 items-center justify-center rounded-t-xl bg-black/85">
+			<div class="flex min-h-12 items-center justify-center rounded-t-xl bg-black/85">
 				<h1 class="text-xl font-bold text-white/85">{cardtitle}</h1>
 			</div>
 		{/if}
