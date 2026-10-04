@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { LayoutProps } from './$types';
-	import { getloggedin, toggleloggedin } from '../tempstate.svelte';
 	let { data, children }: LayoutProps = $props();
 	let tempclass: string =
 		'p-1 rounded-lg text-md font-semibold border-2 border-black h-9 text-white/75 bg-black/75 hover:bg-black/50 transition-colors';
@@ -21,18 +20,10 @@
 
 			<div class="flex flex-1 items-center justify-center gap-2">
 				<a href="/about" rel="external" class={tempclass}>About</a>
-				{#if getloggedin()}
-					<a href="/dashboard" rel="external" class={tempclass}>Dashboard</a>
-				{/if}
 			</div>
 			<div class="flex flex-1 justify-end gap-2">
-				{#if !getloggedin()}
-					<a href="/login" rel="external" class={tempclass}>Login</a>
-					<a href="/signup" rel="external" class={tempclass}>Sign Up</a>
-					<!-- <a href="/dashboard/settings" rel="external" class={tempclass}>Settings</a> -->
-				{:else}
-					<a href="/dashboard/settings" rel="external" class={tempclass}>Settings</a>
-				{/if}
+				<a href="/login" rel="external" class={tempclass}>Login</a>
+				<a href="/signup" rel="external" class={tempclass}>Sign Up</a>
 			</div>
 		</div>
 	</header>
@@ -41,7 +32,7 @@
 		{@render children()}
 	</main>
 
-	<footer class=" bg-slate-500 px-10 text-black/80">
+	<footer class="fixed bottom-0 w-screen bg-slate-500/25 px-10 text-black/80">
 		<div class="footer-container">
 			<div class="grid grid-cols-3 gap-8 md:grid-cols-4">
 				<div>
