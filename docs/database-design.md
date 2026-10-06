@@ -160,8 +160,8 @@ referenced finding belongs to the same analysis.
 ## Ownership and access control
 
 RLS is enabled on every public table. Anonymous users have no privileges on
-the persisted tables. Their analyses remain temporary unless they sign in and
-the application explicitly saves a result.
+the persisted tables. Analyses completed without an authenticated owner remain
+temporary and are not inserted into the persisted tables.
 
 Authenticated access is limited as follows:
 
@@ -177,9 +177,16 @@ cascades to its findings and preference evaluations. Deleting a Supabase Auth
 user cascades to that user's preferences and analyses, followed by their child
 records.
 
-The application should save an analysis and its child records atomically so a
-partial result is not visible. The exact API or database function used for
-that transaction remains an implementation decision.
+When an authenticated analysis becomes complete, the application assigns one
+stable analysis UUID before the first persistence attempt and reuses that UUID
+for every retry. The `analyses` primary key therefore acts as an idempotency
+key and prevents the same completed result from becoming duplicate history
+entries.
+
+The application must save the analysis and all child records atomically. A
+failed transaction must roll back every inserted row so incomplete results do
+not appear in history. The exact API or database function used for that
+transaction remains an implementation decision.
 
 ## Retention and deletion
 
