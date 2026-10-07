@@ -1,4 +1,4 @@
-﻿# ClearConsent
+# ClearConsent
 
 Privacy Translator & Data Footprint Map, built with SvelteKit, TypeScript,
 Tailwind, and the Cloudflare Workers adapter.
@@ -109,3 +109,8 @@ npm run test:e2e
 The end-to-end suite starts the local Vite development server automatically.
 CI installs Chromium with `npx playwright install --with-deps chromium` before
 running the suite.
+
+## Production deployment
+
+See [Production deployment](docs/deployment.md) for domain configuration, the
+validation-to-release workflow, required settings, and verification.
