@@ -1,3 +1,29 @@
+-- What this migration does, in plain language:
+-- Findings store their evidence as JSON. This adds a database rule so malformed
+-- evidence cannot be saved, even if a caller skips the application's validation.
+--
+-- Evidence must be a list with at least one object. Every object must contain an
+-- "excerpt" field holding text with at least one non-whitespace character.
+-- Extra fields are allowed. One invalid item makes the entire list invalid.
+-- For example, [{"excerpt":"Synthetic policy"}] passes; [null], [{}], [42],
+-- an empty list, and excerpts containing only spaces, tabs, or newlines fail.
+--
+-- The function below answers true or false. "immutable" means its answer depends
+-- only on the supplied JSON, not on database rows or the current user. An empty
+-- search_path prevents it from accidentally looking up objects in other schemas.
+-- Missing fields are checked explicitly because SQL NULL does not behave like
+-- an ordinary value in comparisons.
+--
+-- Permission to run the function is removed from the default public role and
+-- given to authenticated users, who need it when the database checks their inserts.
+-- This does not grant access to other users' findings; existing table permissions
+-- and ownership policies still control which rows a user can access.
+--
+-- Finally, the old evidence constraint is replaced with this stricter rule.
+-- PostgreSQL checks existing rows as well as future writes. If stored evidence
+-- is invalid, the migration fails rather than changing or deleting that evidence.
+-- This is the minimum evidence shape; issue #22 tracks further contract decisions.
+--
 -- Minimum persisted evidence shape from the existing seed/design. #22 owns extensions.
 create function public.evidence_objects_valid(value jsonb)
 returns boolean
