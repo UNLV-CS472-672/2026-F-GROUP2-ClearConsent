@@ -1,0 +1,15 @@
+https://www.mozilla.org/en-US/about/legal/terms/mozilla/
+https://github.com/site/terms
+https://www.gnu.org/licenses/gpl-3.0.en.html
+https://policies.google.com/terms
+https://www.apple.com/legal/internet-services/itunes/us/terms.html
+https://discord.com/terms
+https://slack.com/terms-of-service/user
+https://x.com/en/tos
+
+https://www.apple.com/legal/sla/docs/macOSSequoia.pdf
+https://www.apple.com/legal/sla/docs/xcode.pdf
+https://www.apple.com/legal/sla/docs/SafariWindows.pdf
+https://www.apple.com/legal/sla/docs/FinalCutPro.pdf
+https://www.jetbrains.com/legal/docs/toolbox/license_personal/license_personal.pdf
+https://www.jetbrains.com/legal/docs/toolbox/user/user.pdf
