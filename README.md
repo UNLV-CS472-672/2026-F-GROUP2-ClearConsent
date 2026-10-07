@@ -8,6 +8,8 @@ Tailwind, and the Cloudflare Workers adapter.
 - Node.js `^22.13.0 || >=24` (Node 20 and 23 are unsupported).
 - npm; the Windows setup fix is verified with Node `24.20.0` and npm `11.19.0`.
 - Git.
+- Docker Desktop or another Docker-compatible runtime when running Supabase
+  locally.
 - Windows: Microsoft Visual C++ Redistributable v14, required by the local
   Cloudflare development runtime. Install the architecture matching Windows
   before running `npm run dev`.
@@ -85,6 +87,20 @@ batch scripts. Wrangler's generated file is excluded from Prettier and ESLint;
 its content is verified by `gen:check` instead. Run `npm run format` for authored
 files. Existing Windows checkouts with CRLF source files can run that command
 once; fresh checkouts receive the declared line endings automatically.
+
+## Database
+
+See the [MVP database design](docs/database-design.md) for the schema, ER
+diagram, ownership policies, retention behavior, synthetic records, example
+queries, and deferred decisions.
+
+With Docker running, recreate and validate the local database:
+
+```sh
+npx supabase start
+npx supabase db reset
+npx supabase db lint --local --level warning --fail-on warning
+```
 
 ## Verification
 
