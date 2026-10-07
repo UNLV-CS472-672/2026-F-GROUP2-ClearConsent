@@ -4,7 +4,7 @@
 	let { data }: PageProps = $props();
 </script>
 
-<div class="inline-block h-screen w-screen items-center justify-center">
+<div class="inline-block h-screen w-screen pl-5">
 	<!-- <p class="flex justify-center text-slate-600">Overview</p> -->
 	<div class="m-auto flex py-5">
 		<Card cardtitle="" mono={true} center={true}>Overview</Card>

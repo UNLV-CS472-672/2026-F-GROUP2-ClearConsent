@@ -8,11 +8,11 @@
 
 <!-- Maybe just make the Navbar + Sidebar into components with toggleable elements
  and keep common code in the root layouts instead. -->
-<div class="pagecontent flex h-dvh bg-slate-300">
+<div class="pagecontent flex h-dvh bg-slate-400">
 	<aside
 		class="{expanded
 			? 'w-50 opacity-100'
-			: 'w-50 opacity-0'} flex h-screen transition-all delay-75 duration-750 ease-in-out"
+			: 'w-50 opacity-0'} flex left-0 top-0 bottom-0 transition-all delay-75 duration-750 ease-in-out z-1"
 		onmouseenter={() => (expanded = true)}
 		onmouseleave={() => (expanded = false)}
 	>
@@ -20,7 +20,7 @@
 			<div
 				class="{expanded
 					? 'opacity-100'
-					: 'opacity-0'}  flex m-auto h-full w-full flex-col items-center justify-center gap-1 bg-slate-400 shadow-md shadow-black transition-all duration-750"
+					: 'opacity-0'}  flex m-auto h-full w-full flex-col items-center justify-center gap-1 bg-slate-500 shadow-md shadow-black transition-all duration-750"
 			>
 				<a href="/dashboard/upload" class={sidebarbuttonclass}>Upload</a>
 				<!-- <hr class="mx-auto w-7/8 border-slate-600/70" /> -->

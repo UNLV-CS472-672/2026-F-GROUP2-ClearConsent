@@ -32,7 +32,7 @@
 		{@render children()}
 	</main>
 
-	<footer class="fixed bottom-0 w-screen bg-slate-500/25 px-10 text-black/80">
+	<footer class="absolute bottom-0 w-screen bg-slate-500 px-10 text-black/80">
 		<div class="footer-container">
 			<div class="grid grid-cols-3 gap-8 md:grid-cols-4">
 				<div>

@@ -2,5 +2,10 @@
 
 
 @theme {
-
+	--color-dark: #262626;
+	--color-darker: #191919;
+	--color-darkest: #0d0d0d;
+	--color-dark-fg: #212121;
+	--color-text-dark: #d7d7d9;
+	--color-border-dark: #d7d7d9;
 }

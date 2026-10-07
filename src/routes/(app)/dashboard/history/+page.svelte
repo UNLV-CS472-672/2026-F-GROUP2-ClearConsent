@@ -41,7 +41,7 @@
 	let sortedTimestamp: boolean = $state(true);
 </script>
 
-<div class="flex h-screen w-full items-center justify-center">
+<div class="flex h-screen w-full items-center justify-center pb-5">
 	<div class="flex h-7/8 w-7/8 flex-col items-center justify-center border border-black/40 inset-shadow-xs inset-shadow-black">
 		<h1 class="font-lg font-bold">Nothing substantial here yet. Come back later.</h1>
 		<table class="inline-table w-19/20 table-fixed">
