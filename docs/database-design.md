@@ -355,3 +355,11 @@ Separate profile, uploaded-document, Data Footprint, and conversation-history
 tables are intentionally omitted from the MVP. Authentication identity remains
 in Supabase Auth, each analysis contains one source, the Data Footprint is
 derived from findings, and document-specific questions are temporary.
+
+## Evidence validation follow-up
+
+The phase 1 migration requires every persisted evidence element to be an object
+with a nonblank string excerpt. It rejects null, empty objects and scalar elements.
+The existing synthetic seed remains valid. Additional evidence fields are allowed;
+#22 owns the final shared evidence contract. Run `npm run test:db` for disposable
+migration/seed/lint and authorization/constraint regression checks.

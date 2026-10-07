@@ -19,7 +19,9 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"gen": "node scripts/worker-types.js",
-		"gen:check": "node scripts/worker-types.js --check"
+		"gen:check": "node scripts/worker-types.js --check",
+		"test:offline": "node --test tests/eval/issue-11/regression.test.mjs",
+		"test:db": "node scripts/test-database.mjs"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",

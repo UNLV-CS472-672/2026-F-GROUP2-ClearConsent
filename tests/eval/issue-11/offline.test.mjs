@@ -309,7 +309,10 @@ test('sectioned requests partition each full policy without losing source lines'
 			const { request, lineMap } = buildSectionRequest(testCase, section);
 			assert.equal(request.reasoning.effort, 'medium');
 			assert.equal(request.model, 'gpt-6-luna');
-			assert.equal(lineMap.size, lines.filter((line) => line.trim()).length);
+			assert.equal(
+				lineMap.size,
+				lines.slice(section.contextStart, section.contextEnd).filter((line) => line.trim()).length
+			);
 			assert.ok(request.input[1].content.includes('CORE:'));
 		}
 	}

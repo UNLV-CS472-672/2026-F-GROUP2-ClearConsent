@@ -1,3 +1,4 @@
+import { summarizeCosts } from './cost-summary.mjs';
 import { readFile } from 'node:fs/promises';
 
 const resultsPaths = process.argv.slice(2);
@@ -59,7 +60,7 @@ const perPolicy = fixture.cases.map((testCase) => {
 		exactDuplicatePracticeAndCitation: exactKeys.length - new Set(exactKeys).size,
 		schemaIssues: calls.flatMap((record) => record.schemaIssues),
 		referenceIssues: calls.flatMap((record) => record.referenceIssues),
-		costUsd: calls.reduce((sum, record) => sum + (record.costUsd ?? 0), 0)
+		...summarizeCosts(records.filter((record) => record.caseId === testCase.id))
 	};
 });
 
