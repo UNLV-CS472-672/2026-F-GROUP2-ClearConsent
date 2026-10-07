@@ -1,0 +1,835 @@
+{
+	"sourceLog": "sectioned-full-run-2026-09-24T03-35-09.517Z-7d5fcecb2d20.jsonl",
+	"policyCaseId": "spotify-full-privacy-policy",
+	"findings": [
+		{
+			"id": "S1F1",
+			"practice": "account_data_collection",
+			"summary": "Spotify collects and uses User Data when people sign up or update their accounts.",
+			"sourceLineIds": ["L0140"],
+			"qualifications": [
+				{
+					"summary": "The data collected depends on the Service Option, account-creation method, country, and use of third-party sign-in services; some data comes from the user and some from the device.",
+					"sourceLineIds": ["L0140"]
+				}
+			]
+		},
+		{
+			"id": "S1F2",
+			"practice": "street_address_processing",
+			"summary": "Spotify may ask for and process a street address for the listed eligibility, notice, support, billing, tax, and delivery purposes.",
+			"sourceLineIds": ["L0141"],
+			"qualifications": [
+				{
+					"summary": "Use of a third-party application to verify an address is described as something Spotify may do, not as a universal practice.",
+					"sourceLineIds": ["L0141"]
+				}
+			]
+		},
+		{
+			"id": "S1F3",
+			"practice": "service_usage_and_technical_data_collection",
+			"summary": "Spotify collects and processes information about use of the Service, user activity and content, inferences, and technical details about devices, networks, and connected services.",
+			"sourceLineIds": ["L0146"],
+			"qualifications": [
+				{
+					"summary": "The policy lists examples of collected data; it does not state in this excerpt a purpose for every listed category.",
+					"sourceLineIds": ["L0146"]
+				}
+			]
+		},
+		{
+			"id": "S1F4",
+			"practice": "general_location_processing",
+			"summary": "Spotify may determine a user's general location from technical data or payment currency and use it for geographic requirements and relevance of content, advertising, and recommendations.",
+			"sourceLineIds": ["L0146"],
+			"qualifications": [
+				{
+					"summary": "The location described is general and non-precise; possible signals include IP address, device language setting, and payment currency.",
+					"sourceLineIds": ["L0146"]
+				}
+			]
+		},
+		{
+			"id": "S1F5",
+			"practice": "device_sensor_data_processing",
+			"summary": "Spotify processes sensor data about how a user moves or holds a device when needed for Service features that require it.",
+			"sourceLineIds": ["L0146"],
+			"qualifications": [
+				{
+					"summary": "This processing is limited to cases where a Service feature needs the sensor data.",
+					"sourceLineIds": ["L0146"]
+				}
+			]
+		},
+		{
+			"id": "S1F6",
+			"practice": "voice_data_collection",
+			"summary": "Spotify collects and processes voice recordings when a user chooses to use a voice feature.",
+			"sourceLineIds": ["L0151"],
+			"qualifications": [
+				{
+					"summary": "This applies only where voice features are available in the user's market and the user chooses to use one.",
+					"sourceLineIds": ["L0151"]
+				}
+			]
+		},
+		{
+			"id": "S1F7",
+			"practice": "message_data_collection",
+			"summary": "Spotify collects and processes content a user sends directly to another user through messaging.",
+			"sourceLineIds": ["L0152"],
+			"qualifications": [
+				{
+					"summary": "This applies only where messaging is available in the user's market and the user chooses to use it.",
+					"sourceLineIds": ["L0152"]
+				}
+			]
+		},
+		{
+			"id": "S1F8",
+			"practice": "age_check_data_processing",
+			"summary": "Spotify uses Age Check Data for age checks, including document verification or facial age estimation, and deletes all Age Check Data immediately after the check.",
+			"sourceLineIds": ["L0153"],
+			"qualifications": [
+				{
+					"summary": "The data is provided when a user chooses an age-check feature or a parent or legal guardian provides consent for a Managed Account.",
+					"sourceLineIds": ["L0153"]
+				},
+				{
+					"summary": "A face photo may also be used in some identity-document verification cases; facial age estimation uses a face photo.",
+					"sourceLineIds": ["L0153"]
+				},
+				{
+					"summary": "The policy states that Age Check Data is deleted immediately after the Age Check.",
+					"sourceLineIds": ["L0153"]
+				}
+			]
+		},
+		{
+			"id": "S1F9",
+			"practice": "payment_and_purchase_data_processing",
+			"summary": "Spotify processes payment information when a user makes a purchase or signs up for certain Service Options or a trial.",
+			"sourceLineIds": ["L0154"],
+			"qualifications": [
+				{
+					"summary": "The precise data collected varies by payment method.",
+					"sourceLineIds": ["L0154"]
+				},
+				{
+					"summary": "Spotify says it never stores a user's full card number.",
+					"sourceLineIds": ["L0154"]
+				}
+			]
+		},
+		{
+			"id": "S1F10",
+			"practice": "precise_location_processing",
+			"summary": "Spotify uses precise location data to offer location-related features, including nearby concert and event recommendations.",
+			"sourceLineIds": ["L0155"],
+			"qualifications": [
+				{
+					"summary": "Spotify says it uses precise location only with the user's permission, which can be granted through an in-app prompt and device settings.",
+					"sourceLineIds": ["L0155"]
+				}
+			]
+		},
+		{
+			"id": "S1F11",
+			"practice": "survey_and_research_data",
+			"summary": "Spotify collects and uses personal data a user provides in a survey or user research, as described in that survey or research.",
+			"sourceLineIds": ["L0156"],
+			"qualifications": []
+		},
+		{
+			"id": "S1F12",
+			"practice": "customer_service_data",
+			"summary": "Spotify collects information about a user's contacts with Customer Service, such as chats and email correspondence.",
+			"sourceLineIds": ["L0157"],
+			"qualifications": []
+		},
+		{
+			"id": "S1F13",
+			"practice": "authentication_partner_data",
+			"summary": "When a user registers for or logs in to Spotify using another service, that service sends information to Spotify to help create the account.",
+			"sourceLineIds": ["L0164"],
+			"qualifications": []
+		},
+		{
+			"id": "S1F14",
+			"practice": "connected_service_data",
+			"summary": "Spotify may collect and use information from third-party applications, services, or devices connected to a Spotify account to make the integration possible.",
+			"sourceLineIds": ["L0165"],
+			"qualifications": [
+				{
+					"summary": "Spotify says it will ask permission before collecting information from certain third parties; the policy does not say this applies to every source.",
+					"sourceLineIds": ["L0165"]
+				}
+			]
+		},
+		{
+			"id": "S1F15",
+			"practice": "technical_partner_data",
+			"summary": "Spotify receives data from technical service partners, including general-location data derived by mapping IP addresses, and works with partners that help protect accounts.",
+			"sourceLineIds": ["L0166"],
+			"qualifications": [
+				{
+					"summary": "The policy identifies IP-address mapping as one example of partner-provided data.",
+					"sourceLineIds": ["L0166"]
+				}
+			]
+		},
+		{
+			"id": "S1F16",
+			"practice": "payment_partner_and_merchant_data",
+			"summary": "Spotify may receive payment or purchase data from third-party payment partners, merchants, or platforms, including data related to purchases from merchants it directs users to.",
+			"sourceLineIds": ["L0167"],
+			"qualifications": [
+				{
+					"summary": "Payment-partner data may be received when a user chooses to pay through a third party or by invoice.",
+					"sourceLineIds": ["L0167"]
+				},
+				{
+					"summary": "Merchant data is described in connection with purchases made after Spotify directs a user to a merchant.",
+					"sourceLineIds": ["L0167"]
+				}
+			]
+		},
+		{
+			"id": "S1F17",
+			"practice": "advertising_partner_data",
+			"summary": "Spotify receives identifiers and partner-generated inferences about a user's interests and preferences from certain advertising or marketing partners for ad and marketing relevance and performance measurement.",
+			"sourceLineIds": ["L0168"],
+			"qualifications": []
+		},
+		{
+			"id": "S1F18",
+			"practice": "acquired_company_data",
+			"summary": "Spotify may receive personal data from companies it acquires to enhance its services, products, and offerings.",
+			"sourceLineIds": ["L0169"],
+			"qualifications": []
+		},
+		{
+			"id": "S1F19",
+			"practice": "logged_out_app_data",
+			"summary": "Spotify collects limited Usage Data when someone tries the mobile app while logged out and combines that data with account data if the person later creates an account.",
+			"sourceLineIds": ["L0171"],
+			"qualifications": [
+				{
+					"summary": "The described collection applies to a logged-out experience in the Spotify mobile app and is characterized as limited.",
+					"sourceLineIds": ["L0171"]
+				},
+				{
+					"summary": "Combination with account data occurs if the user decides to create an account.",
+					"sourceLineIds": ["L0171"]
+				}
+			]
+		},
+		{
+			"id": "S1F20",
+			"practice": "tailored_advertising",
+			"summary": "Spotify uses information about users to personalize advertising. A user who opts out still receives advertising, but it is less relevant and may be based on registration information and real-time Spotify usage.",
+			"sourceLineIds": ["L0116", "L0117", "L0126", "L0168"],
+			"qualifications": [
+				{
+					"summary": "Users can opt out through the Tailored Ads setting, the website's Your Privacy Choices link when not logged in or without an account, or a recognized preference signal; podcast controls may instead be managed by the hosting provider.",
+					"sourceLineIds": ["L0121", "L0122", "L0123", "L0124"]
+				},
+				{
+					"summary": "A preference signal may need to be renewed when using another device or browser or after clearing cookies.",
+					"sourceLineIds": ["L0124"]
+				},
+				{
+					"summary": "Opting out does not eliminate ads; less relevant advertising may appear on free or paid options, including podcast ads.",
+					"sourceLineIds": ["L0126"]
+				},
+				{
+					"summary": "Younger users may have tailored advertising turned off by default; it starts when they reach the appropriate age, with an in-Service notice and a way to change preferences or opt out.",
+					"sourceLineIds": ["L0130"]
+				}
+			]
+		},
+		{
+			"id": "S1F21",
+			"practice": "social_activity_controls",
+			"summary": "Spotify settings let users choose whether to share listening activity with followers, show recently played artists on a public profile, start a Private session, and turn off messaging where available.",
+			"sourceLineIds": ["L0063", "L0064", "L0065", "L0066", "L0067"],
+			"qualifications": [
+				{
+					"summary": "Messaging controls are available only if messaging is available in the user's market.",
+					"sourceLineIds": ["L0067"]
+				}
+			]
+		},
+		{
+			"id": "S1F22",
+			"practice": "marketing_notification_controls",
+			"summary": "Spotify provides Notification Settings for users to choose which marketing communications they receive.",
+			"sourceLineIds": ["L0062"],
+			"qualifications": []
+		},
+		{
+			"id": "S1F23",
+			"practice": "right_to_be_informed",
+			"summary": "Spotify provides information about its personal-data processing through this Policy, information shown during use of the Service, and answers to specific questions and requests.",
+			"sourceLineIds": ["L0087"],
+			"qualifications": []
+		},
+		{
+			"id": "S1F24",
+			"practice": "access_and_data_portability_rights",
+			"summary": "Users may request access to their personal data and an electronic copy for transmission to another party's service, using Spotify's download tool or contacting Spotify.",
+			"sourceLineIds": ["L0088", "L0092"],
+			"qualifications": [
+				{
+					"summary": "The download provides information Spotify is required to provide under applicable laws; users seeking more detail may contact Spotify.",
+					"sourceLineIds": ["L0088"]
+				}
+			]
+		},
+		{
+			"id": "S1F25",
+			"practice": "correction_right",
+			"summary": "Users may request correction of inaccurate personal data by editing User Data in their profile or contacting Spotify.",
+			"sourceLineIds": ["L0089"],
+			"qualifications": []
+		},
+		{
+			"id": "S1F26",
+			"practice": "deletion_right",
+			"summary": "Users may remove saved audio content, request deletion of account data and account closure, or contact Spotify about other deletion requests.",
+			"sourceLineIds": ["L0090"],
+			"qualifications": [
+				{
+					"summary": "Spotify may be unable to delete data that remains necessary for the purpose for which it was collected.",
+					"sourceLineIds": ["L0090"]
+				},
+				{
+					"summary": "Spotify may retain data when it has an overriding interest in continued processing, such as protecting its services from fraud.",
+					"sourceLineIds": ["L0090"]
+				},
+				{
+					"summary": "Spotify may retain data when legally obligated to do so.",
+					"sourceLineIds": ["L0090"]
+				},
+				{
+					"summary": "Spotify may retain data needed to establish, exercise, or defend legal claims, including an unresolved account issue.",
+					"sourceLineIds": ["L0090"]
+				}
+			]
+		},
+		{
+			"id": "S1F27",
+			"practice": "automated_decision_making_limitation",
+			"summary": "Spotify states that it does not make decisions in the Spotify Service based solely on automated processing, including profiling, when they would have a legal or similarly significant effect.",
+			"sourceLineIds": ["L0093"],
+			"qualifications": [
+				{
+					"summary": "The stated absence concerns decisions made solely by automated means that have a legal or similarly significant effect; the excerpt does not rule out other automated processing.",
+					"sourceLineIds": ["L0093"]
+				}
+			]
+		},
+		{
+			"id": "S1F28",
+			"practice": "consent_withdrawal_right",
+			"summary": "Users may withdraw consent by adjusting the relevant Spotify control or contacting Spotify.",
+			"sourceLineIds": ["L0094"],
+			"qualifications": [
+				{
+					"summary": "The right applies when Spotify processes the personal data solely on the basis of the user's consent.",
+					"sourceLineIds": ["L0094"]
+				}
+			]
+		},
+		{
+			"id": "S1F29",
+			"practice": "privacy_rights_non_discrimination",
+			"summary": "Spotify states that users will not receive discriminatory treatment for exercising privacy rights.",
+			"sourceLineIds": ["L0083"],
+			"qualifications": []
+		},
+		{
+			"id": "S1F30",
+			"practice": "privacy_request_identity_verification",
+			"summary": "Spotify asks for account-related details to verify requests to know, delete, or correct personal data.",
+			"sourceLineIds": ["L0098"],
+			"qualifications": [
+				{
+					"summary": "For a person without a Spotify account, Spotify says it lacks sufficient information to verify identity and link the person to a prior visit, and therefore cannot verify and honor the request.",
+					"sourceLineIds": ["L0098"]
+				}
+			]
+		},
+		{
+			"id": "S1F31",
+			"practice": "household_privacy_requests",
+			"summary": "When all household members make access, correction, or deletion requests, Spotify responds to them as individual requests.",
+			"sourceLineIds": ["L0102"],
+			"qualifications": [
+				{
+					"summary": "The stated treatment applies when all members of the household make the request.",
+					"sourceLineIds": ["L0102"]
+				}
+			]
+		},
+		{
+			"id": "S1F32",
+			"practice": "authorized_agent_requests",
+			"summary": "A user may designate an authorized agent in writing or through a power of attorney, in accordance with local law, to make privacy-rights requests on the user's behalf.",
+			"sourceLineIds": ["L0106"],
+			"qualifications": [
+				{
+					"summary": "Spotify requires proof that the agent is authorized and may require the user to verify their identity directly.",
+					"sourceLineIds": ["L0106"]
+				}
+			]
+		},
+		{
+			"id": "S1F33",
+			"practice": "privacy_request_appeals",
+			"summary": "A user whose request is denied may have a right to appeal the denial.",
+			"sourceLineIds": ["L0110"],
+			"qualifications": [
+				{
+					"summary": "Whether an appeal right is available and how to use it depends on the instructions provided with the denial.",
+					"sourceLineIds": ["L0110"]
+				}
+			]
+		},
+		{
+			"id": "S2F1",
+			"practice": "provide_service",
+			"summary": "Spotify uses these data categories to provide the Spotify Service, including account setup and personalization, app and feature delivery, link sharing, and age-appropriate experiences.",
+			"sourceLineIds": ["L0185"],
+			"qualifications": []
+		},
+		{
+			"id": "S2F2",
+			"practice": "location_based_recommendations",
+			"summary": "Spotify uses precise location data to improve recommendations and experiences, including location-specific event or trend suggestions; listening insights from a location may also inform similar suggestions to other nearby users.",
+			"sourceLineIds": ["L0186"],
+			"qualifications": [
+				{
+					"summary": "This use is described as applying where precise location data is available and the user has explicitly permitted it.",
+					"sourceLineIds": ["L0186"]
+				}
+			]
+		},
+		{
+			"id": "S2F3",
+			"practice": "diagnose_service_issues",
+			"summary": "Spotify uses the listed data categories to diagnose, troubleshoot, and fix issues with the Service.",
+			"sourceLineIds": ["L0187"],
+			"qualifications": []
+		},
+		{
+			"id": "S2F4",
+			"practice": "develop_features_and_models",
+			"summary": "Spotify uses the listed data categories to evaluate and develop Service features and improvements, including training algorithmic and machine-learning models, building AI features, and supporting enforcement of its rules and guidelines.",
+			"sourceLineIds": ["L0188"],
+			"qualifications": [
+				{
+					"summary": "The policy says these models help keep the Service safe and enhance users’ experience; examples include recommendation development, feature evaluation, AI features, and enforcement.",
+					"sourceLineIds": ["L0188"]
+				}
+			]
+		},
+		{
+			"id": "S2F5",
+			"practice": "marketing_and_advertising_use",
+			"summary": "Spotify uses the listed data categories for marketing and advertising, including interest-tailored advertising and email marketing.",
+			"sourceLineIds": ["L0189"],
+			"qualifications": []
+		},
+		{
+			"id": "S2F6",
+			"practice": "comply_with_legal_obligations",
+			"summary": "Spotify uses the listed data categories to comply with legal obligations that may arise under applicable local, Swedish, or EU law; an example is using date of birth for age assurance when required.",
+			"sourceLineIds": ["L0190"],
+			"qualifications": [
+				{
+					"summary": "Which obligation applies depends on the law of the user’s country or region and laws applicable to Spotify, including Swedish or EU law.",
+					"sourceLineIds": ["L0190"]
+				}
+			]
+		},
+		{
+			"id": "S2F7",
+			"practice": "fulfill_third_party_contracts",
+			"summary": "Spotify uses the listed data categories to fulfill contractual obligations with third parties; the example given is providing pseudonymized information about users’ listening to a rightsholder under an agreement.",
+			"sourceLineIds": ["L0191"],
+			"qualifications": [
+				{
+					"summary": "The rightsholder example uses pseudonymized data, identified by a code rather than a name or other directly identifying information.",
+					"sourceLineIds": ["L0191"]
+				}
+			]
+		},
+		{
+			"id": "S2F8",
+			"practice": "enforce_content_and_terms",
+			"summary": "Spotify uses the listed data categories to detect and investigate reports of possible inappropriate content or rule violations and to take appropriate action.",
+			"sourceLineIds": ["L0192"],
+			"qualifications": []
+		},
+		{
+			"id": "S2F9",
+			"practice": "legal_claims",
+			"summary": "Spotify uses the listed data categories to establish, exercise, or defend legal claims; information may be provided to its lawyers in litigation.",
+			"sourceLineIds": ["L0193"],
+			"qualifications": []
+		},
+		{
+			"id": "S2F10",
+			"practice": "business_planning",
+			"summary": "Spotify uses the listed data categories for business planning, reporting, and forecasting; the example is looking at aggregated signup counts by country to plan product or feature launches.",
+			"sourceLineIds": ["L0194"],
+			"qualifications": [
+				{
+					"summary": "The example specifically describes aggregated user data; the policy does not state that all use for this purpose is aggregated.",
+					"sourceLineIds": ["L0194"]
+				}
+			]
+		},
+		{
+			"id": "S2F11",
+			"practice": "process_payments",
+			"summary": "Spotify uses the listed data categories to process payments, including purchases of Spotify subscriptions.",
+			"sourceLineIds": ["L0195"],
+			"qualifications": []
+		},
+		{
+			"id": "S2F12",
+			"practice": "security_and_fraud_prevention",
+			"summary": "Spotify uses the listed data categories to secure the Service and detect and prevent fraud, including analyzing Usage Data for fraudulent use.",
+			"sourceLineIds": ["L0196"],
+			"qualifications": []
+		},
+		{
+			"id": "S2F13",
+			"practice": "research_and_surveys",
+			"summary": "Spotify uses the listed data categories to conduct research and surveys, including contacting users for feedback.",
+			"sourceLineIds": ["L0197"],
+			"qualifications": []
+		},
+		{
+			"id": "S2F14",
+			"practice": "visible_information_to_users",
+			"summary": "The listed profile, playlist, posted-content, and follower-count information is available to other Spotify users. The visibility of profiles of people followed or following may depend on the user’s settings.",
+			"sourceLineIds": ["L0206", "L0208", "L0209", "L0210", "L0211", "L0212"],
+			"qualifications": [
+				{
+					"summary": "A profile photo is included only if the user chooses to upload one.",
+					"sourceLineIds": ["L0209"]
+				},
+				{
+					"summary": "The profiles of people a user follows or who follow the user may be visible depending on settings.",
+					"sourceLineIds": ["L0212"]
+				}
+			]
+		},
+		{
+			"id": "S2F15",
+			"practice": "sharing_to_external_services",
+			"summary": "A user or another user can share the listed profile and Spotify content on third-party services; a receiving service may store a copy to support its features.",
+			"sourceLineIds": ["L0214", "L0216", "L0217", "L0218", "L0220"],
+			"qualifications": [
+				{
+					"summary": "The policy describes this sharing as something a user or another user can do, rather than an automatic disclosure by Spotify.",
+					"sourceLineIds": ["L0214"]
+				},
+				{
+					"summary": "The third-party service may retain a copy for its features.",
+					"sourceLineIds": ["L0220"]
+				}
+			]
+		},
+		{
+			"id": "S2F16",
+			"practice": "connected_apps_and_devices",
+			"summary": "Spotify may disclose User Data and Usage Data to connected third-party applications, services, or devices to enable the connection or use of Spotify with them.",
+			"sourceLineIds": ["L0224", "L0226", "L0231"],
+			"qualifications": [
+				{
+					"summary": "Disclosure is tied to the user choosing a relevant Spotify feature or third-party application, service, or device, or otherwise granting permission.",
+					"sourceLineIds": ["L0224", "L0226", "L0227"]
+				},
+				{
+					"summary": "Users can see and remove many third-party connections under Apps in their account.",
+					"sourceLineIds": ["L0231"]
+				}
+			]
+		},
+		{
+			"id": "S2F17",
+			"practice": "support_community_disclosure",
+			"summary": "To enable Support Community use, Spotify asks registrants to create a profile name and displays that name, along with questions or comments they post, publicly to anyone using the community.",
+			"sourceLineIds": ["L0232"],
+			"qualifications": []
+		},
+		{
+			"id": "S2F18",
+			"practice": "social_sharing_with_users",
+			"summary": "Spotify may disclose the listed data to other users to support social sharing, such as sharing recently played artists or playlists on a profile or creating shared playlists that provide listening-based recommendations.",
+			"sourceLineIds": ["L0233"],
+			"qualifications": [
+				{
+					"summary": "Examples of profile sharing are controlled through Social settings, and users can choose whether to share the described information or create or join shared playlists.",
+					"sourceLineIds": ["L0233"]
+				}
+			]
+		},
+		{
+			"id": "S2F19",
+			"practice": "artist_promotional_disclosure",
+			"summary": "Spotify may share User Data with artists, record labels, or other partners so users can receive their news or promotional offers.",
+			"sourceLineIds": ["L0234"],
+			"qualifications": [
+				{
+					"summary": "The user may choose to share this data when signing up and can withdraw consent at any time.",
+					"sourceLineIds": ["L0224", "L0227", "L0234"]
+				}
+			]
+		},
+		{
+			"id": "S2F20",
+			"practice": "service_provider_disclosure",
+			"summary": "Spotify discloses the listed data categories to service providers so they can provide services to Spotify, including customer support, technical infrastructure, system security, marketing assistance, and eligibility verification.",
+			"sourceLineIds": ["L0242"],
+			"qualifications": []
+		},
+		{
+			"id": "S2F21",
+			"practice": "payment_partner_disclosure",
+			"summary": "Spotify discloses User Data and Payment and Purchase Data to payment partners to process payments and for anti-fraud purposes.",
+			"sourceLineIds": ["L0243"],
+			"qualifications": []
+		},
+		{
+			"id": "S2F22",
+			"practice": "advertising_partner_disclosure",
+			"summary": "Spotify discloses User Data and Usage Data to advertising partners for relevant advertising on Spotify and online and to measure ad effectiveness.",
+			"sourceLineIds": ["L0244"],
+			"qualifications": [
+				{
+					"summary": "Spotify says it does not disclose personal data to advertising partners for users under 18.",
+					"sourceLineIds": ["L0244"]
+				}
+			]
+		},
+		{
+			"id": "S2F23",
+			"practice": "marketing_partner_disclosure",
+			"summary": "Spotify discloses certain User Data and Usage Data to marketing partners where necessary for promotions, advertising Spotify on other services, and measuring promotion effectiveness. Spotify and partners may use the disclosed data with other data they collect to present offers or marketing considered relevant.",
+			"sourceLineIds": ["L0245"],
+			"qualifications": [
+				{
+					"summary": "For users under 18, Spotify does not disclose personal data to marketing partners by default; the policy does not state that this is an absolute prohibition.",
+					"sourceLineIds": ["L0245"]
+				},
+				{
+					"summary": "Partners may combine the disclosed data with other data they collect about the user, such as use of their services.",
+					"sourceLineIds": ["L0245"]
+				}
+			]
+		},
+		{
+			"id": "S2F24",
+			"practice": "event_ticketing_disclosure",
+			"summary": "For events for which Spotify sells tickets, Spotify discloses the purchaser’s name, email, or other order details to event partners so the purchaser can be checked in as a verifiable ticket buyer.",
+			"sourceLineIds": ["L0246"],
+			"qualifications": [
+				{
+					"summary": "The disclosure is described for each event for which Spotify sells tickets and goes to partners for the event location.",
+					"sourceLineIds": ["L0246"]
+				}
+			]
+		},
+		{
+			"id": "S2F25",
+			"practice": "podcast_hosting_disclosure",
+			"summary": "When a user plays a podcast, Spotify discloses certain data, such as the user’s IP address, to the podcast hosting platform so it can deliver the podcast; Spotify also allows streaming podcasts hosted by other platforms.",
+			"sourceLineIds": ["L0247"],
+			"qualifications": [
+				{
+					"summary": "The policy directs users to the episode or show description to identify the hosting platform and to that platform’s privacy policy for its use of disclosed data.",
+					"sourceLineIds": ["L0247"]
+				}
+			]
+		},
+		{
+			"id": "S2F26",
+			"practice": "pseudonymized_research_disclosure",
+			"summary": "Spotify discloses User Data and Usage Data to academic researchers for activities such as statistical analysis and academic study.",
+			"sourceLineIds": ["L0248"],
+			"qualifications": [
+				{
+					"summary": "The disclosure is limited to pseudonymized format.",
+					"sourceLineIds": ["L0248"]
+				}
+			]
+		},
+		{
+			"id": "S2F27",
+			"practice": "group_company_disclosure",
+			"summary": "Spotify shares the listed data categories with other group companies for daily operations and to maintain, improve, and provide services, including feature development and measurement of advertising or podcast listening trends.",
+			"sourceLineIds": ["L0249"],
+			"qualifications": []
+		},
+		{
+			"id": "S2F28",
+			"practice": "business_transaction_transfer",
+			"summary": "Spotify may transfer the listed data categories to a successor or affiliate as part of a transaction involving the sale, or negotiation to sell, any part of its business.",
+			"sourceLineIds": ["L0250"],
+			"qualifications": [
+				{
+					"summary": "This disclosure is conditional on Spotify selling or negotiating to sell part of its business.",
+					"sourceLineIds": ["L0250"]
+				}
+			]
+		},
+		{
+			"id": "S2F29",
+			"practice": "disclosure_to_courts_and_authorities",
+			"summary": "Spotify may process and share personal data in response to requests from courts, authorities, litigation parties, or other authorized third parties when it believes in good faith that disclosure is necessary for the stated legal or protective purposes.",
+			"sourceLineIds": ["L0252", "L0254", "L0255", "L0256", "L0258"],
+			"qualifications": [
+				{
+					"summary": "The policy frames these disclosures as occurring when Spotify believes in good faith they are necessary, including for legal obligations, valid legal process, or specified justifiable interests.",
+					"sourceLineIds": ["L0252", "L0254", "L0255", "L0256"]
+				},
+				{
+					"summary": "The categories of personal data involved depend on the specific request.",
+					"sourceLineIds": ["L0258"]
+				}
+			]
+		},
+		{
+			"id": "S2F30",
+			"practice": "general_retention_limit",
+			"summary": "Spotify says it keeps personal data only as long as necessary to provide the Service and for legitimate and essential business purposes, including performance, business decisions, legal compliance, and dispute resolution.",
+			"sourceLineIds": ["L0263", "L0265", "L0266", "L0267", "L0268"],
+			"qualifications": []
+		},
+		{
+			"id": "S2F31",
+			"practice": "user_controlled_retention",
+			"summary": "For information users can see and update themselves, Spotify keeps it for as long as the user chooses; users may request deletion of certain personal data or delete some data directly in the Service, such as a profile picture.",
+			"sourceLineIds": ["L0274", "L0276"],
+			"qualifications": [
+				{
+					"summary": "User-controlled retention is subject to limited purposes described elsewhere in the retention section, and deletion requests are subject to the circumstances in which Spotify can act on them.",
+					"sourceLineIds": ["L0274", "L0276"]
+				}
+			]
+		},
+		{
+			"id": "S2F32",
+			"practice": "time_limited_retention",
+			"summary": "Some personal data expires after a specified period; the policy gives search-query data as an example that is deleted after 90 days.",
+			"sourceLineIds": ["L0280"],
+			"qualifications": [
+				{
+					"summary": "The stated period is subject to other applicable retention rules in the retention section.",
+					"sourceLineIds": ["L0280"]
+				}
+			]
+		},
+		{
+			"id": "S2F33",
+			"practice": "account_lifetime_retention",
+			"summary": "Spotify keeps some data, including usernames, profile information, and streaming history, until the account is deleted; streaming history supports retrospective playlists and recommendations based on listening habits.",
+			"sourceLineIds": ["L0284"],
+			"qualifications": [
+				{
+					"summary": "When the account is deleted, this category of data is deleted or de-identified.",
+					"sourceLineIds": ["L0284"]
+				}
+			]
+		},
+		{
+			"id": "S2F34",
+			"practice": "post_deletion_limited_retention",
+			"summary": "Spotify may retain some data for an extended period after account deletion for limited purposes, including legal or contractual obligations, investigations, litigation, user safety, or protection against harmful content; it may also retain data removed from the Service for a limited period.",
+			"sourceLineIds": ["L0288", "L0290", "L0291"],
+			"qualifications": [
+				{
+					"summary": "Extended post-deletion retention is described as applying only to some data and for limited purposes; the excerpt does not specify a uniform retention period.",
+					"sourceLineIds": ["L0288", "L0290", "L0291"]
+				}
+			]
+		},
+		{
+			"id": "S2F35",
+			"practice": "immediate_age_check_deletion",
+			"summary": "Spotify deletes Age Check Data immediately after the age check is complete.",
+			"sourceLineIds": ["L0292"],
+			"qualifications": []
+		},
+		{
+			"id": "S2F36",
+			"practice": "international_data_transfers",
+			"summary": "Spotify transfers personal data internationally with group companies, subcontractors, and partners when carrying out activities described in the policy.",
+			"sourceLineIds": ["L0297"],
+			"qualifications": [
+				{
+					"summary": "Spotify says it uses tools to ensure transfers comply with applicable law and adds protections as appropriate, including encryption, pseudonymization, and processes to challenge certain government requests.",
+					"sourceLineIds": ["L0299", "L0301", "L0303", "L0304"]
+				}
+			]
+		},
+		{
+			"id": "S2F37",
+			"practice": "security_safeguards",
+			"summary": "Spotify says it uses appropriate technical and organizational measures and safeguards, including pseudonymization, encryption, and access and retention policies, to protect personal data.",
+			"sourceLineIds": ["L0309", "L0311"],
+			"qualifications": [
+				{
+					"summary": "Spotify cautions that no system is ever completely secure.",
+					"sourceLineIds": ["L0309"]
+				}
+			]
+		},
+		{
+			"id": "S2F38",
+			"practice": "shared_account_access",
+			"summary": "Anyone with access to a user’s account can access personal data, controls, and Service features available in that account; their use may affect personalized recommendations.",
+			"sourceLineIds": ["L0323", "L0325"],
+			"qualifications": [
+				{
+					"summary": "Spotify places responsibility on the user to allow account access only if comfortable sharing personal data; shared-device use is given as an example.",
+					"sourceLineIds": ["L0323", "L0325"]
+				}
+			]
+		},
+		{
+			"id": "S2F39",
+			"practice": "children_under_age_limit",
+			"summary": "Outside Managed Accounts and Spotify Kids, Spotify says it does not knowingly collect or use personal data from children under the applicable Age Limit. If it learns it has collected such data, it will take reasonable steps to delete it, which may require deleting the child’s account.",
+			"sourceLineIds": ["L0330", "L0332", "L0336"],
+			"qualifications": [
+				{
+					"summary": "The policy’s statement excludes Managed Accounts and Spotify Kids, which have separate privacy notices, and the standard Service has a country- or region-specific minimum age.",
+					"sourceLineIds": ["L0330", "L0332", "L0336"]
+				},
+				{
+					"summary": "A person above the Age Limit but below the age of majority may use the Service only with parent or legal guardian consent.",
+					"sourceLineIds": ["L0334"]
+				}
+			]
+		},
+		{
+			"id": "S2F40",
+			"practice": "third_party_link_data_collection",
+			"summary": "Clicking links to third-party websites, plug-ins, or applications may allow those third parties to collect or share data about the user; Spotify says it does not control those sites and is not responsible for their privacy practices.",
+			"sourceLineIds": ["L0343"],
+			"qualifications": [
+				{
+					"summary": "The policy describes collection or sharing as a possibility arising from clicking a third-party link, and does not specify the data categories or the third party’s purposes.",
+					"sourceLineIds": ["L0343"]
+				}
+			]
+		}
+	]
+}
