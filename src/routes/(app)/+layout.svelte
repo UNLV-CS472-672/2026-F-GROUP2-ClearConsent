@@ -1,14 +1,13 @@
 <script lang="ts">
+	import NavBarLink from '$lib/components/NavBarLink.svelte';
 	import type { LayoutProps } from './$types';
 	let { data, children }: LayoutProps = $props();
-	let tempclass: string =
-		'p-1 rounded-lg text-md font-semibold border-2 border-black h-9 text-white/75 bg-black/75 hover:bg-black/50 transition-colors';
 </script>
 
 <div class="relative flex min-h-screen flex-1 flex-col">
-	<header class="flex border-b-2 bg-slate-600">
-		<div class="navbar flex flex-1 flex-row p-1 shadow-md shadow-black/50">
-			<div class="flex flex-1">
+	<header>
+		<div class="navbar fixed flex w-screen flex-row border-b-2 bg-slate-600 p-1 shadow-xs shadow-black/50">
+			<div class="nav-left flex flex-1">
 				<a
 					href="/"
 					rel="external"
@@ -18,12 +17,13 @@
 				</a>
 			</div>
 
-			<div class="flex flex-1 items-center justify-center gap-2">
-				<a href="/about" rel="external" class={tempclass}>About</a>
+			<div class="nav-center flex flex-1 items-center justify-center gap-2">
+				<NavBarLink href="/about">About</NavBarLink>
 			</div>
-			<div class="flex flex-1 justify-end gap-2">
-				<a href="/login" rel="external" class={tempclass}>Login</a>
-				<a href="/signup" rel="external" class={tempclass}>Sign Up</a>
+
+			<div class="nav-right flex flex-1 items-center justify-end gap-5 pr-2">
+				<NavBarLink href="/login">Sign In</NavBarLink>
+				<NavBarLink href="/signup" button={true}>Sign Up</NavBarLink>
 			</div>
 		</div>
 	</header>

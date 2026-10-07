@@ -5,7 +5,9 @@
 	--color-dark: #262626;
 	--color-darker: #191919;
 	--color-darkest: #0d0d0d;
-	--color-dark-fg: #212121;
-	--color-text-dark: #d7d7d9;
+	--color-dark-fg: #3a3a3a;
+	--color-darktext: #d7d7d9;
 	--color-border-dark: #d7d7d9;
+	--color-url-hover: #54ACE3;
+	--color-floral-white: #f7f4ea;
 }

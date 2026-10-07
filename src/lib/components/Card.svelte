@@ -22,11 +22,11 @@
 		<div>
 			{#if !mono}
 				<div class="flex min-h-12 items-center justify-center rounded-t-xl bg-dark-fg">
-					<h1 class="text-xl font-bold text-text-dark">{cardtitle}</h1>
+					<h1 class="text-xl font-bold text-darktext">{cardtitle}</h1>
 				</div>
 				{:else}
 					<div class="flex {!cardtitle ? 'hidden' : 'min-h-12'} items-center justify-center">
-						<h1 class="text-xl font-bold text-text-dark">{cardtitle}</h1>
+						<h1 class="text-xl font-bold text-darktext">{cardtitle}</h1>
 					</div>
 			{/if}
 

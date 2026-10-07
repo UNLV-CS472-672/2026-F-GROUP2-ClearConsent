@@ -31,15 +31,5 @@
 				>
 			{/if}
 		</div>
-		{#if loggedin}
-			<div class="urls justify-center rounded-xl border bg-slate-200 p-1">
-				<p class="text-center font-bold text-slate-500">
-					"Logged" in state will not persist for now.
-				</p>
-				<p class="text-center font-bold text-slate-500">
-					- Remove login/signup from navbar and replace with dashboard
-				</p>
-			</div>
-		{/if}
 	</main>
 </div>
