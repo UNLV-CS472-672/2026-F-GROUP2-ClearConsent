@@ -1,4 +1,6 @@
 function decodeEntities(text: string): string {
+	// Decode once so escaped literal text such as &amp;#39; stays &#39;, rather than
+	// becoming an apostrophe through recursive decoding.
 	return text.replace(/&(?:nbsp|amp|apos|quot|#(?:x[0-9a-f]+|[0-9]+));/gi, (entity) => {
 		const named: Record<string, string> = { nbsp: ' ', amp: '&', apos: "'", quot: '"' };
 		const value = entity.slice(1, -1).toLowerCase();
