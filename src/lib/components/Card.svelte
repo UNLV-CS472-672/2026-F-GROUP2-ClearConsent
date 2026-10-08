@@ -3,6 +3,7 @@
 		children,
 		cardtitle = '', // "Header" of card
 		mono = false, // Single color, only main text
+		titleonly = false,
 		center = false, // Center text
 		href = '', // Optional URL
 		rise = false // Rising animation on hover

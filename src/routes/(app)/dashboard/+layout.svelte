@@ -12,7 +12,7 @@
 	<aside
 		class="{expanded
 			? 'w-50 opacity-100'
-			: 'w-50 opacity-0'} flex left-0 top-0 bottom-0 transition-all delay-75 duration-750 ease-in-out z-1"
+			: 'w-50 opacity-0'} top-0 bottom-0 left-0 z-1 flex transition-all delay-75 duration-750 ease-in-out"
 		onmouseenter={() => (expanded = true)}
 		onmouseleave={() => (expanded = false)}
 	>
@@ -20,8 +20,9 @@
 			<div
 				class="{expanded
 					? 'opacity-100'
-					: 'opacity-0'}  flex m-auto h-full w-full flex-col items-center justify-center gap-1 bg-slate-500 shadow-md shadow-black transition-all duration-750"
+					: 'opacity-0'}  m-auto flex h-full w-full flex-col items-center justify-center gap-1 bg-slate-500 shadow-md shadow-black transition-all duration-750"
 			>
+				<a href="/dashboard" class={sidebarbuttonclass}>Overview</a>
 				<a href="/dashboard/upload" class={sidebarbuttonclass}>Upload</a>
 				<!-- <hr class="mx-auto w-7/8 border-slate-600/70" /> -->
 				<a href="/dashboard/history" class={sidebarbuttonclass}>History</a>

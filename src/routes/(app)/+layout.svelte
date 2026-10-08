@@ -6,7 +6,7 @@
 
 <div class="relative flex min-h-screen flex-1 flex-col">
 	<header>
-		<div class="navbar fixed flex w-screen flex-row border-b-2 bg-slate-600 p-1 shadow-xs shadow-black/50">
+		<div class="navbar flex w-screen flex-row border-b-2 bg-slate-600 p-1 shadow-xs shadow-black/50">
 			<div class="nav-left flex flex-1">
 				<a
 					href="/"

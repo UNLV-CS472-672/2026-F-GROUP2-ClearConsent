@@ -39,54 +39,49 @@
 	);
 	let sortedState: number = $state(-1); //-1 descending 1 ascending
 	let sortedTimestamp: boolean = $state(true);
+	import Table from '$lib/components/Table.svelte';
 </script>
 
 <div class="flex h-screen w-full items-center justify-center pb-5">
-	<div class="flex h-7/8 w-7/8 flex-col items-center justify-center border border-black/40 inset-shadow-xs inset-shadow-black">
+	<div
+		class="flex h-7/8 w-7/8 flex-col items-center justify-center border border-black/40 inset-shadow-xs inset-shadow-black"
+	>
 		<h1 class="font-lg font-bold">Nothing substantial here yet. Come back later.</h1>
-		<table class="inline-table w-19/20 table-fixed">
-			<colgroup>
-				<col style="width:3%" />
-				<col style="width:5%" />
-				<col style="width:3%" />
-			</colgroup>
-
-			<thead >
+		<Table>
+			<tr class="border">
+				<td
+					class="border-r text-center text-xl font-bold hover:cursor-pointer hover:bg-slate-400"
+					onclick={() => {
+						if (sortedTimestamp) {
+							sampledata.sort((a, b) => a.name.localeCompare(b.name)).reverse();
+							sortedTimestamp = false;
+						} else sampledata.reverse();
+					}}>Name</td
+				>
+				<td class="border-r text-center text-xl font-bold">Hash</td>
+				<td
+					class="text-center text-xl font-bold hover:cursor-pointer hover:bg-slate-400"
+					onclick={() => {
+						if (!sortedTimestamp) {
+							sortedState = -1;
+							sampledata.sort((a, b) => {
+								return new Date(b.timestamp) - new Date(a.timestamp);
+							});
+						} else {
+							sampledata.reverse();
+							sortedState *= -1;
+						}
+						sortedTimestamp = true;
+					}}>Timestamp</td
+				>
+			</tr>
+			{#each sampledata as item (item.name)}
 				<tr class="border">
-					<td
-						class="border-r text-center text-xl font-bold hover:cursor-pointer hover:bg-slate-400"
-						onclick={() => {
-							if (sortedTimestamp) {
-								sampledata.sort((a, b) => a.name.localeCompare(b.name)).reverse();
-								sortedTimestamp = false;
-							} else sampledata.reverse();
-						}}>Name</td
-					>
-					<td class="border-r text-center text-xl font-bold">Hash</td>
-					<td
-						class="text-center text-xl font-bold hover:cursor-pointer hover:bg-slate-400"
-						onclick={() => {
-							if (!sortedTimestamp) {
-								sortedState = -1;
-								sampledata.sort((a, b) => {
-									return new Date(b.timestamp) - new Date(a.timestamp);
-								});
-							} else {
-								sampledata.reverse();
-								sortedState *= -1;
-							}
-							sortedTimestamp = true;
-						}}>Timestamp</td
-					>
+					<td class="truncate border-r pr-1 pl-1" title={item.name}>{item.name}</td>
+					<td class="truncate border-r pr-1 pl-1" title={item.hash}>{item.hash}</td>
+					<td class="pr-1 pl-1" title={item.timestamp}>{item.timestamp}</td>
 				</tr>
-				{#each sampledata as item (item.name)}
-					<tr class="border">
-						<td class="truncate border-r pr-1 pl-1" title={item.name}>{item.name}</td>
-						<td class="truncate border-r pr-1 pl-1" title={item.hash}>{item.hash}</td>
-						<td class="pr-1 pl-1" title={item.timestamp}>{item.timestamp}</td>
-					</tr>
-				{/each}
-			</thead>
-		</table>
+			{/each}
+		</Table>
 	</div>
 </div>
