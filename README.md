@@ -62,6 +62,12 @@ npm run preview
 Preview normally serves `http://localhost:4173`. Both should display the SvelteKit
 starter page. Stop the server with Ctrl+C.
 
+## Stage 1 policy analysis
+
+See [Stage 1 server analysis](docs/stage-1-analysis.md) for the protected plain-text
+analysis endpoint, private OpenAI configuration, source-reference convention,
+synthetic examples, local verification, and deferred integration decisions.
+
 ## Generated types and formatting
 
 `npm run gen` generates `worker-configuration.d.ts` from `wrangler.jsonc` using

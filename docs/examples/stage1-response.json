@@ -1,0 +1,144 @@
+{
+	"stage": "evidence_extraction",
+	"schemaVersion": "stage1-internal-v1",
+	"stageStatus": "complete",
+	"analysisStatus": "in_progress",
+	"coverage": "complete",
+	"source": {
+		"id": "S-685f8b9d65fb7e47a9a9528c",
+		"identity": "sha256-utf8",
+		"offsetConvention": "utf16-start-inclusive-end-exclusive",
+		"textLength": 396,
+		"title": "Synthetic ClearConsent policy",
+		"url": "https://example.invalid/privacy",
+		"passages": [
+			{
+				"id": "P001",
+				"startOffset": 0,
+				"endOffset": 396,
+				"text": "We collect approximate location from your IP address to operate the service. We share approximate location with advertising partners only if you enable personalized ads. You can disable personalized ads in Settings; this stops that sharing. We do not sell personal data. We delete your account data within 30 days of a verified deletion request, except records we must keep for legal obligations."
+			}
+		]
+	},
+	"candidates": [
+		{
+			"id": "C001",
+			"category": "collection",
+			"practice": "location collection",
+			"claim": "Approximate location is collected from the user's IP address to operate the service.",
+			"explanation": "The clause identifies the data, collection source, and service-operation purpose.",
+			"qualifiers": [],
+			"uncertainty": null,
+			"dataCategories": ["approximate location"],
+			"purposes": ["operate the service"],
+			"recipients": [],
+			"evidence": [
+				{
+					"passageId": "P001",
+					"excerpt": "We collect approximate location from your IP address to operate the service.",
+					"startOffset": 0,
+					"endOffset": 76
+				}
+			]
+		},
+		{
+			"id": "C002",
+			"category": "third_party_sharing",
+			"practice": "conditional advertising disclosure",
+			"claim": "Approximate location is shared with advertising partners only when personalized ads are enabled.",
+			"explanation": "The clause describes a third-party disclosure conditioned on a user setting.",
+			"qualifiers": ["Only if personalized ads are enabled."],
+			"uncertainty": null,
+			"dataCategories": ["approximate location"],
+			"purposes": ["personalized advertising"],
+			"recipients": ["advertising partners"],
+			"evidence": [
+				{
+					"passageId": "P001",
+					"excerpt": "We share approximate location with advertising partners only if you enable personalized ads.",
+					"startOffset": 77,
+					"endOffset": 169
+				}
+			]
+		},
+		{
+			"id": "C003",
+			"category": "user_choice",
+			"practice": "advertising control",
+			"claim": "Disabling personalized ads stops the location sharing described by the policy.",
+			"explanation": "The policy identifies a settings control and its effect on the disclosure.",
+			"qualifiers": ["The control applies to the described personalized-ad sharing."],
+			"uncertainty": null,
+			"dataCategories": ["approximate location"],
+			"purposes": ["personalized advertising"],
+			"recipients": ["advertising partners"],
+			"evidence": [
+				{
+					"passageId": "P001",
+					"excerpt": "You can disable personalized ads in Settings; this stops that sharing.",
+					"startOffset": 170,
+					"endOffset": 240
+				}
+			]
+		},
+		{
+			"id": "C004",
+			"category": "sale",
+			"practice": "explicit no-sale statement",
+			"claim": "The policy states that personal data is not sold.",
+			"explanation": "This is an explicit denial of sale, but it does not deny every form of sharing.",
+			"qualifiers": ["The statement concerns sale only."],
+			"uncertainty": null,
+			"dataCategories": ["personal data"],
+			"purposes": [],
+			"recipients": [],
+			"evidence": [
+				{
+					"passageId": "P001",
+					"excerpt": "We do not sell personal data.",
+					"startOffset": 241,
+					"endOffset": 270
+				}
+			]
+		},
+		{
+			"id": "C005",
+			"category": "deletion",
+			"practice": "account-data deletion",
+			"claim": "Account data is deleted within 30 days after a verified request, except for legally required records.",
+			"explanation": "The clause states a deadline, a verification condition, and a legal-retention exception.",
+			"qualifiers": [
+				"The deletion request must be verified.",
+				"Records required for legal obligations are excepted."
+			],
+			"uncertainty": null,
+			"dataCategories": ["account data"],
+			"purposes": ["legal obligations"],
+			"recipients": [],
+			"evidence": [
+				{
+					"passageId": "P001",
+					"excerpt": "We delete your account data within 30 days of a verified deletion request, except records we must keep for legal obligations.",
+					"startOffset": 271,
+					"endOffset": 396
+				}
+			]
+		}
+	],
+	"downstream": {
+		"nextStage": "consolidation",
+		"preferences": {
+			"advertising": "avoid"
+		}
+	},
+	"provider": {
+		"model": "gpt-6-luna",
+		"reasoningEffort": "medium",
+		"attempts": 1,
+		"usage": null
+	},
+	"limitations": {
+		"referenceValidation": "structural_and_referential_only",
+		"semanticReviewRequired": true
+	}
+}
