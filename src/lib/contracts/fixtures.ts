@@ -17,7 +17,7 @@ export const successFixture: AnalysisResult = {
 			recipients: [],
 			evidence: [
 				{
-					passageID: 'P1',
+					passageId: 'P1',
 					excerpt: 'We collect approximate location from your IP address to operate the service.'
 				}
 			]
@@ -32,12 +32,12 @@ export const successFixture: AnalysisResult = {
 			recipients: ['Advertising partners'],
 			evidence: [
 				{
-					passageID: 'P2',
+					passageId: 'P2',
 					excerpt:
 						'We share approximate location with advertising partners only if you enable personalized ads.'
 				},
 				{
-					passageID: 'P3',
+					passageId: 'P3',
 					excerpt: 'You can disable personalized ads in Settings; this stops that sharing.'
 				}
 			]
@@ -51,7 +51,7 @@ export const successFixture: AnalysisResult = {
 			recipients: [],
 			evidence: [
 				{
-					passageID: 'P4',
+					passageId: 'P4',
 					excerpt: 'We do not sell personal data.'
 				}
 			]
