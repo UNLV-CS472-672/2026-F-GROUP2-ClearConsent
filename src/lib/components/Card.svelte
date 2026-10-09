@@ -13,8 +13,8 @@
 
 <!--  Extremely basic card -->
 <div
-	class="max-w-md min-w-50 rounded-xl bg-white/85 shadow-xs shadow-white/25 hover:bg-white hover:shadow-lg hover:shadow-white/25
-	{rise ? 'hover:translate-y-0' : 'transition-transform duration-200 hover:-translate-y-2'} border border-border-dark/5 hover:border-border-dark"
+	class="max-w-md min-w-50 rounded-xl bg-white/85 shadow-xs shadow-black/10 hover:bg-white hover:shadow-md hover:shadow-black/10
+	{!rise ? '' : 'transition-transform duration-200 hover:-translate-y-2'} border border-border-dark/50 hover:border-border-dark"
 >
 	<a
 		href={!href ? '#' : href}

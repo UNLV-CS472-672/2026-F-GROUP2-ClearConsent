@@ -8,7 +8,7 @@
 
 <!-- Maybe just make the Navbar + Sidebar into components with toggleable elements
  and keep common code in the root layouts instead. -->
-<div class="pagecontent flex h-dvh bg-slate-400">
+<div class="pagecontent flex h-dvh">
 	<aside
 		class="{expanded
 			? 'w-50 opacity-100'
@@ -27,7 +27,7 @@
 				<!-- <hr class="mx-auto w-7/8 border-slate-600/70" /> -->
 				<a href="/dashboard/history" class={sidebarbuttonclass}>History</a>
 				<!-- <hr class="mx-auto w-7/8 border-slate-600/70" /> -->
-				<a href="/dashboard/settings" class={sidebarbuttonclass}>Settings</a>
+				<a href="/dashboard/preferences" class={sidebarbuttonclass}>Settings</a>
 				<!-- <hr class="mx-auto w-full border-slate-600/70 shadow-sm shadow-black/10"> -->
 			</div>
 		</div>

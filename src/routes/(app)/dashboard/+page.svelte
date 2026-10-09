@@ -1,11 +1,12 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
-	import Card from '$lib/components/Card.svelte';
 	let { data }: PageProps = $props();
 	import { page } from '$app/state';
+	import Card from '$lib/components/Card.svelte';
 	import Table from '$lib/components/Table.svelte';
 	import TabBox from '$lib/components/TabBox.svelte';
 	import Tab from '$lib/components/Tab.svelte';
+	import NavBarLink from '$lib/components/NavBarLink.svelte';
 
 	// --- Temporary
 	interface historyitem {
@@ -51,18 +52,24 @@
 
 <div class="inline-block h-screen w-screen pl-5">
 	<!-- <p class="flex justify-center text-slate-600">Overview</p> -->
-	<div class="m-auto flex py-5">
-		<Card cardtitle="" mono={true} center={true}>
-			<p class="text-lg font-bold">Dashboard</p>
-		</Card>
+	<div class="grid grid-cols-3">
+		<div class="col-start-2 flex justify-center py-5">
+			<Card cardtitle="" mono={true} center={true} rise={false}>
+				<p class="text-lg font-bold">Dashboard</p>
+			</Card>
+		</div>
+
+		<div class="col-start-2 mx-auto -mt-5 flex h-fit">
+			<a href="/dashboard/preferences" class="text-[.90rem] text-gray-800 hover:text-blue-800">Preferences</a>
+		</div>
 	</div>
 
 	<div class="flex justify-center pt-10 pb-10">
 		<TabBox>
 			<!-- Maybe make these into routes (./url ./upload ./paste ./search)
 			 and point upload in layout to ./url -->
-			 <!-- Currently redirects to extract -->
-			 <!-- Add extraction bar below when URL is clicked -->
+			<!-- Currently redirects to extract -->
+			<!-- Add extraction bar below when URL is clicked -->
 			<Tab href="/extract">URL</Tab>
 			<Tab href="#upload">Upload File</Tab>
 			<Tab href="#paste">Paste Text</Tab>
@@ -70,13 +77,13 @@
 			<Tab href="#search">Search</Tab>
 			<!-- Separate these into the url, upload, paste, search pages -->
 		</TabBox>
-
-
 	</div>
 
 	<div class="grid-row-3 grid gap-10 py-5">
 		<div class="history-container relative row-span-1 block">
-			<Card cardtitle="History" center={true}>View submitted and added policies</Card>
+			<div class="mx-auto flex justify-center">
+				<Card cardtitle="History" center={true}>View submitted and added policies</Card>
+			</div>
 			<br />
 			<!-- Table + Table item component -->
 			<!-- Todo: -->
