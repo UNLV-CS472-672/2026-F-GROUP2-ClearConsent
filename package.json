@@ -51,6 +51,7 @@
 		"wrangler": "4.130.0"
 	},
 	"dependencies": {
-		"unpdf": "^1.8.1"
+		"unpdf": "^1.8.1",
+		"zod": "^4.6.5"
 	}
 }
