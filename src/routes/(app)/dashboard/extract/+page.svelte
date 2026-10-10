@@ -23,10 +23,10 @@
 	}
 </script>
 
-<main class="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-4 py-12">
+<div class="mx-auto flex max-w-xl flex-col items-center justify-center px-4 py-12">
 	<h1 class="mb-6 text-2xl font-semibold">Extract text from a URL</h1>
 
-	<form onsubmit={submit} class="flex w-full gap-2">
+	<form onsubmit={submit} class="flex w-150 gap-2">
 		<input
 			type="url"
 			bind:value={url}
@@ -51,6 +51,6 @@
 		<h2 class="mt-8 text-lg font-semibold">{result.title}</h2>
 		<p class="mt-1 font-mono text-sm text-gray-500">{result.url}</p>
 		<pre
-			class="mt-4 border border-gray-200 bg-gray-50 p-4 text-sm whitespace-pre-wrap">{result.text}</pre>
+			class="mt-4 max-h-1/3 overflow-scroll border border-gray-200 bg-gray-50 p-4 text-sm whitespace-pre-wrap">{result.text}</pre>
 	{/if}
-</main>
+</div>
