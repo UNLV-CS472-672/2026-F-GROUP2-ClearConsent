@@ -11,25 +11,32 @@ URL retrieval, or PDF/HTML parsing.
 
 ## Current bounds
 
-| Setting           |                           Enforced value |
-| ----------------- | ---------------------------------------: |
-| Source text       |                 30,000 UTF-16 code units |
-| Request body      |  Derived from field limits; read bounded |
-| Passage target    |                  1,800 UTF-16 code units |
-| Provider calls    |                                      One |
-| Automatic retries |                                     Zero |
-| Attempt count     |                                      One |
-| Provider timeout  |                               30 seconds |
-| Maximum output    | 8,000 tokens, including reasoning tokens |
-| Default model     |                             `gpt-6-luna` |
-| Default reasoning |                                 `medium` |
+| Setting           |                            Enforced value |
+| ----------------- | ----------------------------------------: |
+| Source text       |                  60,000 UTF-16 code units |
+| Request body      |   Derived from field limits; read bounded |
+| Passage target    |                   1,800 UTF-16 code units |
+| Provider calls    |                                       One |
+| Automatic retries |                                      Zero |
+| Attempt count     |                                       One |
+| Provider timeout  |                                90 seconds |
+| Maximum output    | 16,000 tokens, including reasoning tokens |
+| Default model     |                              `gpt-6-luna` |
+| Default reasoning |                                  `medium` |
 
-The model and reasoning effort are configurable. The bounds are deliberately conservative for issue
-#7's short-policy demonstration. Larger inputs fail with `input_too_large`; they are never silently
-truncated. Long-policy chunking, parallel extraction, and retry orchestration remain deferred.
+The model and reasoning effort are configurable. `OPENAI_TIMEOUT_MS` and `OPENAI_MAX_OUTPUT_TOKENS`
+can override the timeout and output cap up to hard ceilings of 120 seconds and 32,000 tokens; values
+outside that range fail with `configuration_error`.
 
-At the OpenAI pricing published when this implementation was written, the 8,000-token output ceiling
-for `gpt-6-luna` costs at most $0.004 in output tokens. Input cost depends on actual tokenization and
+The bounds are sized for a Spotify-sized policy in one call. In the issue #11 source-grounded run, the
+complete 47k-character Spotify policy took 54.3 seconds and 8,642 output tokens, which would have
+exceeded the earlier 30-second and 8,000-token caps. Larger inputs fail with `input_too_large`; they
+are never silently truncated. The same runs found far fewer of the checklist claims with one call per
+policy than with one call per bounded section, so long-policy chunking remains the intended follow-up,
+along with parallel extraction and retry orchestration.
+
+At the OpenAI pricing published when this implementation was written, the 16,000-token output ceiling
+for `gpt-6-luna` costs at most $0.008 in output tokens. Input cost depends on actual tokenization and
 prompt overhead, so record returned usage instead of treating character count as an exact cost limit.
 See the official [GPT-6 Luna model page](https://developers.openai.com/api/docs/models/gpt-6-luna).
 
@@ -54,7 +61,7 @@ per-user rate limit. Keep `ENABLE_PAID_ANALYSIS=0` in deployed environments unti
 authorization, and rate limiting are agreed. Cloudflare secrets must be configured as encrypted Worker
 secrets rather than committed variables.
 
-The OpenAI SDK is pinned and configured with `maxRetries: 0`, `logLevel: "off"`, a 30-second timeout, `store: false`, no
+The OpenAI SDK is pinned and configured with `maxRetries: 0`, `logLevel: "off"`, a 90-second timeout, `store: false`, no
 tools, and `truncation: "disabled"`. Official OpenAI documentation recommends Structured Outputs for
 schema-constrained responses and notes that SDKs retry eligible failures unless retries are disabled:
 
@@ -155,7 +162,7 @@ Verified locally on October 7, 2026 from base commit
 
 - `npm ci` completed successfully. npm reported the repository's existing audit total of 10
   vulnerabilities (3 low and 7 high); no automatic dependency rewrite was performed.
-- `npm test` passed all 49 tests across 8 files after the second review.
+- `npm test` passed all 55 tests across 8 files after the second review.
 - `npm run check` passed with 0 errors and 0 warnings.
 - `npm run lint` passed.
 - `npm run build` passed.
@@ -211,7 +218,7 @@ An earlier attempt the same day used a revoked key. It failed before generation 
 provider call. Both confirm the failure paths on the Workers runtime.
 
 This single short request shows the configuration and validation path works end to end. It does not
-measure timeout or output-token headroom for inputs near the 30,000-character limit.
+measure timeout or output-token headroom for inputs near the 60,000-character limit.
 
 ## Cloudflare deployment
 

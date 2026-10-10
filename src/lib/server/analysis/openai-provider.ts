@@ -9,10 +9,15 @@ import type { ProviderUsage, SourceSnapshot } from './schemas';
 
 export const DEFAULT_OPENAI_MODEL = 'gpt-6-luna';
 export const DEFAULT_REASONING_EFFORT = 'medium';
-export const OPENAI_TIMEOUT_MS = 30_000;
+// A full Spotify-sized policy (~47k characters) took 54 s and 8,642 output tokens in the
+// issue #11 grounded run, so the defaults leave headroom above that. The ceilings bound what
+// OPENAI_TIMEOUT_MS and OPENAI_MAX_OUTPUT_TOKENS may be set to.
+export const OPENAI_TIMEOUT_MS = 90_000;
+export const OPENAI_TIMEOUT_CEILING_MS = 120_000;
 export const OPENAI_MAX_RETRIES = 0;
 export const OPENAI_MAX_ATTEMPTS = 1;
-export const OPENAI_MAX_OUTPUT_TOKENS = 8_000;
+export const OPENAI_MAX_OUTPUT_TOKENS = 16_000;
+export const OPENAI_OUTPUT_TOKENS_CEILING = 32_000;
 
 export type ReasoningEffort = 'none' | 'low' | 'medium' | 'high' | 'xhigh' | 'max';
 

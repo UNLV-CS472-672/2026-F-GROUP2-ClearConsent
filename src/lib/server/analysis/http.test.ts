@@ -65,6 +65,41 @@ describe('Stage 1 HTTP boundary', () => {
 		});
 	});
 
+	it('passes bounded timeout and output-token overrides to the provider', async () => {
+		vi.spyOn(console, 'info').mockImplementation(() => undefined);
+		const factory = vi.fn(() => noCandidatesProvider);
+		await handleStage1HttpRequest(
+			request({ text: policy }),
+			{ ...environment, OPENAI_TIMEOUT_MS: '60000', OPENAI_MAX_OUTPUT_TOKENS: '12000' },
+			factory
+		);
+
+		expect(factory).toHaveBeenCalledWith(
+			expect.objectContaining({ timeoutMs: 60_000, maxOutputTokens: 12_000 })
+		);
+	});
+
+	it.each([
+		['OPENAI_TIMEOUT_MS', '120001'],
+		['OPENAI_TIMEOUT_MS', 'soon'],
+		['OPENAI_MAX_OUTPUT_TOKENS', '0'],
+		['OPENAI_MAX_OUTPUT_TOKENS', '32001'],
+		['OPENAI_MAX_OUTPUT_TOKENS', '1.5']
+	])('rejects %s=%s before constructing a provider', async (name, value) => {
+		vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+		const factory = vi.fn(() => noCandidatesProvider);
+		const response = await handleStage1HttpRequest(
+			request({ text: policy }),
+			{ ...environment, [name]: value },
+			factory
+		);
+		const body = await errorBody(response);
+
+		expect(response.status).toBe(503);
+		expect(body.error.code).toBe('configuration_error');
+		expect(factory).not.toHaveBeenCalled();
+	});
+
 	it('does not construct a provider while paid analysis is disabled', async () => {
 		vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 		const factory = vi.fn(() => noCandidatesProvider);

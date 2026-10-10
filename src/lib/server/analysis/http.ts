@@ -3,7 +3,9 @@ import { Stage1Error, isStage1Error } from './errors';
 import {
 	createOpenAIStage1Provider,
 	DEFAULT_OPENAI_MODEL,
-	DEFAULT_REASONING_EFFORT
+	DEFAULT_REASONING_EFFORT,
+	OPENAI_OUTPUT_TOKENS_CEILING,
+	OPENAI_TIMEOUT_CEILING_MS
 } from './openai-provider';
 import type { OpenAIProviderConfig, ReasoningEffort } from './openai-provider';
 import {
@@ -131,6 +133,25 @@ async function readBoundedBody(request: Request): Promise<string> {
 	return new TextDecoder().decode(bytes);
 }
 
+// Returns undefined when unset so the provider default applies.
+function boundedInteger(
+	environment: Stage1Environment,
+	name: string,
+	ceiling: number
+): number | undefined {
+	const raw = environment[name]?.trim();
+	if (!raw) return undefined;
+	const value = Number(raw);
+	if (!Number.isInteger(value) || value < 1 || value > ceiling) {
+		throw new Stage1Error(
+			'configuration_error',
+			503,
+			`${name} must be a whole number from 1 to ${ceiling}.`
+		);
+	}
+	return value;
+}
+
 function providerConfig(environment: Stage1Environment): OpenAIProviderConfig {
 	const apiKey = environment.OPENAI_API_KEY;
 	if (!apiKey) {
@@ -151,10 +172,19 @@ function providerConfig(environment: Stage1Environment): OpenAIProviderConfig {
 		);
 	}
 
+	const timeoutMs = boundedInteger(environment, 'OPENAI_TIMEOUT_MS', OPENAI_TIMEOUT_CEILING_MS);
+	const maxOutputTokens = boundedInteger(
+		environment,
+		'OPENAI_MAX_OUTPUT_TOKENS',
+		OPENAI_OUTPUT_TOKENS_CEILING
+	);
+
 	return {
 		apiKey,
 		model,
-		reasoningEffort: requestedEffort as ReasoningEffort
+		reasoningEffort: requestedEffort as ReasoningEffort,
+		...(timeoutMs !== undefined && { timeoutMs }),
+		...(maxOutputTokens !== undefined && { maxOutputTokens })
 	};
 }
 

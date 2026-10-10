@@ -5,7 +5,7 @@ import { Stage1RequestSchema } from './schemas';
 import type { Stage1Request, Stage1Result } from './schemas';
 import { createSourceSnapshot } from './source';
 
-export const MAX_SOURCE_CHARACTERS = 30_000;
+export const MAX_SOURCE_CHARACTERS = 60_000;
 export const MAX_TITLE_CHARACTERS = 500;
 export const MAX_URL_CHARACTERS = 2_048;
 export const MAX_PREFERENCES_JSON_CHARACTERS = 10_000;
