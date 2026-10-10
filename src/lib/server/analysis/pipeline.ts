@@ -102,15 +102,24 @@ export async function runStage1Analysis(
 		);
 	}
 
-	const candidates = validateAndResolveCandidates(extraction.output, source);
+	const { candidates, rejectedCandidates } = validateAndResolveCandidates(
+		extraction.output,
+		source
+	);
 	return {
 		stage: 'evidence_extraction',
 		schemaVersion: 'stage1-internal-v1',
-		stageStatus: candidates.length === 0 ? 'no_candidates' : 'complete',
+		stageStatus:
+			candidates.length === 0
+				? 'no_candidates'
+				: rejectedCandidates.length > 0
+					? 'partial'
+					: 'complete',
 		analysisStatus: 'in_progress',
 		coverage: 'complete',
 		source,
 		candidates,
+		rejectedCandidates,
 		downstream: {
 			nextStage: 'consolidation',
 			preferences: request.preferences ?? null

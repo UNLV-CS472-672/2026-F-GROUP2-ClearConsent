@@ -99,9 +99,16 @@ frozenText.slice(startOffset, endOffset) === excerpt;
 ```
 
 The model receives passage IDs and text but does not supply source offsets, snapshot IDs, or candidate
-IDs. Code assigns those values. Each returned excerpt must occur exactly once inside its cited passage;
-unknown IDs, blank or too-short excerpts, invented wording, duplicate passage IDs, ambiguous repeated
-matches, malformed objects, and out-of-range mappings fail the stage.
+IDs. Code assigns those values. Each returned excerpt must occur exactly once inside its cited passage.
+
+A candidate is dropped when any of its evidence fails: an unknown passage ID, a blank or too-short
+excerpt, invented or altered wording, or an excerpt repeated inside its passage. Blank required fields
+also drop it. The whole candidate is dropped, not only the failed excerpt, because that excerpt may have
+been the one supporting a condition or exception. Each dropped candidate appears in `rejectedCandidates`
+with its position in the provider output, its unverified claim, an error code, and the reason. Surviving
+candidates are numbered `C001` onward without gaps. If every candidate fails, the stage fails with
+`reference_validation_failed`. A provider response that does not match the schema at all still fails
+the stage.
 
 Input containing unpaired UTF-16 surrogates is rejected before a provider call. This prevents UTF-8
 replacement encoding from giving different malformed strings the same source identity. Valid emoji,
@@ -117,6 +124,10 @@ questions require semantic review and the controlled evaluation described in iss
 result. It does not mean the whole analysis is complete. Every successful response therefore keeps
 `analysisStatus: "in_progress"` and points to the later consolidation stage.
 
+`partial` means at least one candidate was verified and at least one was dropped. Every returned
+candidate is still fully verified; the dropped ones are listed in `rejectedCandidates` and must not be
+shown as findings.
+
 `no_candidates` is a separate Stage 1 outcome. It is not a provider failure, a public `success`, a
 safety conclusion, or a low-risk result. Provider refusals, output truncation, timeouts, rate limits,
 quota/billing failures, credential failures, malformed output, and invalid references remain distinct
@@ -127,7 +138,7 @@ rather than being reported as provider outages.
 Request bodies are read only up to `MAX_REQUEST_BODY_BYTES` in `http.ts`; larger bodies fail with
 `input_too_large` before JSON parsing or any provider call.
 
-Logs contain only outcome, duration, source length, candidate count, model, attempt count, and aggregate
+Logs contain only outcome, duration, source length, candidate and rejected counts, model, attempt count, and aggregate
 usage. Full submitted text, credentials, provider error bodies, and preferences are excluded.
 
 ## Stage 2 handoff
@@ -144,7 +155,7 @@ Verified locally on October 7, 2026 from base commit
 
 - `npm ci` completed successfully. npm reported the repository's existing audit total of 10
   vulnerabilities (3 low and 7 high); no automatic dependency rewrite was performed.
-- `npm test` passed all 45 tests across 8 files after the second review.
+- `npm test` passed all 49 tests across 8 files after the second review.
 - `npm run check` passed with 0 errors and 0 warnings.
 - `npm run lint` passed.
 - `npm run build` passed.
@@ -165,6 +176,7 @@ fully offline. Additional source tests reject invalid source maps and malformed 
 
 - Issue #22 must settle the public category taxonomy, whether `practice` remains, ambiguity/state
   representation, confidence semantics, final analysis/finding IDs, and public source extensions.
+- Issue #22 must decide how a `partial` Stage 1 result and its dropped candidates appear publicly.
 - Issue #22 must map internal `no_candidates` into its public `insufficient`/result model without
   creating an empty successful finding set.
 - Issue #12 owns deterministic preference scoring from canonical findings, not these raw candidates.

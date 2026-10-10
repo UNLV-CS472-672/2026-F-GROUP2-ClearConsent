@@ -188,6 +188,7 @@ export async function handleStage1HttpRequest(
 				durationMs: Math.round(performance.now() - startedAt),
 				sourceLength: result.source.textLength,
 				candidateCount: result.candidates.length,
+				rejectedCount: result.rejectedCandidates.length,
 				model: result.provider.model,
 				attempts: result.provider.attempts,
 				usage: result.provider.usage

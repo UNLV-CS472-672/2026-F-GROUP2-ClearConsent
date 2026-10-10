@@ -1,7 +1,8 @@
-import { Stage1Error } from './errors';
+import { Stage1Error, isStage1Error } from './errors';
 import { ModelStage1ResponseSchema } from './schemas';
 import type {
 	ModelCandidate,
+	RejectedCandidate,
 	SourceSnapshot,
 	ValidatedCandidate,
 	ValidatedEvidence
@@ -76,15 +77,10 @@ function resolveEvidence(
 
 function validateCandidate(
 	candidate: ModelCandidate,
-	index: number,
 	passages: Map<string, SourceSnapshot['passages'][number]>
-): ValidatedCandidate {
+): Omit<ValidatedCandidate, 'id'> {
 	if (candidate.evidence.length === 0) {
-		throw new Stage1Error(
-			'provider_malformed',
-			502,
-			`Candidate ${index + 1} has no supporting evidence.`
-		);
+		throw new Stage1Error('provider_malformed', 502, 'The candidate has no supporting evidence.');
 	}
 
 	const uncertainty = candidate.uncertainty;
@@ -92,12 +88,11 @@ function validateCandidate(
 		throw new Stage1Error(
 			'provider_malformed',
 			502,
-			`Candidate ${index + 1} has a blank uncertainty value.`
+			'The candidate has a blank uncertainty value.'
 		);
 	}
 
 	return {
-		id: `C${String(index + 1).padStart(3, '0')}`,
 		category: requireNonblank(candidate.category, 'candidate category'),
 		practice: requireNonblank(candidate.practice, 'candidate practice'),
 		claim: requireNonblank(candidate.claim, 'candidate claim'),
@@ -113,10 +108,15 @@ function validateCandidate(
 	};
 }
 
+export type ResolvedCandidates = {
+	candidates: ValidatedCandidate[];
+	rejectedCandidates: RejectedCandidate[];
+};
+
 export function validateAndResolveCandidates(
 	rawOutput: unknown,
 	snapshot: SourceSnapshot
-): ValidatedCandidate[] {
+): ResolvedCandidates {
 	validateSourceSnapshot(snapshot);
 
 	const parsed = ModelStage1ResponseSchema.safeParse(rawOutput);
@@ -130,7 +130,37 @@ export function validateAndResolveCandidates(
 	}
 
 	const passages = new Map(snapshot.passages.map((passage) => [passage.id, passage]));
-	return parsed.data.candidates.map((candidate, index) =>
-		validateCandidate(candidate, index, passages)
-	);
+	const candidates: ValidatedCandidate[] = [];
+	const rejectedCandidates: RejectedCandidate[] = [];
+
+	// A candidate that fails validation is dropped and reported instead of failing the whole stage,
+	// so one misquoted excerpt does not discard every verified candidate from the same paid call.
+	// The whole candidate is dropped, not just its bad evidence: the failed excerpt may have been
+	// the one supporting a condition or exception, and the claim would overstate the source without it.
+	parsed.data.candidates.forEach((candidate, index) => {
+		try {
+			const resolved = validateCandidate(candidate, passages);
+			candidates.push({ id: `C${String(candidates.length + 1).padStart(3, '0')}`, ...resolved });
+		} catch (error) {
+			if (!isStage1Error(error)) throw error;
+			rejectedCandidates.push({
+				index,
+				claim: candidate.claim.trim() || null,
+				code: error.code as RejectedCandidate['code'],
+				reason: error.message
+			});
+		}
+	});
+
+	// When nothing survives, the provider output as a whole is unreliable. Fail the stage rather
+	// than return an empty result that could be mistaken for a policy with no relevant practices.
+	if (candidates.length === 0 && rejectedCandidates.length > 0) {
+		throw new Stage1Error(
+			'reference_validation_failed',
+			502,
+			`None of the ${rejectedCandidates.length} provider candidates could be verified against the source.`
+		);
+	}
+
+	return { candidates, rejectedCandidates };
 }

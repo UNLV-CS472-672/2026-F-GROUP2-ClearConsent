@@ -71,6 +71,15 @@ export type ValidatedCandidate = Omit<ModelCandidate, 'evidence'> & {
 	evidence: ValidatedEvidence[];
 };
 
+export type RejectedCandidate = {
+	// Zero-based position in the provider's candidates array.
+	index: number;
+	// Unverified provider text, kept for review and debugging. Never present it as a finding.
+	claim: string | null;
+	code: 'reference_validation_failed' | 'provider_malformed';
+	reason: string;
+};
+
 export type ProviderUsage = {
 	inputTokens: number;
 	outputTokens: number;
@@ -81,11 +90,12 @@ export type ProviderUsage = {
 export type Stage1Result = {
 	stage: 'evidence_extraction';
 	schemaVersion: 'stage1-internal-v1';
-	stageStatus: 'complete' | 'no_candidates';
+	stageStatus: 'complete' | 'partial' | 'no_candidates';
 	analysisStatus: 'in_progress';
 	coverage: 'complete';
 	source: SourceSnapshot;
 	candidates: ValidatedCandidate[];
+	rejectedCandidates: RejectedCandidate[];
 	downstream: {
 		nextStage: 'consolidation';
 		preferences: Record<string, unknown> | null;

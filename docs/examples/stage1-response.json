@@ -125,6 +125,7 @@
 			]
 		}
 	],
+	"rejectedCandidates": [],
 	"downstream": {
 		"nextStage": "consolidation",
 		"preferences": {

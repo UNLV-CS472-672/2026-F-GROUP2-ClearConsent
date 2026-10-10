@@ -71,6 +71,23 @@ describe('Stage 1 pipeline', () => {
 		expect(result.limitations.semanticReviewRequired).toBe(true);
 	});
 
+	it('returns a partial outcome that lists candidates dropped during verification', async () => {
+		const invented = {
+			...supportedCandidate(),
+			evidence: [{ passageId: 'P001', excerpt: 'We sell location to data brokers.' }]
+		};
+		const result = await runStage1Analysis(
+			{ text: policy },
+			providerWith({ candidates: [invented, supportedCandidate()] })
+		);
+
+		expect(result.stageStatus).toBe('partial');
+		expect(result.candidates.map((item) => item.id)).toEqual(['C001']);
+		expect(result.rejectedCandidates).toEqual([
+			expect.objectContaining({ index: 0, code: 'reference_validation_failed' })
+		]);
+	});
+
 	it('returns a distinct no-candidates stage outcome without claiming safety or completion', async () => {
 		const result = await runStage1Analysis({ text: policy }, providerWith({ candidates: [] }));
 
