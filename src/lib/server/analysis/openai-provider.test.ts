@@ -147,6 +147,26 @@ describe('OpenAI Stage 1 provider', () => {
 			'rate limit',
 			new OpenAI.RateLimitError(429, { code: 'rate_limit_exceeded' }, 'slow down', new Headers()),
 			'provider_rate_limit'
+		],
+		[
+			'unknown model',
+			new OpenAI.NotFoundError(
+				404,
+				{ code: 'model_not_found' },
+				'model does not exist',
+				new Headers()
+			),
+			'provider_rejected_request'
+		],
+		[
+			'invalid request setting',
+			new OpenAI.BadRequestError(
+				400,
+				{ code: 'unsupported_value' },
+				'unsupported reasoning effort',
+				new Headers()
+			),
+			'provider_rejected_request'
 		]
 	])('maps %s without retrying', async (_name, providerError, expectedCode) => {
 		const capture = { calls: 0 };

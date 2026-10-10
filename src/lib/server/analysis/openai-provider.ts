@@ -142,6 +142,16 @@ function mapProviderError(error: unknown): Stage1Error {
 			cause: error
 		});
 	}
+	// Input is bounded before the call, so these usually mean OPENAI_MODEL or
+	// another request setting is wrong rather than the provider being down.
+	if (error instanceof OpenAI.BadRequestError || error instanceof OpenAI.NotFoundError) {
+		return new Stage1Error(
+			'provider_rejected_request',
+			502,
+			'The analysis provider rejected the configured model or request settings.',
+			{ cause: error }
+		);
+	}
 	if (error instanceof OpenAI.APIError && error.status !== undefined && error.status >= 500) {
 		return new Stage1Error(
 			'provider_unavailable',

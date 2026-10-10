@@ -14,6 +14,7 @@ URL retrieval, or PDF/HTML parsing.
 | Setting           |                           Enforced value |
 | ----------------- | ---------------------------------------: |
 | Source text       |                 30,000 UTF-16 code units |
+| Request body      |  Derived from field limits; read bounded |
 | Passage target    |                  1,800 UTF-16 code units |
 | Provider calls    |                                      One |
 | Automatic retries |                                     Zero |
@@ -119,7 +120,12 @@ result. It does not mean the whole analysis is complete. Every successful respon
 `no_candidates` is a separate Stage 1 outcome. It is not a provider failure, a public `success`, a
 safety conclusion, or a low-risk result. Provider refusals, output truncation, timeouts, rate limits,
 quota/billing failures, credential failures, malformed output, and invalid references remain distinct
-failure codes.
+failure codes. A provider 400 or 404, which usually means `OPENAI_MODEL` or another setting is wrong,
+returns `provider_rejected_request`. Unexpected server-side exceptions return `internal_error` (HTTP 500)
+rather than being reported as provider outages.
+
+Request bodies are read only up to `MAX_REQUEST_BODY_BYTES` in `http.ts`; larger bodies fail with
+`input_too_large` before JSON parsing or any provider call.
 
 Logs contain only outcome, duration, source length, candidate count, model, attempt count, and aggregate
 usage. Full submitted text, credentials, provider error bodies, and preferences are excluded.
@@ -138,7 +144,7 @@ Verified locally on October 7, 2026 from base commit
 
 - `npm ci` completed successfully. npm reported the repository's existing audit total of 10
   vulnerabilities (3 low and 7 high); no automatic dependency rewrite was performed.
-- `npm test` passed all 40 tests across 8 files after the follow-up review.
+- `npm test` passed all 45 tests across 8 files after the second review.
 - `npm run check` passed with 0 errors and 0 warnings.
 - `npm run lint` passed.
 - `npm run build` passed.
@@ -146,8 +152,8 @@ Verified locally on October 7, 2026 from base commit
   `analysis_disabled` while `ENABLE_PAID_ANALYSIS` was unset, confirming that the route cannot spend
   provider budget by default.
 
-Wrangler's environment inference was disabled for the deterministic `check`, `build`, and preview
-commands so private `.env.local` variable names did not alter the generated Worker type file. No
+`scripts/worker-types.js` sets `CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV=false` before generating types
+for `check` and `build` so private `.env.local` variable names did not alter the generated Worker type file. No
 secret values were read into test fixtures or committed. No paid provider call was made.
 
 The follow-up review added real-SDK tests with a fake HTTP transport. These verify complete candidate
@@ -167,6 +173,42 @@ fully offline. Additional source tests reject invalid source maps and malformed 
 - Stage 2 consolidation, long-document chunking, provider benchmarking, persistence, and deployment are
   not implemented here.
 
-No live paid smoke test is recorded in this document. The deterministic tests use only injected mock
-providers; a real smoke result must record the tested commit, model, environment, usage, and outcome
-after separate authorization.
+## Live smoke test
+
+One authorized paid request was sent on October 10, 2026 at 01:20 UTC.
+
+| Item           | Value                                                                                    |
+| -------------- | ---------------------------------------------------------------------------------------- |
+| Tested code    | Commit `b7f820c` plus the uncommitted second-review fixes staged on that branch          |
+| Environment    | `npm run preview` (local Wrangler 4.130.0 Workers runtime), macOS, Node `v22.23.2`       |
+| Request        | `docs/examples/stage1-request.json` (396 UTF-16 code units, one passage)                 |
+| Model          | `gpt-6-luna`, reasoning effort `medium`, one attempt                                     |
+| Outcome        | HTTP 200, `stageStatus: "complete"`, five candidates, every excerpt resolved exactly     |
+| Duration       | 7.4 seconds                                                                              |
+| Usage          | 597 input, 799 output (123 reasoning), 1,396 total tokens                                |
+| Estimated cost | About $0.0005 at the `gpt-6-luna` rates in `tests/eval/issue-11/scripts/eval-config.mjs` |
+
+The candidates covered location collection, opt-in advertising sharing, the Settings opt-out, the
+no-sale statement (qualified as not proving no sharing), and 30-day deletion with its legal-obligation
+exception. The cost is a token-based estimate, not an invoice. Wrangler loaded the private values from
+`.env.local` as local Worker variables; the server log line contained only outcome, duration, source
+length, candidate count, model, attempts, and usage.
+
+An earlier attempt the same day used a revoked key. It failed before generation with
+`provider_authentication` (HTTP 502), and a wrong access token was rejected with HTTP 401 before any
+provider call. Both confirm the failure paths on the Workers runtime.
+
+This single short request shows the configuration and validation path works end to end. It does not
+measure timeout or output-token headroom for inputs near the 30,000-character limit.
+
+## Cloudflare deployment
+
+Deployed Workers read these values from encrypted secrets, not `.env.local`:
+
+```sh
+npx wrangler secret put OPENAI_API_KEY
+npx wrangler secret put ANALYSIS_ACCESS_TOKEN
+```
+
+Leave `ENABLE_PAID_ANALYSIS` unset or `0` in deployed environments until per-user authorization and rate
+limiting exist. No deployed request has been made.

@@ -1,5 +1,5 @@
 import { Stage1Error, isStage1Error } from './errors';
-import type { Stage1Provider } from './provider';
+import type { ProviderExtraction, Stage1Provider } from './provider';
 import { validateAndResolveCandidates } from './references';
 import { Stage1RequestSchema } from './schemas';
 import type { Stage1Request, Stage1Result } from './schemas';
@@ -89,33 +89,9 @@ export async function runStage1Analysis(
 		url: request.url
 	});
 
+	let extraction: ProviderExtraction;
 	try {
-		const extraction = await provider.extract(source);
-		const candidates = validateAndResolveCandidates(extraction.output, source);
-
-		return {
-			stage: 'evidence_extraction',
-			schemaVersion: 'stage1-internal-v1',
-			stageStatus: candidates.length === 0 ? 'no_candidates' : 'complete',
-			analysisStatus: 'in_progress',
-			coverage: 'complete',
-			source,
-			candidates,
-			downstream: {
-				nextStage: 'consolidation',
-				preferences: request.preferences ?? null
-			},
-			provider: {
-				model: extraction.model,
-				reasoningEffort: extraction.reasoningEffort,
-				attempts: extraction.attempts,
-				usage: extraction.usage
-			},
-			limitations: {
-				referenceValidation: 'structural_and_referential_only',
-				semanticReviewRequired: true
-			}
-		};
+		extraction = await provider.extract(source);
 	} catch (error) {
 		if (isStage1Error(error)) throw error;
 		throw new Stage1Error(
@@ -125,4 +101,29 @@ export async function runStage1Analysis(
 			{ cause: error }
 		);
 	}
+
+	const candidates = validateAndResolveCandidates(extraction.output, source);
+	return {
+		stage: 'evidence_extraction',
+		schemaVersion: 'stage1-internal-v1',
+		stageStatus: candidates.length === 0 ? 'no_candidates' : 'complete',
+		analysisStatus: 'in_progress',
+		coverage: 'complete',
+		source,
+		candidates,
+		downstream: {
+			nextStage: 'consolidation',
+			preferences: request.preferences ?? null
+		},
+		provider: {
+			model: extraction.model,
+			reasoningEffort: extraction.reasoningEffort,
+			attempts: extraction.attempts,
+			usage: extraction.usage
+		},
+		limitations: {
+			referenceValidation: 'structural_and_referential_only',
+			semanticReviewRequired: true
+		}
+	};
 }

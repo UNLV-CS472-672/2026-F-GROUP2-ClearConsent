@@ -65,13 +65,6 @@ function resolveEvidence(
 
 	const startOffset = passage.startOffset + localStart;
 	const endOffset = startOffset + excerpt.length;
-	if (startOffset < passage.startOffset || endOffset > passage.endOffset) {
-		throw new Stage1Error(
-			'reference_validation_failed',
-			502,
-			`Evidence excerpt falls outside ${normalizedPassageId}.`
-		);
-	}
 
 	return {
 		passageId: normalizedPassageId,

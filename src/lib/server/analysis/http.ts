@@ -6,7 +6,13 @@ import {
 	DEFAULT_REASONING_EFFORT
 } from './openai-provider';
 import type { OpenAIProviderConfig, ReasoningEffort } from './openai-provider';
-import { runStage1Analysis } from './pipeline';
+import {
+	MAX_PREFERENCES_JSON_CHARACTERS,
+	MAX_SOURCE_CHARACTERS,
+	MAX_TITLE_CHARACTERS,
+	MAX_URL_CHARACTERS,
+	runStage1Analysis
+} from './pipeline';
 
 export type Stage1Environment = Record<string, string | undefined>;
 export type Stage1ProviderFactory = (config: OpenAIProviderConfig) => Stage1Provider;
@@ -36,7 +42,33 @@ function failureResponse(error: Stage1Error): Response {
 	);
 }
 
-function requireAccess(request: Request, environment: Stage1Environment): void {
+// A JSON escape such as \u0000 is the widest encoding of one UTF-16 code unit
+// (six bytes), so no request within the field limits can exceed this size.
+export const MAX_REQUEST_BODY_BYTES =
+	6 *
+		(MAX_SOURCE_CHARACTERS +
+			MAX_TITLE_CHARACTERS +
+			MAX_URL_CHARACTERS +
+			MAX_PREFERENCES_JSON_CHARACTERS) +
+	1_024;
+
+// Compare fixed-length digests so response timing does not reveal how much of
+// the supplied token matched.
+async function tokensMatch(supplied: string, expected: string): Promise<boolean> {
+	const encoder = new TextEncoder();
+	const [suppliedDigest, expectedDigest] = await Promise.all(
+		[supplied, expected].map(
+			async (value) => new Uint8Array(await crypto.subtle.digest('SHA-256', encoder.encode(value)))
+		)
+	);
+	let difference = 0;
+	for (let index = 0; index < expectedDigest.length; index += 1) {
+		difference |= suppliedDigest[index] ^ expectedDigest[index];
+	}
+	return difference === 0;
+}
+
+async function requireAccess(request: Request, environment: Stage1Environment): Promise<void> {
 	if (environment.ENABLE_PAID_ANALYSIS !== '1') {
 		throw new Stage1Error(
 			'analysis_disabled',
@@ -54,10 +86,49 @@ function requireAccess(request: Request, environment: Stage1Environment): void {
 		);
 	}
 
-	const authorization = request.headers.get('authorization');
-	if (authorization !== `Bearer ${accessToken}`) {
+	const authorization = request.headers.get('authorization') ?? '';
+	if (!(await tokensMatch(authorization, `Bearer ${accessToken}`))) {
 		throw new Stage1Error('unauthorized', 401, 'A valid analysis access token is required.');
 	}
+}
+
+function bodyTooLarge(): Stage1Error {
+	return new Stage1Error(
+		'input_too_large',
+		413,
+		`Request body exceeds the Stage 1 limit of ${MAX_REQUEST_BODY_BYTES} bytes.`
+	);
+}
+
+// Stop reading once the limit is passed instead of buffering an arbitrarily
+// large body, including when Content-Length is absent or understated.
+async function readBoundedBody(request: Request): Promise<string> {
+	if (Number(request.headers.get('content-length')) > MAX_REQUEST_BODY_BYTES) {
+		throw bodyTooLarge();
+	}
+	if (!request.body) return '';
+
+	const reader = request.body.getReader();
+	const chunks: Uint8Array[] = [];
+	let total = 0;
+	for (;;) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		total += value.byteLength;
+		if (total > MAX_REQUEST_BODY_BYTES) {
+			await reader.cancel();
+			throw bodyTooLarge();
+		}
+		chunks.push(value);
+	}
+
+	const bytes = new Uint8Array(total);
+	let offset = 0;
+	for (const chunk of chunks) {
+		bytes.set(chunk, offset);
+		offset += chunk.byteLength;
+	}
+	return new TextDecoder().decode(bytes);
 }
 
 function providerConfig(environment: Stage1Environment): OpenAIProviderConfig {
@@ -96,11 +167,12 @@ export async function handleStage1HttpRequest(
 	let sourceLength: number | undefined;
 
 	try {
-		requireAccess(request, environment);
+		await requireAccess(request, environment);
 		const config = providerConfig(environment);
+		const rawBody = await readBoundedBody(request);
 		let body: unknown;
 		try {
-			body = await request.json();
+			body = JSON.parse(rawBody);
 		} catch {
 			throw new Stage1Error('invalid_json', 400, 'Body must be valid JSON.');
 		}
@@ -125,7 +197,7 @@ export async function handleStage1HttpRequest(
 	} catch (error) {
 		const stageError = isStage1Error(error)
 			? error
-			: new Stage1Error('provider_unavailable', 502, 'Stage 1 failed unexpectedly.', {
+			: new Stage1Error('internal_error', 500, 'Stage 1 failed unexpectedly.', {
 					cause: error
 				});
 		console.warn(

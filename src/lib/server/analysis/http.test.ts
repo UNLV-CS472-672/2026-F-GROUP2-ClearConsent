@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { handleStage1HttpRequest } from './http';
+import { handleStage1HttpRequest, MAX_REQUEST_BODY_BYTES } from './http';
 import type { Stage1Provider } from './provider';
 
 const policy = 'We do not sell personal data.';
@@ -111,5 +111,61 @@ describe('Stage 1 HTTP boundary', () => {
 
 		expect(response.status).toBe(400);
 		expect(body.error.code).toBe('invalid_json');
+	});
+
+	it('rejects an oversized declared body before reading it', async () => {
+		vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+		const extract = vi.fn();
+		const oversized = new Request('http://localhost/api/analyze', {
+			method: 'POST',
+			headers: {
+				authorization: 'Bearer local-secret',
+				'content-length': String(MAX_REQUEST_BODY_BYTES + 1)
+			},
+			body: JSON.stringify({ text: policy })
+		});
+		const response = await handleStage1HttpRequest(oversized, environment, () => ({ extract }));
+		const body = await errorBody(response);
+
+		expect(response.status).toBe(413);
+		expect(body.error.code).toBe('input_too_large');
+		expect(extract).not.toHaveBeenCalled();
+	});
+
+	it('stops reading a streamed body without Content-Length once it exceeds the limit', async () => {
+		vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+		const extract = vi.fn();
+		const chunk = new Uint8Array(64 * 1024).fill(0x20);
+		let sent = 0;
+		const stream = new ReadableStream<Uint8Array>({
+			pull(controller) {
+				sent += chunk.byteLength;
+				controller.enqueue(chunk);
+			}
+		});
+		const streamed = new Request('http://localhost/api/analyze', {
+			method: 'POST',
+			headers: { authorization: 'Bearer local-secret' },
+			body: stream,
+			duplex: 'half'
+		} as RequestInit);
+		const response = await handleStage1HttpRequest(streamed, environment, () => ({ extract }));
+		const body = await errorBody(response);
+
+		expect(response.status).toBe(413);
+		expect(body.error.code).toBe('input_too_large');
+		expect(sent).toBeLessThan(MAX_REQUEST_BODY_BYTES + 2 * chunk.byteLength);
+		expect(extract).not.toHaveBeenCalled();
+	});
+
+	it('reports unexpected server failures as internal rather than provider errors', async () => {
+		vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+		const response = await handleStage1HttpRequest(request({ text: policy }), environment, () => {
+			throw new TypeError('bug in server code');
+		});
+		const body = await errorBody(response);
+
+		expect(response.status).toBe(500);
+		expect(body.error.code).toBe('internal_error');
 	});
 });

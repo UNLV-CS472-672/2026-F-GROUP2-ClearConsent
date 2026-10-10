@@ -14,7 +14,9 @@ export type Stage1ErrorCode =
 	| 'provider_truncated'
 	| 'provider_malformed'
 	| 'provider_unavailable'
-	| 'reference_validation_failed';
+	| 'provider_rejected_request'
+	| 'reference_validation_failed'
+	| 'internal_error';
 
 export class Stage1Error extends Error {
 	readonly code: Stage1ErrorCode;
