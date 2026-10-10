@@ -6,32 +6,33 @@
 </script>
 
 <div class="relative flex min-h-screen flex-1 flex-col">
-	<header>
-		<div
-			class="navbar flex w-screen flex-row border-b-2 bg-slate-600 p-1 shadow-xs shadow-black/50"
-		>
-			<div class="nav-left flex flex-1">
-				<a
-					href="/"
-					rel="external"
-					class="btn btn-ghost min-w-20 rounded-lg border border-black bg-dark text-center text-xl font-bold text-floral-white transition-colors duration-200 hover:bg-dark-fg"
-				>
-					CC
-				</a>
-			</div>
+	<header class="z-10">
+		<nav>
+			<div
+				class="navbar flex w-screen flex-row border-b-2 bg-slate-600 p-1 shadow-xs shadow-black/50"
+			>
+				<div class="nav-left flex flex-1">
+					<a
+						href="/"
+						rel="external"
+						class="btn btn-ghost min-w-20 rounded-lg border border-black bg-dark text-center text-xl font-bold text-floral-white transition-colors duration-200 hover:bg-dark-fg"
+					>
+						CC
+					</a>
+				</div>
 
-			<div class="nav-center flex flex-1 items-center justify-center gap-2">
-				<NavBarLink href="/about">About</NavBarLink>
-			</div>
+				<div class="nav-center flex flex-1 items-center justify-center gap-2">
+					<NavBarLink href="/about">About</NavBarLink>
+				</div>
 
-			<div class="nav-right flex flex-1 items-center justify-end gap-5 pr-2">
-				<NavBarLink href="/login">Sign In</NavBarLink>
-				<NavBarLink href="/signup" button={true}>Sign Up</NavBarLink>
+				<div class="nav-right flex flex-1 items-center justify-end gap-5 pr-2">
+					<NavBarLink href="/login">Sign In</NavBarLink>
+					<NavBarLink href="/signup" button={true}>Sign Up</NavBarLink>
+				</div>
 			</div>
-		</div>
+		</nav>
 	</header>
-
-	<main>
+	<main class="flex min-h-screen min-w-screen">
 		{@render children()}
 	</main>
 

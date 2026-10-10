@@ -71,7 +71,7 @@
 			<!-- Currently redirects to extract -->
 			<!-- Add extraction bar below when URL is clicked -->
 			<Tab href="/extract">URL</Tab>
-			<Tab href="#upload">Upload File</Tab>
+			<Tab href="/dashboard/text">Upload File</Tab>
 			<Tab href="#paste">Paste Text</Tab>
 			<!-- Just throwing things at the wall -->
 			<Tab href="#search">Search</Tab>

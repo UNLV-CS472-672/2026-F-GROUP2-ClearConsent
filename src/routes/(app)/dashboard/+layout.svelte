@@ -8,32 +8,31 @@
 
 <!-- Maybe just make the Navbar + Sidebar into components with toggleable elements
  and keep common code in the root layouts instead. -->
-<div class="pagecontent flex h-dvh">
-	<aside
-		class="{expanded
-			? 'w-50 opacity-100'
-			: 'w-50 opacity-0'} top-0 bottom-0 left-0 z-1 flex transition-all delay-75 duration-750 ease-in-out"
-		onmouseenter={() => (expanded = true)}
-		onmouseleave={() => (expanded = false)}
-	>
-		<div class="sidebar_container flex h-screen w-full items-center justify-center">
-			<div
-				class="{expanded
-					? 'opacity-100'
-					: 'opacity-0'}  m-auto flex h-full w-full flex-col items-center justify-center gap-1 bg-slate-500 shadow-md shadow-black transition-all duration-750"
-			>
-				<a href="/dashboard" class={sidebarbuttonclass}>Overview</a>
-				<a href="/dashboard/upload" class={sidebarbuttonclass}>Upload</a>
-				<!-- <hr class="mx-auto w-7/8 border-slate-600/70" /> -->
-				<a href="/dashboard/history" class={sidebarbuttonclass}>History</a>
-				<!-- <hr class="mx-auto w-7/8 border-slate-600/70" /> -->
-				<a href="/dashboard/preferences" class={sidebarbuttonclass}>Settings</a>
-				<!-- <hr class="mx-auto w-full border-slate-600/70 shadow-sm shadow-black/10"> -->
-			</div>
+<aside
+	class="flex {expanded
+		? 'w-50 opacity-100'
+		: 'w-50 opacity-0'} top-0 bottom-0 left-0 z-1 flex transition-all delay-75 duration-750 ease-in-out"
+	onmouseenter={() => (expanded = true)}
+	onmouseleave={() => (expanded = false)}
+>
+	<div class="sidebar_container flex h-screen w-full items-center justify-center">
+		<div
+			class="{expanded
+				? 'opacity-100'
+				: 'opacity-0'}  m-auto flex h-full w-full flex-col items-center justify-center gap-1 bg-slate-500 shadow-md shadow-black transition-all duration-750"
+		>
+			<a href="/dashboard" class={sidebarbuttonclass}>Overview</a>
+			<a href="/dashboard/upload" class={sidebarbuttonclass}>Upload</a>
+			<!-- <hr class="mx-auto w-7/8 border-slate-600/70" /> -->
+			<a href="/dashboard/history" class={sidebarbuttonclass}>History</a>
+			<!-- <hr class="mx-auto w-7/8 border-slate-600/70" /> -->
+			<a href="/dashboard/preferences" class={sidebarbuttonclass}>Settings</a>
+			<!-- <hr class="mx-auto w-full border-slate-600/70 shadow-sm shadow-black/10"> -->
 		</div>
-	</aside>
+	</div>
+</aside>
+
 	{@render children()}
-</div>
 
 <style>
 	aside {
