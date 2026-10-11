@@ -28,8 +28,8 @@ skipped until long-policy chunking exists. Each case is one provider call.
 - **Coverage proxy:** for labeled cases, an expected finding counts as covered when its labeled
   evidence overlaps any verified evidence range. Labels are drafts awaiting human review, and overlap
   does not prove the claim is right, so treat this as a signal rather than recall.
-- **Headroom:** duration as a share of the 120-second timeout, and output tokens (including reasoning)
-  as a share of the 16,000-token cap. The full Spotify case is the main check of those limits.
+- **Headroom:** duration as a share of the 180-second timeout, and output tokens (including reasoning)
+  as a share of the 32,000-token cap. The full Spotify case is the main check of those limits.
 - **Cost:** estimated from recorded usage, pricing all input at the cache-write rate. It is an upper
   estimate, not an invoice. Failed calls record no usage but may still be billed.
 

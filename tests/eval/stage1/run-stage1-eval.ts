@@ -8,6 +8,8 @@ import {
 	DEFAULT_OPENAI_MODEL,
 	DEFAULT_REASONING_EFFORT,
 	OPENAI_MAX_OUTPUT_TOKENS,
+	OPENAI_OUTPUT_TOKENS_CEILING,
+	OPENAI_TIMEOUT_CEILING_MS,
 	OPENAI_TIMEOUT_MS
 } from '../../../src/lib/server/analysis/openai-provider';
 import type { ReasoningEffort } from '../../../src/lib/server/analysis/openai-provider';
@@ -44,6 +46,23 @@ const mode = args.includes('--run')
 const roundUp = (usd: number, places: number) => Math.ceil(usd * 10 ** places) / 10 ** places;
 const selectedIds = args.flatMap((arg, index) => (arg === '--case' ? [args[index + 1]] : []));
 
+// Honors the same optional limit overrides as the server, within the same ceilings.
+function limit(name: string, fallback: number, ceiling: number): number {
+	const raw = process.env[name]?.trim();
+	if (!raw) return fallback;
+	const value = Number(raw);
+	if (!Number.isInteger(value) || value < 1 || value > ceiling) {
+		throw new Error(`${name} must be a whole number from 1 to ${ceiling}.`);
+	}
+	return value;
+}
+const TIMEOUT_MS = limit('OPENAI_TIMEOUT_MS', OPENAI_TIMEOUT_MS, OPENAI_TIMEOUT_CEILING_MS);
+const MAX_OUTPUT_TOKENS = limit(
+	'OPENAI_MAX_OUTPUT_TOKENS',
+	OPENAI_MAX_OUTPUT_TOKENS,
+	OPENAI_OUTPUT_TOKENS_CEILING
+);
+
 function currentCommit(): string {
 	const sha = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
 	const dirty = execSync('git status --porcelain', { encoding: 'utf8' }).trim() !== '';
@@ -63,7 +82,7 @@ async function estimate(cases: Stage1EvalCase[]) {
 		cases.map(async (testCase) => ({
 			id: testCase.id,
 			characters: testCase.policyText.length,
-			maximumUsd: await estimateCaseMaximumUsd(testCase)
+			maximumUsd: await estimateCaseMaximumUsd(testCase, MAX_OUTPUT_TOKENS)
 		}))
 	);
 	return { perCase, maximumUsd: perCase.reduce((sum, item) => sum + item.maximumUsd, 0) };
@@ -93,8 +112,8 @@ async function runCases(
 			commit,
 			model: settings.model,
 			reasoningEffort: settings.reasoningEffort,
-			timeoutMs: OPENAI_TIMEOUT_MS,
-			maxOutputTokens: OPENAI_MAX_OUTPUT_TOKENS,
+			timeoutMs: TIMEOUT_MS,
+			maxOutputTokens: MAX_OUTPUT_TOKENS,
 			startedAt,
 			sourceLength: testCase.policyText.length,
 			passageCount: snapshot.passages.length
@@ -295,8 +314,8 @@ if (mode === 'score') {
 					calls: cases.length,
 					model: DEFAULT_OPENAI_MODEL,
 					reasoningEffort: DEFAULT_REASONING_EFFORT,
-					timeoutMs: OPENAI_TIMEOUT_MS,
-					maxOutputTokensPerCall: OPENAI_MAX_OUTPUT_TOKENS,
+					timeoutMs: TIMEOUT_MS,
+					maxOutputTokensPerCall: MAX_OUTPUT_TOKENS,
 					perCase: plan.perCase.map((item) => ({
 						...item,
 						maximumUsd: roundUp(item.maximumUsd, 5)
@@ -332,7 +351,13 @@ if (mode === 'score') {
 		}
 		const reasoningEffort = (process.env.OPENAI_REASONING_EFFORT?.trim() ||
 			DEFAULT_REASONING_EFFORT) as ReasoningEffort;
-		const provider = createOpenAIStage1Provider({ apiKey, model, reasoningEffort });
+		const provider = createOpenAIStage1Provider({
+			apiKey,
+			model,
+			reasoningEffort,
+			timeoutMs: TIMEOUT_MS,
+			maxOutputTokens: MAX_OUTPUT_TOKENS
+		});
 		const records = await runCases(cases, provider, { mode: 'run', model, reasoningEffort });
 		report(records, cases);
 	}
