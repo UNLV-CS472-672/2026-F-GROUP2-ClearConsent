@@ -217,7 +217,7 @@ One authorized paid request was sent on October 10, 2026 at 01:20 UTC.
 
 | Item           | Value                                                                                    |
 | -------------- | ---------------------------------------------------------------------------------------- |
-| Tested code    | Commit `b7f820c` plus the uncommitted second-review fixes staged on that branch          |
+| Tested code    | Commit `ecaf1c5` (`b7f820c` plus the second-review fixes)                                |
 | Environment    | `npm run preview` (local Wrangler 4.130.0 Workers runtime), macOS, Node `v22.23.2`       |
 | Request        | `docs/examples/stage1-request.json` (396 UTF-16 code units, one passage)                 |
 | Model          | `gpt-6-luna`, reasoning effort `medium`, one attempt                                     |
@@ -236,8 +236,10 @@ An earlier attempt the same day used a revoked key. It failed before generation 
 `provider_authentication` (HTTP 502), and a wrong access token was rejected with HTTP 401 before any
 provider call. Both confirm the failure paths on the Workers runtime.
 
-This single short request shows the configuration and validation path works end to end. It does not
-measure timeout or output-token headroom for inputs near the 60,000-character limit.
+This single short request shows the configuration and validation path works end to end. Later changes
+(evidence labels, the current prompt, and the current limits) were exercised live through the same
+pipeline by the Stage 1 eval in `tests/eval/stage1/`, which skips only the HTTP layer, but were not
+re-run through this route. That eval is where full-policy timeout and output headroom were measured.
 
 ## Cloudflare deployment
 
