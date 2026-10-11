@@ -19,24 +19,27 @@ URL retrieval, or PDF/HTML parsing.
 | Provider calls    |                                       One |
 | Automatic retries |                                      Zero |
 | Attempt count     |                                       One |
-| Provider timeout  |                               120 seconds |
-| Maximum output    | 16,000 tokens, including reasoning tokens |
+| Provider timeout  |                               180 seconds |
+| Maximum output    | 32,000 tokens, including reasoning tokens |
 | Default model     |                              `gpt-6-luna` |
 | Default reasoning |                                  `medium` |
 
 The model and reasoning effort are configurable. `OPENAI_TIMEOUT_MS` and `OPENAI_MAX_OUTPUT_TOKENS`
-can override the timeout and output cap up to hard ceilings of 180 seconds and 32,000 tokens; values
+can override the timeout and output cap up to hard ceilings of 300 seconds and 64,000 tokens; values
 outside that range fail with `configuration_error`.
 
 The bounds are sized for a Spotify-sized policy in one call. In the issue #11 source-grounded run, the
 complete 47k-character Spotify policy took 54.3 seconds and 8,642 output tokens, which would have
-exceeded the earlier 30-second and 8,000-token caps. Larger inputs fail with `input_too_large`; they
+exceeded the earlier 30-second and 8,000-token caps. With the current prompt, which asks for exact
+multi-line quotes and full coverage, the 41k-character plain-text Spotify policy used 14,005 output
+tokens in 77 seconds in the Stage 1 eval, and two other runs exceeded 16,000 tokens, so the defaults
+leave about twice the observed need. Larger inputs fail with `input_too_large`; they
 are never silently truncated. The same runs found far fewer of the checklist claims with one call per
 policy than with one call per bounded section, so long-policy chunking remains the intended follow-up,
 along with parallel extraction and retry orchestration.
 
-At the OpenAI pricing published when this implementation was written, the 16,000-token output ceiling
-for `gpt-6-luna` costs at most $0.008 in output tokens. Input cost depends on actual tokenization and
+At the OpenAI pricing published when this implementation was written, the 32,000-token output ceiling
+for `gpt-6-luna` costs at most $0.016 in output tokens. Input cost depends on actual tokenization and
 prompt overhead, so record returned usage instead of treating character count as an exact cost limit.
 See the official [GPT-6 Luna model page](https://developers.openai.com/api/docs/models/gpt-6-luna).
 
@@ -61,7 +64,7 @@ per-user rate limit. Keep `ENABLE_PAID_ANALYSIS=0` in deployed environments unti
 authorization, and rate limiting are agreed. Cloudflare secrets must be configured as encrypted Worker
 secrets rather than committed variables.
 
-The OpenAI SDK is pinned and configured with `maxRetries: 0`, `logLevel: "off"`, a 120-second timeout, `store: false`, no
+The OpenAI SDK is pinned and configured with `maxRetries: 0`, `logLevel: "off"`, a 180-second timeout, `store: false`, no
 tools, and `truncation: "disabled"`. Official OpenAI documentation recommends Structured Outputs for
 schema-constrained responses and notes that SDKs retry eligible failures unless retries are disabled:
 

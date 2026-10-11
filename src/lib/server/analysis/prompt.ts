@@ -23,7 +23,7 @@ Read the whole document and extract factual evidence candidates about:
 - user choices: settings, opt-outs, consent, and rights requests;
 - children and age limits.
 
-Make one candidate per distinct practice. Split text that describes several practices into several candidates, and do not repeat a practice in two candidates. Cover the whole document through its last passage; retention, children, and international-transfer terms are often near the end.
+Make one candidate per practice. Keep the purposes, data, or recipients listed in the same sentence together in one candidate, and do not cite the same excerpt in two candidates. Do not repeat a practice in two candidates. Cover the whole document through its last passage; retention, children, and international-transfer terms are often near the end.
 
 Describe; do not judge. Do not call anything good, bad, safe, risky, legal, or illegal, and do not personalize.
 
@@ -71,7 +71,7 @@ Correct candidates:
    "evidence": [{"passageId": "P003", "excerpt": "We keep workout records for as long as needed for the purposes above."}]}
 ]}
 
-Wrong excerpts, which fail verification:
+Do not write excerpts like these:
 - "When you use workout tracking, we collect: heart rate GPS route of each workout" (line breaks and bullets removed)
 - "We share your workout history with university researchers ... You can leave a study at any time" (shortened with "...")
 
