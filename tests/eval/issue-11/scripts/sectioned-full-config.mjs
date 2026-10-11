@@ -63,7 +63,15 @@ export function splitPolicyIntoSections(testCase, maxCoreBytes = MAX_CORE_BYTES)
 }
 
 export function buildSectionRequest(testCase, section, maxOutputTokens = SECTION_OUTPUT_CAP) {
-	const { lineMap } = numberPolicyLines(testCase.policyText);
+	const { lineMap: fullLineMap } = numberPolicyLines(testCase.policyText);
+	// A response can ground claims and qualifications only in text supplied to this
+	// request; accepting other source lines would hide unsupported section citations.
+	const lineMap = new Map(
+		[...fullLineMap].filter(([id]) => {
+			const index = Number(id.slice(1)) - 1;
+			return index >= section.contextStart && index < section.contextEnd;
+		})
+	);
 	const lines = testCase.policyText.split('\n');
 	const numbered = (start, end) =>
 		lines
