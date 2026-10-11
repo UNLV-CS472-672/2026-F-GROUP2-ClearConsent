@@ -106,13 +106,16 @@ export async function runStage1Analysis(
 		extraction.output,
 		source
 	);
+	const anyUnverified = candidates.some((candidate) =>
+		candidate.evidence.some((evidence) => evidence.status === 'unverified')
+	);
 	return {
 		stage: 'evidence_extraction',
 		schemaVersion: 'stage1-internal-v1',
 		stageStatus:
 			candidates.length === 0
 				? 'no_candidates'
-				: rejectedCandidates.length > 0
+				: rejectedCandidates.length > 0 || anyUnverified
 					? 'partial'
 					: 'complete',
 		analysisStatus: 'in_progress',

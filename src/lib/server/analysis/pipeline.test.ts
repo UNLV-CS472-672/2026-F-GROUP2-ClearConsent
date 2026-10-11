@@ -71,7 +71,7 @@ describe('Stage 1 pipeline', () => {
 		expect(result.limitations.semanticReviewRequired).toBe(true);
 	});
 
-	it('returns a partial outcome that lists candidates dropped during verification', async () => {
+	it('returns a partial outcome that keeps and labels evidence it could not verify', async () => {
 		const invented = {
 			...supportedCandidate(),
 			evidence: [{ passageId: 'P001', excerpt: 'We sell location to data brokers.' }]
@@ -82,9 +82,22 @@ describe('Stage 1 pipeline', () => {
 		);
 
 		expect(result.stageStatus).toBe('partial');
+		expect(result.candidates.map((item) => item.id)).toEqual(['C001', 'C002']);
+		expect(result.candidates[0].evidence[0]).toMatchObject({ status: 'unverified' });
+		expect(result.candidates[1].evidence[0]).toMatchObject({ status: 'verified' });
+		expect(result.rejectedCandidates).toEqual([]);
+	});
+
+	it('returns a partial outcome that reports a malformed candidate it dropped', async () => {
+		const result = await runStage1Analysis(
+			{ text: policy },
+			providerWith({ candidates: [{ ...supportedCandidate(), claim: ' ' }, supportedCandidate()] })
+		);
+
+		expect(result.stageStatus).toBe('partial');
 		expect(result.candidates.map((item) => item.id)).toEqual(['C001']);
 		expect(result.rejectedCandidates).toEqual([
-			expect.objectContaining({ index: 0, code: 'reference_validation_failed' })
+			expect.objectContaining({ index: 0, code: 'provider_malformed' })
 		]);
 	});
 

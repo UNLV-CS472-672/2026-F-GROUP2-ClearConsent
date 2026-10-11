@@ -9,5 +9,8 @@ export type {
 	SourceSnapshot,
 	Stage1Request,
 	Stage1Result,
-	ValidatedCandidate
+	UnverifiedEvidence,
+	ValidatedCandidate,
+	ValidatedEvidence,
+	VerifiedEvidence
 } from './schemas';

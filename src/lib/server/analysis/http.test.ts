@@ -80,7 +80,7 @@ describe('Stage 1 HTTP boundary', () => {
 	});
 
 	it.each([
-		['OPENAI_TIMEOUT_MS', '120001'],
+		['OPENAI_TIMEOUT_MS', '180001'],
 		['OPENAI_TIMEOUT_MS', 'soon'],
 		['OPENAI_MAX_OUTPUT_TOKENS', '0'],
 		['OPENAI_MAX_OUTPUT_TOKENS', '32001'],

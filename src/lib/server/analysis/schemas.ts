@@ -59,15 +59,31 @@ export const SourceSnapshotSchema = z.strictObject({
 
 export type SourceSnapshot = z.infer<typeof SourceSnapshotSchema>;
 
-export type ValidatedEvidence = {
+export type VerifiedEvidence = {
+	status: 'verified';
+	// How the quote was located: verbatim, after treating whitespace, quote marks, and dashes as
+	// equivalent, or as one piece of a quote the model joined with "...".
+	match: 'exact' | 'normalized' | 'ellipsis';
 	passageId: string;
+	// Always sliced from the frozen source, never copied from the provider.
 	excerpt: string;
 	startOffset: number;
 	endOffset: number;
 };
 
+export type UnverifiedEvidence = {
+	status: 'unverified';
+	passageId: string;
+	// The provider's text, which could not be located in the source. Never present it as a quote.
+	excerpt: string;
+	reason: string;
+};
+
+export type ValidatedEvidence = VerifiedEvidence | UnverifiedEvidence;
+
 export type ValidatedCandidate = Omit<ModelCandidate, 'evidence'> & {
 	id: string;
+	// Later stages may only present a candidate with at least one verified excerpt.
 	evidence: ValidatedEvidence[];
 };
 
@@ -76,7 +92,7 @@ export type RejectedCandidate = {
 	index: number;
 	// Unverified provider text, kept for review and debugging. Never present it as a finding.
 	claim: string | null;
-	code: 'reference_validation_failed' | 'provider_malformed';
+	code: 'provider_malformed';
 	reason: string;
 };
 

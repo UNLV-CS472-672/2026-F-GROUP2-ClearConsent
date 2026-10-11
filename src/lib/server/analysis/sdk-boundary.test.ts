@@ -81,6 +81,8 @@ describe('real SDK with an offline HTTP transport', () => {
 		const result = await runStage1Analysis({ text: policy }, provider);
 		expect(result.stageStatus).toBe('complete');
 		expect(result.candidates[0].evidence[0]).toEqual({
+			status: 'verified',
+			match: 'exact',
 			passageId: 'P001',
 			excerpt: policy,
 			startOffset: 0,

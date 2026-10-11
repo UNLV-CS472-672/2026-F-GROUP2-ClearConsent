@@ -19,13 +19,13 @@ URL retrieval, or PDF/HTML parsing.
 | Provider calls    |                                       One |
 | Automatic retries |                                      Zero |
 | Attempt count     |                                       One |
-| Provider timeout  |                                90 seconds |
+| Provider timeout  |                               120 seconds |
 | Maximum output    | 16,000 tokens, including reasoning tokens |
 | Default model     |                              `gpt-6-luna` |
 | Default reasoning |                                  `medium` |
 
 The model and reasoning effort are configurable. `OPENAI_TIMEOUT_MS` and `OPENAI_MAX_OUTPUT_TOKENS`
-can override the timeout and output cap up to hard ceilings of 120 seconds and 32,000 tokens; values
+can override the timeout and output cap up to hard ceilings of 180 seconds and 32,000 tokens; values
 outside that range fail with `configuration_error`.
 
 The bounds are sized for a Spotify-sized policy in one call. In the issue #11 source-grounded run, the
@@ -61,7 +61,7 @@ per-user rate limit. Keep `ENABLE_PAID_ANALYSIS=0` in deployed environments unti
 authorization, and rate limiting are agreed. Cloudflare secrets must be configured as encrypted Worker
 secrets rather than committed variables.
 
-The OpenAI SDK is pinned and configured with `maxRetries: 0`, `logLevel: "off"`, a 90-second timeout, `store: false`, no
+The OpenAI SDK is pinned and configured with `maxRetries: 0`, `logLevel: "off"`, a 120-second timeout, `store: false`, no
 tools, and `truncation: "disabled"`. Official OpenAI documentation recommends Structured Outputs for
 schema-constrained responses and notes that SDKs retry eligible failures unless retries are disabled:
 
@@ -106,14 +106,30 @@ frozenText.slice(startOffset, endOffset) === excerpt;
 ```
 
 The model receives passage IDs and text but does not supply source offsets, snapshot IDs, or candidate
-IDs. Code assigns those values. Each returned excerpt must occur exactly once inside its cited passage.
+IDs. Code assigns those values. Each excerpt is located in or overlapping its cited passage, in order:
 
-A candidate is dropped when any of its evidence fails: an unknown passage ID, a blank or too-short
-excerpt, invented or altered wording, or an excerpt repeated inside its passage. Blank required fields
-also drop it. The whole candidate is dropped, not only the failed excerpt, because that excerpt may have
-been the one supporting a condition or exception. Each dropped candidate appears in `rejectedCandidates`
-with its position in the provider output, its unverified claim, an error code, and the reason. Surviving
-candidates are numbered `C001` onward without gaps. If every candidate fails, the stage fails with
+1. **Exact:** the excerpt occurs verbatim exactly once.
+2. **Normalized:** it occurs exactly once after treating every whitespace run as one space and treating
+   curly and straight quote marks, dash variants, and `…`/`...` as equal. The model routinely turns
+   line breaks into spaces; nothing else is relaxed, so a changed word, number, or "not" never matches.
+3. **Ellipsis:** a quote the model shortened with `...` becomes one excerpt per piece, when every piece
+   is at least 12 characters, occurs once near the passage, and appears in the quoted order.
+
+Every verified excerpt carries `status: "verified"`, its `match` kind, and offsets, and its text is
+sliced from the frozen source rather than copied from the model. Passage boundaries are arbitrary cuts,
+so a quote may run into the neighboring passage; the evidence keeps the cited passage ID and its offsets
+cover the whole quote.
+
+An excerpt that cannot be placed (unknown passage ID, blank or too-short, repeated near its passage, or
+wording not in the source) is kept with `status: "unverified"`, the model's text, and a reason. It has no
+offsets and must never be shown as a quote from the policy. Its candidate is kept too, with all of its
+evidence labeled, so no condition or exception is silently lost. Consolidation decides what to do with
+it: a candidate may be presented only when at least one of its excerpts is verified.
+
+Only a malformed candidate (blank required fields or no evidence) is dropped; it appears in
+`rejectedCandidates` with its position in the provider output, its unverified claim, the
+`provider_malformed` code, and the reason. Returned candidates are numbered `C001` onward without gaps.
+If the provider returned candidates but not one excerpt verified, the stage fails with
 `reference_validation_failed`. A provider response that does not match the schema at all still fails
 the stage.
 
@@ -131,9 +147,8 @@ questions require semantic review and the controlled evaluation described in iss
 result. It does not mean the whole analysis is complete. Every successful response therefore keeps
 `analysisStatus: "in_progress"` and points to the later consolidation stage.
 
-`partial` means at least one candidate was verified and at least one was dropped. Every returned
-candidate is still fully verified; the dropped ones are listed in `rejectedCandidates` and must not be
-shown as findings.
+`partial` means at least one excerpt is `unverified` or at least one malformed candidate was dropped.
+Unverified excerpts and the entries in `rejectedCandidates` must not be shown as evidence or findings.
 
 `no_candidates` is a separate Stage 1 outcome. It is not a provider failure, a public `success`, a
 safety conclusion, or a low-risk result. Provider refusals, output truncation, timeouts, rate limits,
@@ -145,7 +160,7 @@ rather than being reported as provider outages.
 Request bodies are read only up to `MAX_REQUEST_BODY_BYTES` in `http.ts`; larger bodies fail with
 `input_too_large` before JSON parsing or any provider call.
 
-Logs contain only outcome, duration, source length, candidate and rejected counts, model, attempt count, and aggregate
+Logs contain only outcome, duration, source length, candidate, rejected, and unverified-excerpt counts, model, attempt count, and aggregate
 usage. Full submitted text, credentials, provider error bodies, and preferences are excluded.
 
 ## Stage 2 handoff
@@ -183,7 +198,8 @@ fully offline. Additional source tests reject invalid source maps and malformed 
 
 - Issue #22 must settle the public category taxonomy, whether `practice` remains, ambiguity/state
   representation, confidence semantics, final analysis/finding IDs, and public source extensions.
-- Issue #22 must decide how a `partial` Stage 1 result and its dropped candidates appear publicly.
+- Issue #22 must decide how a `partial` Stage 1 result, its unverified excerpts, and its dropped
+  candidates appear publicly.
 - Issue #22 must map internal `no_candidates` into its public `insufficient`/result model without
   creating an empty successful finding set.
 - Issue #12 owns deterministic preference scoring from canonical findings, not these raw candidates.

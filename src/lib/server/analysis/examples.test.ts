@@ -18,6 +18,7 @@ describe('committed Stage 1 examples', () => {
 		expect(response.source).toEqual(snapshot);
 		for (const candidate of response.candidates) {
 			for (const evidence of candidate.evidence) {
+				expect(evidence.status).toBe('verified');
 				expect(request.text.slice(evidence.startOffset, evidence.endOffset)).toBe(evidence.excerpt);
 				expect(evidence.passageId).toBe('P001');
 			}

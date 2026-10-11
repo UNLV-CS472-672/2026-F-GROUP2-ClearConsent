@@ -219,6 +219,9 @@ export async function handleStage1HttpRequest(
 				sourceLength: result.source.textLength,
 				candidateCount: result.candidates.length,
 				rejectedCount: result.rejectedCandidates.length,
+				unverifiedEvidenceCount: result.candidates
+					.flatMap((candidate) => candidate.evidence)
+					.filter((evidence) => evidence.status === 'unverified').length,
 				model: result.provider.model,
 				attempts: result.provider.attempts,
 				usage: result.provider.usage

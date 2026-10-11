@@ -34,6 +34,8 @@
 			"recipients": [],
 			"evidence": [
 				{
+					"status": "verified",
+					"match": "exact",
 					"passageId": "P001",
 					"excerpt": "We collect approximate location from your IP address to operate the service.",
 					"startOffset": 0,
@@ -54,6 +56,8 @@
 			"recipients": ["advertising partners"],
 			"evidence": [
 				{
+					"status": "verified",
+					"match": "exact",
 					"passageId": "P001",
 					"excerpt": "We share approximate location with advertising partners only if you enable personalized ads.",
 					"startOffset": 77,
@@ -74,6 +78,8 @@
 			"recipients": ["advertising partners"],
 			"evidence": [
 				{
+					"status": "verified",
+					"match": "exact",
 					"passageId": "P001",
 					"excerpt": "You can disable personalized ads in Settings; this stops that sharing.",
 					"startOffset": 170,
@@ -94,6 +100,8 @@
 			"recipients": [],
 			"evidence": [
 				{
+					"status": "verified",
+					"match": "exact",
 					"passageId": "P001",
 					"excerpt": "We do not sell personal data.",
 					"startOffset": 241,
@@ -117,6 +125,8 @@
 			"recipients": [],
 			"evidence": [
 				{
+					"status": "verified",
+					"match": "exact",
 					"passageId": "P001",
 					"excerpt": "We delete your account data within 30 days of a verified deletion request, except records we must keep for legal obligations.",
 					"startOffset": 271,
