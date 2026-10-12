@@ -62,14 +62,18 @@ export const actions: Actions = {
 			}
 
 			const encoded_text: Uint8Array = new TextEncoder().encode(tmp);
-			const hashbuffer =  await crypto.subtle.digest("SHA-256", encoded_text);
-			const hasharray = Array.from(new Uint8Array(hashbuffer));
+			const hashbuffer: ArrayBuffer = await crypto.subtle.digest('SHA-256', encoded_text);
+			const hash: string = Array.from(new Uint8Array(hashbuffer))
+				.map((a) => a.toString(16).padStart(2, '0'))
+				.join('');
+			const timestamp = new Date(Date.now()).toJSON();
 
 			return {
 				success: true,
 				message: 'Successfully submitted input.',
 				data: tmp,
-				hash: hasharray.map((a) => a.toString(16).padStart(2,"0")).join("")
+				hash: hash,
+				timestamp: timestamp
 			};
 		} catch (error) {
 			console.error('Error:', error);
