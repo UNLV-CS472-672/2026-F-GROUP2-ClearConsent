@@ -32,7 +32,7 @@
 			</div>
 		</nav>
 	</header>
-	<main class="flex min-h-screen min-w-screen">
+	<main class="flex min-h-screen min-w-screen justify-center">
 		{@render children()}
 	</main>
 
