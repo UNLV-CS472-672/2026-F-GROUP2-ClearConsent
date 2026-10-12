@@ -61,11 +61,15 @@ export const actions: Actions = {
 				});
 			}
 
+			const encoded_text: Uint8Array = new TextEncoder().encode(tmp);
+			const hashbuffer =  await crypto.subtle.digest("SHA-256", encoded_text);
+			const hasharray = Array.from(new Uint8Array(hashbuffer));
 
 			return {
 				success: true,
 				message: 'Successfully submitted input.',
-				data: tmp
+				data: tmp,
+				hash: hasharray.map((a) => a.toString(16).padStart(2,"0")).join("")
 			};
 		} catch (error) {
 			console.error('Error:', error);

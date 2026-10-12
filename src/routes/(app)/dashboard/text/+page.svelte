@@ -40,6 +40,7 @@
 	</form>
 	<div class="w-200 justify-center items-center">
 		{#if result}
+		<h1 class="text-lg font-bold">{result.hash}</h1>
 			<pre
 				class="mt-4 border border-gray-200 bg-gray-50 p-4 text-sm whitespace-pre-wrap">{result.data}</pre>
 		{:else if error}
