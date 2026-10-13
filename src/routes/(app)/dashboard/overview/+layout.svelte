@@ -1,17 +1,12 @@
 <script lang="ts">
 	import type { LayoutProps } from './$types';
+	import { resolve } from '$app/paths';
 	let { children }: LayoutProps = $props();
-	let sidebarbuttonclass: string =
-		'font-bold text-lg text-black w-full text-center border-slate-600 bg-slate-300/10 hover:bg-slate-300 justify-center';
-	let expanded = $state(false);
 
-	import type { PageProps } from './$types';
-	import { page } from '$app/state';
 	import Card from '$lib/components/Card.svelte';
 	import Table from '$lib/components/Table.svelte';
 	import TabBox from '$lib/components/TabBox.svelte';
 	import Tab from '$lib/components/Tab.svelte';
-	import NavBarLink from '$lib/components/NavBarLink.svelte';
 
 	// --- Temporary
 	interface historyitem {
@@ -47,42 +42,14 @@
 				timestamp: '2021-03-27T17:46:40.077959'
 			}
 		].toSorted((a, b) => {
-			return new Date(b.timestamp) - new Date(a.timestamp);
+			return new Date(b.timestamp).valueOf() - new Date(a.timestamp).valueOf();
 		})
 	);
 	// ----------------
-	let sortedState: number = $state(-1); //-1 descending 1 ascending
 	let sortedTimestamp: boolean = $state(true);
 </script>
 
-<!-- Maybe just make the Navbar + Sidebar into components with toggleable elements
- and keep common code in the root layouts instead. -->
-<aside
-	class="flex {expanded
-		? 'w-50 opacity-100'
-		: 'w-50 opacity-0'} top-0 bottom-0 left-0 z-1 flex transition-all delay-75 duration-750 ease-in-out"
-	onmouseenter={() => (expanded = true)}
-	onmouseleave={() => (expanded = false)}
->
-	<div class="sidebar_container flex h-screen w-full items-center justify-center">
-		<div
-			class="{expanded
-				? 'opacity-100'
-				: 'opacity-0'}  m-auto flex h-full w-full flex-col items-center justify-center gap-1 bg-slate-500 shadow-md shadow-black transition-all duration-750"
-		>
-			<a href="/dashboard" class={sidebarbuttonclass}>Overview</a>
-			<a href="/dashboard/upload" class={sidebarbuttonclass}>Upload</a>
-			<!-- <hr class="mx-auto w-7/8 border-slate-600/70" /> -->
-			<a href="/dashboard/history" class={sidebarbuttonclass}>History</a>
-			<!-- <hr class="mx-auto w-7/8 border-slate-600/70" /> -->
-			<a href="/dashboard/preferences" class={sidebarbuttonclass}>Settings</a>
-			<!-- <hr class="mx-auto w-full border-slate-600/70 shadow-sm shadow-black/10"> -->
-		</div>
-	</div>
-</aside>
-
-<div class="inline-block h-screen w-screen pl-5">
-	<!-- <p class="flex justify-center text-slate-600">Overview</p> -->
+<div class="inline-block h-screen pl-15">
 	<div class="grid grid-cols-3">
 		<div class="col-start-2 flex justify-center py-5">
 			<Card cardtitle="" mono={true} center={true} rise={false}>
@@ -91,7 +58,7 @@
 		</div>
 
 		<div class="col-start-2 mx-auto -mt-5 flex h-fit">
-			<a href="/dashboard/preferences" class="text-[.90rem] text-gray-800 hover:text-blue-800"
+			<a href={resolve('/preferences')} class="text-[.90rem] text-gray-800 hover:text-blue-800"
 				>Preferences</a
 			>
 		</div>
@@ -99,18 +66,13 @@
 
 	<div class="flex justify-center pt-10 pb-10">
 		<TabBox>
-			<!-- Maybe make these into routes (./url ./upload ./paste ./search)
-			 and point upload in layout to ./url -->
-			<!-- Currently redirects to extract -->
-			<!-- Add extraction bar below when URL is clicked -->
-			<Tab href="/dashboard/extract">URL</Tab>
+			<Tab href="/dashboard/overview/extract">URL</Tab>
 			<Tab href="#upload">Upload File</Tab>
-			<Tab href="/dashboard/text">Paste Text</Tab>
-			<!-- Just throwing things at the wall -->
+			<Tab href="/dashboard/overview/text">Paste Text</Tab>
 			<Tab href="#search">Search</Tab>
-			<!-- Separate these into the url, upload, paste, search pages -->
 		</TabBox>
 	</div>
+
 	<div class="flex justify-center">
 		{@render children()}
 	</div>
@@ -141,13 +103,11 @@
 						class="border-r text-center text-xl font-bold hover:cursor-pointer hover:bg-dark"
 						onclick={() => {
 							if (!sortedTimestamp) {
-								sortedState = -1;
 								sampledata.sort((a, b) => {
-									return new Date(b.timestamp) - new Date(a.timestamp);
+									return new Date(b.timestamp).valueOf() - new Date(a.timestamp).valueOf();
 								});
 							} else {
 								sampledata.reverse();
-								sortedState *= -1;
 							}
 							sortedTimestamp = true;
 						}}>Timestamp</td
@@ -173,12 +133,3 @@
 		</div>
 	</div>
 </div>
-
-<style>
-	aside {
-		margin-left: -100px;
-	}
-	aside:hover {
-		margin-left: 0px;
-	}
-</style>

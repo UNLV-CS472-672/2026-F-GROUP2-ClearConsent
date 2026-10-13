@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	let { children, href, fixed = false, button = false } = $props();
-	let tempclass: string =
-		'p-1 rounded-lg text-md font-semibold border-2 border-black h-9 text-white/75 bg-black/75 hover:bg-black/50 transition-colors';
+	let { children, href, button = false } = $props();
 </script>
 
 <a

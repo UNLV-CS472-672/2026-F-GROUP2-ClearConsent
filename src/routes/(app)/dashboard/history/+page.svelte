@@ -1,6 +1,4 @@
 <script lang="ts">
-	import type { PageProps } from './$types';
-	let { data }: PageProps = $props();
 	interface historyitem {
 		name: string;
 		hash: string;
@@ -34,10 +32,9 @@
 				timestamp: '2021-03-27T17:46:40.077959'
 			}
 		].toSorted((a, b) => {
-			return new Date(b.timestamp) - new Date(a.timestamp);
+			return new Date(b.timestamp).valueOf() - new Date(a.timestamp).valueOf();
 		})
 	);
-	let sortedState: number = $state(-1); //-1 descending 1 ascending
 	let sortedTimestamp: boolean = $state(true);
 	import Table from '$lib/components/Table.svelte';
 </script>
@@ -46,7 +43,7 @@
 	<div
 		class="flex h-7/8 w-7/8 flex-col items-center justify-center border border-black/40 inset-shadow-xs inset-shadow-black"
 	>
-		<h1 class="font-lg font-bold">Nothing substantial here yet. Come back later.</h1>
+		<h1 class="font-lg font-bold">Nothing substantial here yet. (Duplicate of overview)</h1>
 		<Table>
 			<tr class="border">
 				<td
@@ -63,13 +60,11 @@
 					class="text-center text-xl font-bold hover:cursor-pointer hover:bg-slate-400"
 					onclick={() => {
 						if (!sortedTimestamp) {
-							sortedState = -1;
 							sampledata.sort((a, b) => {
-								return new Date(b.timestamp) - new Date(a.timestamp);
+								return new Date(b.timestamp).valueOf() - new Date(a.timestamp).valueOf();
 							});
 						} else {
 							sampledata.reverse();
-							sortedState *= -1;
 						}
 						sortedTimestamp = true;
 					}}>Timestamp</td

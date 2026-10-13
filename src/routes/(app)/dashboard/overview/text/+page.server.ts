@@ -1,10 +1,11 @@
 import type { Actions } from '@sveltejs/kit';
 import { fail } from '@sveltejs/kit';
 
-// TEMPORARY TEXT INPUT FIELD TILL API IS COMPLETED
+// TEMPORARY
 
 function isPolicy(text: string) {
-	// temporary, replace /w text classification?
+	// This is not a reliable method of determining if something is policy text
+	// Temporary 'proof of concept'
 	const terms: RegExp[] = [
 		/\bterms of (use|service)\bprivacy\b/,
 		/\b(personal information|personal data|)\b/,
@@ -21,7 +22,7 @@ function isPolicy(text: string) {
 		/\b(term|termination|licensing|liability)\b/
 	];
 
-	return terms.filter((pattern) => pattern.test(text.toLowerCase())).length >= 5;
+	return terms.filter((pattern) => pattern.test(text.toLowerCase())).length >= 4;
 }
 
 export const actions: Actions = {
@@ -46,11 +47,12 @@ export const actions: Actions = {
 				});
 			}
 
-			// Average character count of large company ToS 160k
-			if (tmp.length > 200000)
+			const max_policy_len = 50000;
+
+			if (tmp.length > max_policy_len)
 				return fail(400, {
 					success: false,
-					error: 'Input exceeds character limit (200000): ' + tmp.length
+					error: 'Input exceeds character limit (' + max_policy_len + ') : ' + tmp.length
 				});
 
 			// Ensure that text is a policy - ToS/EULA/etc...
@@ -61,9 +63,9 @@ export const actions: Actions = {
 				});
 			}
 
-			const encoded_text: Uint8Array = new TextEncoder().encode(tmp);
-			const hashbuffer: ArrayBuffer = await crypto.subtle.digest('SHA-256', encoded_text);
-			const hash: string = Array.from(new Uint8Array(hashbuffer))
+			const bytes = new TextEncoder().encode(tmp);
+			const digest = await crypto.subtle.digest('SHA-256', bytes);
+			const hash: string = Array.from(new Uint8Array(digest))
 				.map((a) => a.toString(16).padStart(2, '0'))
 				.join('');
 			const timestamp = new Date(Date.now()).toJSON();
