@@ -127,7 +127,10 @@ An excerpt that cannot be placed (unknown passage ID, blank or too-short, repeat
 wording not in the source) is kept with `status: "unverified"`, the model's text, and a reason. It has no
 offsets and must never be shown as a quote from the policy. Its candidate is kept too, with all of its
 evidence labeled, so no condition or exception is silently lost. Consolidation decides what to do with
-it: a candidate may be presented only when at least one of its excerpts is verified.
+it: a candidate may be presented only when every one of its excerpts is verified. Qualifiers are not
+linked to individual excerpts, so one unverified excerpt may be the only support for a claim or an
+exception, and dropping just that part could make the rest misleading. A candidate with any
+unverified excerpt is therefore held back as a whole.
 
 Only a malformed candidate (blank required fields or no evidence) is dropped; it appears in
 `rejectedCandidates` with its position in the provider output, its unverified claim, the

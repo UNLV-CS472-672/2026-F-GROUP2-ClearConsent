@@ -83,7 +83,7 @@ export type ValidatedEvidence = VerifiedEvidence | UnverifiedEvidence;
 
 export type ValidatedCandidate = Omit<ModelCandidate, 'evidence'> & {
 	id: string;
-	// Later stages may only present a candidate with at least one verified excerpt.
+	// Later stages may only present a candidate whose excerpts are all verified.
 	evidence: ValidatedEvidence[];
 };
 

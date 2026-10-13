@@ -192,6 +192,6 @@ test('review lines up each candidate with its labeled quotes', async () => {
 	assert.match(markdown, /### collection-account-and-device-data/);
 	assert.match(markdown, /✅ exact/);
 	assert.match(markdown, /⚠️ unverified/);
-	assert.match(markdown, /no verified quote \(hidden from users\)/);
+	assert.match(markdown, /has an unverified quote \(hidden from users\)/);
 	assert.match(markdown, /- \[ \] The quote supports the claim/);
 });

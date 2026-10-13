@@ -25,7 +25,7 @@ function candidateSection(candidate: ReviewCandidate): string {
 		? 'dropped'
 		: candidate.supported
 			? 'kept'
-			: 'kept, no verified quote (hidden from users)';
+			: 'kept, has an unverified quote (hidden from users)';
 	const heading = `#### ${candidate.position}. ${candidate.id ?? ''}${candidate.id ? ' · ' : ''}${state} · ${fields.category} / ${fields.practice}`;
 	const quotes = candidate.quotes.map((quote) => {
 		const range =
@@ -81,7 +81,7 @@ function caseSection(record: Stage1EvalRecord, testCase: Stage1EvalCase | undefi
 
 	return [
 		`### ${record.caseId}`,
-		`**Outcome:** ${record.errorCode ? `failed (${record.errorCode}): ${record.errorMessage}` : record.outcome} · ${score.candidates} kept (${score.unsupported} with no verified quote), ${score.rejected} dropped`,
+		`**Outcome:** ${record.errorCode ? `failed (${record.errorCode}): ${record.errorMessage}` : record.outcome} · ${score.candidates} kept (${score.unsupported} with an unverified quote), ${score.rejected} dropped`,
 		run,
 		...expected,
 		...candidates.map(candidateSection)
@@ -101,7 +101,7 @@ export function formatReview(
 	];
 
 	const summary = [
-		'| Case | Outcome | Kept | No verified quote | Dropped | Unverified quotes | Coverage | Time |',
+		'| Case | Outcome | Kept | Has unverified quote | Dropped | Unverified quotes | Coverage | Time |',
 		'| --- | --- | ---: | ---: | ---: | ---: | --- | ---: |',
 		...scores.map(
 			(score) =>

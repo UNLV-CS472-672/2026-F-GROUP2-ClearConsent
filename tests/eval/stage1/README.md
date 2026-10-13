@@ -23,8 +23,8 @@ skipped until long-policy chunking exists. Each case is one provider call.
 
 - **Outcome:** `complete`, `partial`, `no_candidates`, or the failure code for each case.
 - **Quote labels:** how many excerpts verified exactly, after normalizing whitespace and quote marks,
-  or as pieces of a `...` quote, and how many stayed unverified. Also counted: candidates with no
-  verified quote (later stages must hide them) and malformed candidates dropped.
+  or as pieces of a `...` quote, and how many stayed unverified. Also counted: candidates with any
+  unverified quote (later stages must hide them) and malformed candidates dropped.
 - **Coverage proxy:** for labeled cases, an expected finding counts as covered when its labeled
   evidence overlaps any verified evidence range. Labels are drafts awaiting human review, and overlap
   does not prove the claim is right, so treat this as a signal rather than recall.

@@ -60,7 +60,7 @@ export type CaseScore = {
 	outcome: Stage1EvalRecord['outcome'];
 	errorCode: string | null;
 	candidates: number;
-	// Kept candidates without a single verified quote. A later stage must not present them.
+	// Kept candidates with at least one unverified quote. A later stage must not present them.
 	unsupported: number;
 	rejected: number;
 	// Expected findings whose labeled evidence overlaps at least one verified evidence range.
@@ -90,7 +90,7 @@ export type ReviewCandidate = {
 	position: number;
 	id: string | null;
 	kept: boolean;
-	// True when at least one quote verified, so a later stage may present the candidate.
+	// True when every quote verified, so a later stage may present the candidate.
 	supported: boolean;
 	reason: string | null;
 	fields: Omit<ModelCandidate, 'evidence'>;
@@ -134,7 +134,7 @@ export function reviewCandidates(record: Stage1EvalRecord): ReviewCandidate[] {
 				position: index + 1,
 				id: record.candidates[keptIndex++]?.id ?? null,
 				kept: true,
-				supported: quotes.some((quote) => quote.status !== 'unverified'),
+				supported: quotes.every((quote) => quote.status !== 'unverified'),
 				reason: null,
 				fields,
 				quotes
@@ -210,8 +210,8 @@ export function scoreCase(
 		outcome: record.outcome,
 		errorCode: record.errorCode,
 		candidates: record.candidates.length,
-		unsupported: record.candidates.filter(
-			(candidate) => !candidate.evidence.some((evidence) => evidence.status === 'verified')
+		unsupported: record.candidates.filter((candidate) =>
+			candidate.evidence.some((evidence) => evidence.status === 'unverified')
 		).length,
 		rejected: record.rejectedCandidates.length,
 		covered,
@@ -286,12 +286,12 @@ export function formatReport(scores: CaseScore[]): string {
 		.map((score) => `  ${score.caseId}: ${score.missed.join(' | ')}`);
 
 	return [
-		'case | outcome | kept | no verified quote | dropped | coverage | time (of timeout) | output / reasoning tokens (of cap) | cost',
+		'case | outcome | kept | has unverified quote | dropped | coverage | time (of timeout) | output / reasoning tokens (of cap) | cost',
 		...rows,
 		'',
 		`Outcomes: ${[...outcomes].map(([key, count]) => `${key} ${count}`).join(', ')}`,
-		`Candidates: ${totalCandidates} returned; ${sum((score) => score.candidates - score.unsupported)} with a verified quote, ` +
-			`${sum((score) => score.unsupported)} without, ${sum((score) => score.rejected)} dropped as malformed`,
+		`Candidates: ${totalCandidates} returned; ${sum((score) => score.candidates - score.unsupported)} with every quote verified, ` +
+			`${sum((score) => score.unsupported)} with an unverified quote, ${sum((score) => score.rejected)} dropped as malformed`,
 		quoteLine,
 		`Coverage proxy, synthetic: ${coverage('synthetic')}; archived: ${coverage('archived')}`,
 		`Slowest: ${slowest.caseId} at ${(slowest.durationMs / 1000).toFixed(1)}s (${percent(slowest.timeoutShare)} of timeout)`,
