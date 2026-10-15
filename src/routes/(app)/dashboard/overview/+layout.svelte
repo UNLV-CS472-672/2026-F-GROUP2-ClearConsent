@@ -12,6 +12,7 @@
 		hash: string;
 		timestamp: string;
 	}
+
 	const TABS = [
 		{ name: 'URL', href: '/dashboard/overview/extract' },
 		{ name: 'Paste Text', href: '/dashboard/overview/text' },
@@ -56,7 +57,7 @@
 <div class="inline-block h-screen pl-15">
 	<div class="grid grid-cols-3">
 		<div class="col-start-2 flex justify-center py-5">
-			<div class="max-w-md min-w-50 rounded-md bg-white/85 shadow-xs shadow-black/40 p-1">
+			<div class="max-w-md min-w-50 rounded-md bg-white/85 p-1 shadow-xs shadow-black/40">
 				<p class="text-center text-lg font-bold">Dashboard</p>
 			</div>
 		</div>
@@ -143,7 +144,9 @@
 					<tr class="border border-floral-white bg-darker text-darktext">
 						<td class="truncate border-r pr-1 pl-1" title={item.name}>{item.name}</td>
 						<td class="truncate border-r pr-1 pl-1" title={item.hash}>{item.hash}</td>
-						<td class="border-r pr-1 pl-1" title={item.timestamp}>{item.timestamp}</td>
+						<td class="border-r pr-1 pl-1" title={item.timestamp}
+							>{new Date(item.timestamp).toLocaleString()}</td
+						>
 						<td class="view pt-2 pb-2 text-center">
 							<a
 								href="#{item.name}"

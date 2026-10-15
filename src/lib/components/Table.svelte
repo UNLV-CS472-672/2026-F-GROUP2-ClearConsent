@@ -6,7 +6,7 @@
 	<colgroup>
 		<col style="width:3%" />
 		<col style="width:5%" />
-		<col style="width:3%" />
+		<col style="width:2%" />
 		<col style="width:1%" />
 	</colgroup>
 
