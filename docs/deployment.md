@@ -30,6 +30,19 @@ and Worker deployment operations. Never commit either a token or certificate/pri
 key. Cloudflare credentials are passed only to the deployment step; local install,
 checks, build and preview require no Cloudflare login. `.gitignore` excludes `ssl/`.
 
+The Worker also needs the Supabase settings at runtime. Add these as Cloudflare
+Worker secrets before the first release that uses the database, or extraction
+requests will fail:
+
+```sh
+npx wrangler secret put SUPABASE_URL
+npx wrangler secret put SUPABASE_PUBLISHABLE_KEY
+```
+
+Use the hosted project URL and its publishable key. Never store the service-role
+key in the Worker. The deploy step does not set these secrets, so they persist
+across releases once added.
+
 Normal local validation, from the repository root:
 
 ```sh

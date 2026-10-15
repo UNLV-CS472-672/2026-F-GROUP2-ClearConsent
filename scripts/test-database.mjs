@@ -20,9 +20,14 @@ function run(args, quiet = false) {
 		encoding: 'utf8',
 		stdio: quiet ? 'pipe' : 'inherit'
 	});
+	if (quiet && (result.error || result.status !== 0)) {
+		console.error(result.stdout);
+		console.error(result.stderr);
+		if (result.error) console.error(result.error);
+	}
 	if (result.error || result.status !== 0)
 		throw new Error(
-			`Disposable Supabase ${args[0]} failed (exit ${result.status}); check Docker availability and free ports 55420-55429.`
+			`Disposable Supabase ${args[0]} failed (exit ${result.status}); check Docker availability and free ports 56420-56429.`
 		);
 }
 let failure;
@@ -34,13 +39,13 @@ try {
 	const configPath = join(directory, 'supabase/config.toml');
 	const config = (await readFile(configPath, 'utf8'))
 		.replace(/^project_id = .*$/m, `project_id = "${project}"`)
-		.replace(/543(\d\d)/g, '554$1');
+		.replace(/543(\d\d)/g, '564$1');
 	await writeFile(configPath, config);
 	run(
 		[
 			'start',
 			'--exclude',
-			'studio,imgproxy,inbucket,realtime,storage-api,edge-runtime,logflare,vector,supavisor,postgres-meta,gotrue,postgrest,kong'
+			'studio,imgproxy,mailpit,realtime,storage-api,edge-runtime,logflare,vector,supavisor,postgres-meta,gotrue,postgrest,kong'
 		],
 		true
 	);

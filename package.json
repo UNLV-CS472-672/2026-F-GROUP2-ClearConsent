@@ -51,6 +51,7 @@
 		"wrangler": "4.130.0"
 	},
 	"dependencies": {
+		"@supabase/supabase-js": "^2.117.2",
 		"unpdf": "^1.8.1"
 	}
 }
