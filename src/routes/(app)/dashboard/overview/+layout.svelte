@@ -1,12 +1,10 @@
 <script lang="ts">
 	import type { LayoutProps } from './$types';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	let { children }: LayoutProps = $props();
 
-	import Card from '$lib/components/Card.svelte';
 	import Table from '$lib/components/Table.svelte';
-	import TabBox from '$lib/components/TabBox.svelte';
-	import Tab from '$lib/components/Tab.svelte';
 
 	// --- Temporary
 	interface historyitem {
@@ -14,6 +12,12 @@
 		hash: string;
 		timestamp: string;
 	}
+	const TABS = [
+		{ name: 'URL', href: '/dashboard/overview/extract' },
+		{ name: 'Paste Text', href: '/dashboard/overview/text' },
+		{ name: 'Search', href: '#search' }
+	];
+
 	let sampledata: historyitem[] = $state(
 		[
 			{
@@ -52,9 +56,9 @@
 <div class="inline-block h-screen pl-15">
 	<div class="grid grid-cols-3">
 		<div class="col-start-2 flex justify-center py-5">
-			<Card cardtitle="" mono={true} center={true} rise={false}>
-				<p class="text-lg font-bold">Dashboard</p>
-			</Card>
+			<div class="max-w-md min-w-50 rounded-md bg-white/85 shadow-xs shadow-black/40 p-1">
+				<p class="text-center text-lg font-bold">Dashboard</p>
+			</div>
 		</div>
 
 		<div class="col-start-2 mx-auto -mt-5 flex h-fit">
@@ -65,12 +69,23 @@
 	</div>
 
 	<div class="flex justify-center pt-10 pb-10">
-		<TabBox>
-			<Tab href="/dashboard/overview/extract">URL</Tab>
-			<Tab href="#upload">Upload File</Tab>
-			<Tab href="/dashboard/overview/text">Paste Text</Tab>
-			<Tab href="#search">Search</Tab>
-		</TabBox>
+		<div class="tab-container items-center justify-center">
+			<ul class="flex w-200 flex-row justify-center border-b-2 border-black/35">
+				{#each TABS as tab (tab.name)}
+					<li
+						class="tab {(page.url.hash ? page.url.hash : page.url.pathname) === tab.href
+							? 'border-b-2 text-blue-500'
+							: 'text-black'} relative w-full justify-center text-xl hover:text-blue-500"
+					>
+						<span class="relative flex h-full w-full items-center justify-center">
+							<a class="flex h-full w-full justify-center" href={tab.href} rel="external"
+								>{tab.name}</a
+							>
+						</span>
+					</li>
+				{/each}
+			</ul>
+		</div>
 	</div>
 
 	<div class="flex justify-center">
@@ -80,7 +95,16 @@
 	<div class="grid-row-3 grid gap-10 py-5">
 		<div class="history-container relative row-span-1 block">
 			<div class="mx-auto flex justify-center">
-				<Card cardtitle="History" center={true}>View submitted and added policies</Card>
+				<div
+					class="max-w-md min-w-50 rounded-md bg-white/85 shadow-xs shadow-black/40 hover:bg-white"
+				>
+					<div class="flex min-h-12 items-center justify-center rounded-t-md bg-dark-fg">
+						<h1 class="text-xl font-bold text-darktext">History</h1>
+					</div>
+					<div class="flex items-center justify-center">
+						<p class="p-3 font-medium">View submitted and added policies</p>
+					</div>
+				</div>
 			</div>
 			<br />
 			<!-- Table + Table item component -->
