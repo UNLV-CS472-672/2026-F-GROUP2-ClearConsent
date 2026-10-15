@@ -363,3 +363,43 @@ with a nonblank string excerpt. It rejects null, empty objects and scalar elemen
 The existing synthetic seed remains valid. Additional evidence fields are allowed;
 #22 owns the final shared evidence contract. Run `npm run test:db` for disposable
 migration/seed/lint and authorization/constraint regression checks.
+
+## Extracted sources (PR2)
+
+The `sources` table stores extracted documents before AI processing.
+Each source belongs to an authenticated user and can exist before a completed
+analysis.
+
+| Column       | Type        | Requirement                                          |
+| ------------ | ----------- | ---------------------------------------------------- |
+| `id`         | UUID        | Primary key; generated automatically unless supplied |
+| `owner_id`   | UUID        | Required; references `auth.users.id`                 |
+| `title`      | text        | Optional extracted title                             |
+| `text`       | text        | Required; must contain non-whitespace content        |
+| `url`        | text        | Optional final URL after redirects; cannot be blank  |
+| `created_at` | timestamptz | Automatically records insertion time                 |
+
+### Extraction integration handoff
+
+The column names `title`, `text`, and `url` match the object returned by
+`extractFromUrl()`. The integration must obtain `owner_id` from the verified
+authenticated user, rather than trusting an owner ID supplied in the request.
+// you can use that Michael if you want.
+
+### Relationship to completed analyses
+
+The existing `analyses` source fields continue to represent the source
+snapshot for a completed result. This migration adds independent extraction
+storage; it does not move existing data or add foreign keys from analyses or
+findings to sources. Those relationships are deferred to the AI persistence
+integration. Deleting a source currently has no effect on saved analyses.
+
+### Verification
+
+Run `npm run test:db` to apply migrations, load synthetic fixtures, lint the
+schema, and run the database tests in a disposable local database.
+
+`sources.test.sql` checks successful insertion and exact text retrieval,
+optional metadata, invalid text and URL rejection, ownership isolation,
+anonymous access denial, update denial, owner deletion, and account deletion.
+All test changes are rolled back.
