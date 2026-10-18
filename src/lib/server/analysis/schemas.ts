@@ -1,0 +1,129 @@
+import { z } from 'zod';
+
+// This is an internal Stage 1 contract. It deliberately does not define or replace
+// the public Finding/result contract owned by issue #22.
+export const ModelEvidenceReferenceSchema = z.strictObject({
+	passageId: z.string(),
+	excerpt: z.string()
+});
+
+export const ModelCandidateSchema = z.strictObject({
+	category: z.string(),
+	practice: z.string(),
+	claim: z.string(),
+	explanation: z.string(),
+	qualifiers: z.array(z.string()),
+	uncertainty: z.string().nullable(),
+	dataCategories: z.array(z.string()),
+	purposes: z.array(z.string()),
+	recipients: z.array(z.string()),
+	evidence: z.array(ModelEvidenceReferenceSchema)
+});
+
+// Keep the model-facing schema free of application-only IDs and source ranges.
+// The server creates those after validating exact references.
+export const ModelStage1ResponseSchema = z.strictObject({
+	candidates: z.array(ModelCandidateSchema)
+});
+
+export type ModelStage1Response = z.infer<typeof ModelStage1ResponseSchema>;
+export type ModelCandidate = z.infer<typeof ModelCandidateSchema>;
+
+export const Stage1RequestSchema = z.strictObject({
+	text: z.string(),
+	title: z.string().optional(),
+	url: z.string().optional(),
+	preferences: z.record(z.string(), z.unknown()).optional()
+});
+
+export type Stage1Request = z.infer<typeof Stage1RequestSchema>;
+
+export const SourcePassageSchema = z.strictObject({
+	id: z.string(),
+	startOffset: z.number().int().nonnegative(),
+	endOffset: z.number().int().positive(),
+	text: z.string()
+});
+
+export type SourcePassage = z.infer<typeof SourcePassageSchema>;
+
+export const SourceSnapshotSchema = z.strictObject({
+	id: z.string(),
+	identity: z.literal('sha256-utf8'),
+	offsetConvention: z.literal('utf16-start-inclusive-end-exclusive'),
+	textLength: z.number().int().positive(),
+	title: z.string().nullable(),
+	url: z.string().nullable(),
+	passages: z.array(SourcePassageSchema).min(1)
+});
+
+export type SourceSnapshot = z.infer<typeof SourceSnapshotSchema>;
+
+export type VerifiedEvidence = {
+	status: 'verified';
+	// How the quote was located: verbatim, after treating whitespace, quote marks, and dashes as
+	// equivalent, or as one piece of a quote the model joined with "...".
+	match: 'exact' | 'normalized' | 'ellipsis';
+	passageId: string;
+	// Always sliced from the frozen source, never copied from the provider.
+	excerpt: string;
+	startOffset: number;
+	endOffset: number;
+};
+
+export type UnverifiedEvidence = {
+	status: 'unverified';
+	passageId: string;
+	// The provider's text, which could not be located in the source. Never present it as a quote.
+	excerpt: string;
+	reason: string;
+};
+
+export type ValidatedEvidence = VerifiedEvidence | UnverifiedEvidence;
+
+export type ValidatedCandidate = Omit<ModelCandidate, 'evidence'> & {
+	id: string;
+	// Later stages may only present a candidate whose excerpts are all verified.
+	evidence: ValidatedEvidence[];
+};
+
+export type RejectedCandidate = {
+	// Zero-based position in the provider's candidates array.
+	index: number;
+	// Unverified provider text, kept for review and debugging. Never present it as a finding.
+	claim: string | null;
+	code: 'provider_malformed';
+	reason: string;
+};
+
+export type ProviderUsage = {
+	inputTokens: number;
+	outputTokens: number;
+	reasoningTokens: number;
+	totalTokens: number;
+};
+
+export type Stage1Result = {
+	stage: 'evidence_extraction';
+	schemaVersion: 'stage1-internal-v1';
+	stageStatus: 'complete' | 'partial' | 'no_candidates';
+	analysisStatus: 'in_progress';
+	coverage: 'complete';
+	source: SourceSnapshot;
+	candidates: ValidatedCandidate[];
+	rejectedCandidates: RejectedCandidate[];
+	downstream: {
+		nextStage: 'consolidation';
+		preferences: Record<string, unknown> | null;
+	};
+	provider: {
+		model: string;
+		reasoningEffort: string;
+		attempts: 1;
+		usage: ProviderUsage | null;
+	};
+	limitations: {
+		referenceValidation: 'structural_and_referential_only';
+		semanticReviewRequired: true;
+	};
+};

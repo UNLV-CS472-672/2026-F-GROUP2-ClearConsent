@@ -1,0 +1,8 @@
+{
+	"text": "We collect approximate location from your IP address to operate the service. We share approximate location with advertising partners only if you enable personalized ads. You can disable personalized ads in Settings; this stops that sharing. We do not sell personal data. We delete your account data within 30 days of a verified deletion request, except records we must keep for legal obligations.",
+	"title": "Synthetic ClearConsent policy",
+	"url": "https://example.invalid/privacy",
+	"preferences": {
+		"advertising": "avoid"
+	}
+}
