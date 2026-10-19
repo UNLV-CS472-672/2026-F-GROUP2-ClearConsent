@@ -36,6 +36,7 @@
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.19.0",
 		"globals": "^17.6.0",
+		"jiti": "^2.7.0",
 		"jsdom": "^29.1.1",
 		"prettier": "^3.8.3",
 		"prettier-plugin-svelte": "^4.1.0",
@@ -51,7 +52,8 @@
 		"wrangler": "4.130.0"
 	},
 	"dependencies": {
+		"openai": "7.30.0",
 		"unpdf": "^1.8.1",
-		"zod": "^4.6.7"
+		"zod": "4.6.5"
 	}
 }
