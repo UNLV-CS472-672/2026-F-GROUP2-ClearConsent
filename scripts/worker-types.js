@@ -1,11 +1,16 @@
 import { readFile, writeFile } from 'node:fs/promises';
-import { experimental_generateTypes } from 'wrangler';
 
 const output = 'worker-configuration.d.ts';
 const args = process.argv.slice(2);
 if (args.some((arg) => arg !== '--check')) {
 	throw new Error('Usage: node scripts/worker-types.js [--check]');
 }
+
+// Wrangler otherwise infers Env bindings from private .env files, so a local
+// .env.local would change the committed types. Set this before importing
+// Wrangler; it is set here rather than in package.json to work on Windows.
+process.env.CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV = 'false';
+const { experimental_generateTypes } = await import('wrangler');
 
 const generated = await experimental_generateTypes({ config: 'wrangler.jsonc', path: output });
 // Wrangler conditionally imports the compiled Worker after a build. That makes
