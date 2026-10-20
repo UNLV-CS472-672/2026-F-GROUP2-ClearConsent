@@ -19,7 +19,7 @@
 		{ name: 'Search', href: '#search' }
 	];
 
-	let sampledata: historyitem[] = $state(
+	let sampledata = $state<historyitem[]>(
 		[
 			{
 				name: 'da9ba6d0-535f-4b2d-91e7-963a11b2be80',
@@ -52,6 +52,10 @@
 	);
 	// ----------------
 	let sortedTimestamp: boolean = $state(true);
+	const date = (a: string) => {
+		const dobj = new Date(a);
+		return dobj.toLocaleDateString();
+	};
 </script>
 
 <div class="inline-block h-screen pl-15">
