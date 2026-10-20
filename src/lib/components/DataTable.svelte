@@ -1,4 +1,6 @@
 <script lang="ts" generics="TData extends Record<string, unknown>">
+	// Todo: Add Filtering/Search. Likely replaces pagination...
+	//
 	import {
 		createTable,
 		createColumnHelper,
@@ -63,6 +65,7 @@
 			maxSize: 75
 		}),
 		columnHelper.accessor('url', {
+			id: 'url',
 			header: '',
 			minSize: 0,
 			maxSize: 35,
@@ -90,6 +93,7 @@
 		}
 	]);
 
+	let pageSize = $state<string>('10');
 	const table = createTable({
 		features,
 		columns,
@@ -113,8 +117,10 @@
 	// }
 </script>
 
-<div class="flex flex-col items-center justify-center">
-	<div class="flex w-3/5 flex-col overflow-hidden rounded-md shadow-md">
+<div class="flex w-3/5 flex-col items-center justify-center">
+	<div
+		class="flex w-full flex-col overflow-hidden rounded-md border-r border-l border-dark/40 shadow-md"
+	>
 		<table class="w-full table-fixed">
 			<!-- Headers -->
 			<thead class=" table-header-group bg-dark font-bold text-floral-white">
@@ -176,13 +182,27 @@
 					{#each table.getRowModel().rows.slice(0, 10) as row (row.id)}
 						<tr class="table-row text-floral-white">
 							{#each row.getAllCells() as cell (cell.id)}
-								<td
-									class="truncate border-b pt-0.5 pr-2 pb-1 pl-3 text-justify odd:bg-dark even:bg-dark-fg"
-									style:width="{cell.column.getSize()}px"
-									title={cell.getValue() as string}
-								>
-									<FlexRender {cell} />
-								</td>
+								{#if cell.column.id === 'url'}
+									<td
+										class="truncate border-b pt-0.5 pr-2 pb-1 pl-3 text-justify odd:bg-dark even:bg-dark-fg"
+										style:width="{cell.column.getSize()}px"
+										title={cell.getValue() as string}
+									>
+										<a
+											href={cell.getValue() as string}
+											class="hoover mt-1 mb-1 flex justify-center rounded-xl border border-gray-500 bg-darkest pt-0.5 pb-0.5 hover:bg-dark-fg"
+											>View</a
+										>
+									</td>
+								{:else}
+									<td
+										class="truncate border-b pt-0.5 pr-2 pb-1 pl-3 text-justify odd:bg-dark even:bg-dark-fg"
+										style:width="{cell.column.getSize()}px"
+										title={cell.getValue() as string}
+									>
+										<FlexRender {cell} />
+									</td>
+								{/if}
 							{/each}
 						</tr>
 					{/each}
@@ -190,13 +210,27 @@
 					{#each table.getRowModel().rows as row (row.id)}
 						<tr class="table-row text-floral-white">
 							{#each row.getAllCells() as cell (cell.id)}
-								<td
-									class="truncate border-b pt-0.5 pr-2 pb-1 pl-3 text-justify odd:bg-dark even:bg-dark-fg"
-									style:width="{cell.column.getSize()}px"
-									title={cell.getValue() as string}
-								>
-									<FlexRender {cell} />
-								</td>
+								{#if cell.column.id === 'url'}
+									<td
+										class="truncate border-b pt-0.5 pr-2 pb-1 pl-3 text-justify odd:bg-dark even:bg-dark-fg"
+										style:width="{cell.column.getSize()}px"
+										title={cell.getValue() as string}
+									>
+										<a
+											href={cell.getValue() as string}
+											class="hoover mt-1 mb-1 flex justify-center rounded-xl border border-gray-500 bg-darkest pt-0.5 pb-0.5 hover:bg-dark-fg"
+											>View</a
+										>
+									</td>
+								{:else}
+									<td
+										class="truncate border-b pt-0.5 pr-2 pb-1 pl-3 text-justify odd:bg-dark even:bg-dark-fg"
+										style:width="{cell.column.getSize()}px"
+										title={cell.getValue() as string}
+									>
+										<FlexRender {cell} />
+									</td>
+								{/if}
 							{/each}
 						</tr>
 					{/each}
@@ -207,21 +241,38 @@
 
 	<div class="m-auto mt-2 flex items-center gap-5 text-sm">
 		<button
-			class="flex cursor-pointer rounded-xl border bg-floral-white pr-2 pl-2 hover:bg-darktext"
+			class="cursor-pointer rounded-xl border bg-floral-white pr-2 pl-2 font-semibold hover:bg-dark hover:text-darktext disabled:hidden"
 			onclick={() => table.previousPage()}
 			disabled={!table.getCanPreviousPage()}
 			>Previous
 		</button>
-		<span class="text-dark-fg text-sm">
+		<span class="text-sm text-dark-fg">
 			Page {table.atoms.pagination.get().pageIndex + 1} of
 			{table.getPageCount()}
 		</span>
-
 		<button
-			class="flex cursor-pointer rounded-xl border bg-floral-white pr-2 pl-2 hover:bg-darktext"
+			class="cursor-pointer rounded-xl border bg-floral-white pr-2.5 pl-2 font-semibold hover:bg-dark hover:text-darktext disabled:hidden"
 			onclick={() => table.nextPage()}
 			disabled={!table.getCanNextPage()}
 			>Next
 		</button>
+
+		<span class="text-sm text-dark-fg">
+			<span class="me-1.5">Results per page:</span>
+			<select
+				bind:value={pageSize}
+				// value={table.atoms.pagination.get().pageSize}
+				name="pageSizeSelector"
+				id="pageSizeSelector"
+				title="Results per Page"
+				class="rounded-md border border-gray-300 pr-1 pl-1 shadow-xs hover:bg-gray-100 focus:border-gray-400"
+				onchange={() => table.setPageSize(Number(pageSize))}
+			>
+				<option value="10">10</option>
+				<option value="25">25</option>
+				<option value="50">50</option>
+				<option value="100">100</option>
+			</select>
+		</span>
 	</div>
 </div>
