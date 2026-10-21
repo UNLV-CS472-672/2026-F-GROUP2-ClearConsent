@@ -113,7 +113,7 @@
 		}),
 		columnHelper.accessor('url', {
 			id: 'url',
-			header: '',
+			header: ' ',
 			minSize: 0,
 			maxSize: 35,
 			enableSorting: false

@@ -1,27 +1,25 @@
 <script lang="ts" generics="TData extends RowData">
 	// Todo: Add Filtering/Search. Likely replaces pagination...
 	//
-	import {
-		createTable,
-		FlexRender,
-		type ColumnDef,
-		type RowData
-	} from '@tanstack/svelte-table';
-	import { features } from '$lib/components/datatableFeatures'
-	
-	let { data, columns }: {
-		data: TData[]
-		columns: ColumnDef<typeof features, TData>[]
+	import { createTable, FlexRender, type ColumnDef, type RowData } from '@tanstack/svelte-table';
+	import { features } from '$lib/components/datatableFeatures';
+
+	let {
+		data,
+		columns
+	}: {
+		data: TData[];
+		columns: ColumnDef<typeof features, TData>[];
 	} = $props();
 
 	let pageSize = $state<string>('10');
 	const table = createTable({
 		features,
 		get columns() {
-			return columns
+			return columns;
 		},
 		get data() {
-			return data
+			return data;
 		},
 		initialState: {
 			sorting: [
@@ -36,14 +34,13 @@
 			}
 		}
 	});
-
 </script>
 
-<div class="flex h-9/10 w-9/10 flex-col justify-center">
+<div class="flex w-19/20 flex-col justify-center">
 	<div
-		class="flex w-full flex-col overflow-auto rounded-md border-r border-l border-dark/40 shadow-md"
+		class="flex w-full flex-col truncate overflow-scroll rounded-md border-r border-l border-dark/40 shadow-md"
 	>
-		<table class="w-full table-auto">
+		<table class="w-full table-fixed">
 			<!-- Headers -->
 			<thead class=" table-header-group bg-dark text-lg font-bold text-floral-white">
 				{#each table.getHeaderGroups() as hGroups (hGroups.id)}
@@ -112,7 +109,7 @@
 								>
 									<a
 										href={cell.getValue() as string}
-										class="mt-1 mb-1 flex justify-center rounded-xl border border-gray-500 bg-darkest pt-0.5 pb-0.5 hover:bg-dark-fg"
+										class="mt-1 mb-1 flex justify-center overflow-hidden rounded-xl border border-gray-500 bg-darkest pt-0.5 pb-0.5 hover:bg-dark-fg"
 										>View</a
 									>
 								</td>
@@ -122,7 +119,7 @@
 									style:width="{cell.column.getSize()}px"
 									title={cell.getValue() as string}
 								>
-									<div class="max-w-100 truncate">
+									<div class="truncate">
 										<FlexRender {cell} />
 									</div>
 								</td>
@@ -135,6 +132,16 @@
 	</div>
 
 	<div class="mt-2 grid w-full grid-cols-3 items-center gap-5 text-sm">
+		<div class="col-start-1 inline-flex justify-start font-semibold">
+			<input
+				type="search"
+				placeholder="Search for policy by name..."
+				oninput={(event) => {
+					table.getColumn('name')?.setFilterValue(event.currentTarget.value);
+				}}
+				class="flex field-sizing-content max-w-xl flex-col items-center justify-center border border-gray-400 pr-2 pl-2"
+			/>
+		</div>
 		<div class="col-start-2 inline-flex justify-center gap-5">
 			<button
 				class="cursor-pointer rounded-xl border bg-floral-white pr-2 pl-2 font-semibold hover:bg-dark
