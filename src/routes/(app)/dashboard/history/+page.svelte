@@ -3,7 +3,7 @@
 	import type { features } from '$lib/components/datatableFeatures';
 	import { createColumnHelper } from '@tanstack/svelte-table';
 	import type { ColumnDef } from '@tanstack/svelte-table';
-
+	// Temporary for display purposes
 	interface temporary_data {
 		name: string;
 		hash: string;
@@ -74,7 +74,7 @@
 	function randomtimestamp(): string {
 		let s = new Date('2016-01-01').getTime();
 		// Return as ISOString and format as necessary
-		return new Date(Math.random() * (s - Date.now()) + s).toISOString();
+		return new Date(Math.random() * (Date.now() - s) + s).toISOString();
 	}
 	async function gen_randomtempdata(): Promise<temporary_data[]> {
 		let data: temporary_data[] = [];
@@ -92,6 +92,7 @@
 
 	let data: temporary_data[] = $state([]);
 	gen_randomtempdata().then((res) => data = res);
+	// ---
 	const columnHelper = createColumnHelper<typeof features, temporary_data>();
 
 	const columns: ColumnDef<typeof features, temporary_data>[] = columnHelper.columns([
@@ -99,6 +100,7 @@
 			header: 'Name',
 			size: 40
 		}),
+	
 		columnHelper.accessor('hash', {
 			header: 'Hash',
 			minSize: 50,
@@ -121,11 +123,11 @@
 	]);
 </script>
 
-<div class="flex h-screen w-full items-center justify-center pb-5">
-	<div
+<div class="flex flex-col w-full items-center justify-center pb-5">
+	<!-- <div
 		class="flex h-7/8 w-7/8 flex-col items-center justify-center overflow-scroll border border-black/40 inset-shadow-xs inset-shadow-black"
-	>
-		<h1 class="font-lg mb-5 font-bold">Nothing substantial here yet. (Duplicate of overview)</h1>
+	> -->
+		<h1 class="font-lg mb-5 font-bold">Nothing substantial here yet.</h1>
 		<DataTable {data} {columns}></DataTable>
-	</div>
+	<!-- </div> -->
 </div>

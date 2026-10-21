@@ -38,11 +38,13 @@
 
 <div class="flex w-19/20 flex-col justify-center">
 	<div
-		class="flex w-full flex-col truncate overflow-scroll rounded-md border-r border-l border-dark/40 shadow-md"
+		class="flex max-h-125 w-full flex-col truncate overflow-scroll rounded-md border-r border-l border-dark/40 shadow-md"
 	>
 		<table class="w-full table-fixed">
 			<!-- Headers -->
-			<thead class=" table-header-group bg-dark text-lg font-bold text-floral-white">
+			<thead
+				class=" sticky top-0 z-10 table-header-group bg-dark text-lg font-bold text-floral-white"
+			>
 				{#each table.getHeaderGroups() as hGroups (hGroups.id)}
 					<tr class="table-row">
 						{#each hGroups.headers as header (header.id)}
@@ -64,7 +66,7 @@
 											height="100%"
 											viewBox="0 0 500 400"
 											class="ms-3 size-4"
-											fill={header.column.getIsSorted() === 'asc' ? '#8f8f8f' : '#5f5f5f'}
+											fill={header.column.getIsSorted() === 'asc' ? '#afafaf' : '#5f5f5f'}
 										>
 											<path
 												d="M151.89000381469725 318.1409990463257H466.49400381469724C485.5210038146972 318.1409990463257
@@ -79,7 +81,7 @@
 											height="100%"
 											viewBox="0 250 500 400"
 											class="size-4"
-											fill={header.column.getIsSorted() === 'desc' ? '#8f8f8f' : '#5f5f5f'}
+											fill={header.column.getIsSorted() === 'desc' ? '#afafaf' : '#5f5f5f'}
 										>
 											<path
 												d="M114.845,363.274l143.569,182.584c12.577,22.044,32.968,22.044,45.551,0l143.587-182.609
@@ -98,7 +100,7 @@
 			<tbody>
 				<!-- Display only 10 elements if page is overview -->
 				{#each table.getRowModel().rows as row (row.id)}
-					<tr class="table-row text-floral-white">
+					<tr class="table-row h-10 text-floral-white">
 						{#each row.getAllCells() as cell (cell.id)}
 							<!-- If column is 'url' render a button... -->
 							{#if cell.column.id === 'url'}
@@ -107,6 +109,7 @@
 									style:width="{cell.column.getSize()}px"
 									title={cell.getValue() as string}
 								>
+									<!-- Note: Likely need to change to button for fetching AnalysisResults-->
 									<a
 										href={cell.getValue() as string}
 										class="mt-1 mb-1 flex justify-center overflow-hidden rounded-xl border border-gray-500 bg-darkest pt-0.5 pb-0.5 hover:bg-dark-fg"
@@ -132,16 +135,19 @@
 	</div>
 
 	<div class="mt-2 grid w-full grid-cols-3 items-center gap-5 text-sm">
-		<div class="col-start-1 inline-flex justify-start font-semibold">
-			<input
-				type="search"
-				placeholder="Search for policy by name..."
-				oninput={(event) => {
-					table.getColumn('name')?.setFilterValue(event.currentTarget.value);
-				}}
-				class="flex field-sizing-content max-w-xl flex-col items-center justify-center border border-gray-400 pr-2 pl-2"
-			/>
-		</div>
+		{#if table.atoms.pagination.get().pageSize > 10}
+			<div class="col-start-1 inline-flex justify-start font-semibold">
+				<input
+					type="search"
+					placeholder="Search for policy by name..."
+					oninput={(event) => {
+						table.getColumn('name')?.setFilterValue(event.currentTarget.value);
+					}}
+					class="flex field-sizing-content max-w-xl flex-col items-center justify-center border border-gray-400 pr-2 pl-2"
+				/>
+			</div>
+		{/if}
+
 		<div class="col-start-2 inline-flex justify-center gap-5">
 			<button
 				class="cursor-pointer rounded-xl border bg-floral-white pr-2 pl-2 font-semibold hover:bg-dark
