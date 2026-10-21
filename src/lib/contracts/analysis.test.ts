@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { AnalysisResultSchema } from './analysis';
+import {
+	AnalysisResultSchema,
+	EvidenceItemSchema,
+	FindingSchema,
+	TakeawaySchema
+} from './analysis';
 import { successFixture, InsufficientFixture, FailureFixture, InProgressFixture } from './fixtures';
 
 describe('AnalysisResultSchema Contract & Fixtures', () => {
@@ -201,6 +206,228 @@ describe('AnalysisResultSchema Contract & Fixtures', () => {
 			]
 		};
 
+		const result = AnalysisResultSchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+});
+
+// Blank-string tests
+describe('Whitespace-only text is rejected', () => {
+	// synthetic fixture to copy from, every test below changes one field
+	const evidence = {
+		passageId: 'P1',
+		excerpt: 'We collect approximate location from your IP address to operate the service.'
+	};
+
+	const finding = {
+		id: 'F1',
+		category: 'collection',
+		plain_language_description: 'Approximate location is collected to operate the service.',
+		dataCategories: ['Location data'],
+		purposes: ['Service operation'],
+		recipients: ['Advertising partners'],
+		evidence: [evidence]
+	};
+
+	const takeaway = {
+		id: 'T1',
+		topic: 'Information collection',
+		reason: 'Location is collected to operate the service.',
+		label: 'positive',
+		findingIds: ['F1']
+	};
+
+	// evidence check for white-space only input
+	it('rejects evidence with a whitespace-only passageId', () => {
+		const malformed = {
+			...evidence,
+			passageId: '   '
+		};
+		const result = EvidenceItemSchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+
+	it('rejects evidence with a whitespace-only excerpt', () => {
+		const malformed = {
+			...evidence,
+			excerpt: '   '
+		};
+		const result = EvidenceItemSchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+
+	it('rejects an excerpt made only of tabs and newlines', () => {
+		const malformed = {
+			...evidence,
+			excerpt: '\t\n  \n'
+		};
+		const result = EvidenceItemSchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+
+	it('keeps the spaces around a real excerpt unchanged', () => {
+		const padded = {
+			...evidence,
+			excerpt: '  text  '
+		};
+		const result = EvidenceItemSchema.safeParse(padded);
+		expect(result.success).toBe(true);
+		// ensuring input is left unchanged
+		expect(result.data?.excerpt).toBe('  text  ');
+	});
+
+	// findings
+	it('rejects a finding with a whitespace-only id', () => {
+		const malformed = {
+			...finding,
+			id: '   '
+		};
+		const result = FindingSchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+
+	it('rejects a finding with a whitespace-only description', () => {
+		const malformed = {
+			...finding,
+			plain_language_description: '   '
+		};
+		const result = FindingSchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+
+	it('rejects a whitespace-only entry in dataCategories', () => {
+		const malformed = {
+			...finding,
+			dataCategories: ['   ']
+		};
+		const result = FindingSchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+
+	it('rejects a whitespace-only entry in purposes', () => {
+		const malformed = {
+			...finding,
+			purposes: ['   ']
+		};
+		const result = FindingSchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+
+	it('rejects a whitespace-only entry in recipients', () => {
+		const malformed = {
+			...finding,
+			recipients: ['   ']
+		};
+		const result = FindingSchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+
+	// takeaways
+	it('rejects a takeaway with a whitespace-only id', () => {
+		const malformed = {
+			...takeaway,
+			id: '   '
+		};
+		const result = TakeawaySchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+
+	it('rejects a takeaway with a whitespace-only topic', () => {
+		const malformed = {
+			...takeaway,
+			topic: '   '
+		};
+		const result = TakeawaySchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+
+	it('rejects a takeaway with a whitespace-only reason', () => {
+		const malformed = {
+			...takeaway,
+			reason: '   '
+		};
+		const result = TakeawaySchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+
+	it('rejects a whitespace-only entry in a takeaway findingIds', () => {
+		const malformed = {
+			...takeaway,
+			findingIds: ['   ']
+		};
+		const result = TakeawaySchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+
+	// Testing result schemas
+	it('rejects a success result with a whitespace-only summary', () => {
+		const malformed = {
+			...successFixture,
+			summary: '   '
+		};
+		const result = AnalysisResultSchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+
+	it('rejects a success result with a whitespace-only analysisId', () => {
+		const malformed = {
+			...successFixture,
+			analysisId: '   '
+		};
+		const result = AnalysisResultSchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+
+	it('rejects an in_progress result with a whitespace-only analysisId', () => {
+		const malformed = {
+			...InProgressFixture,
+			analysisId: '   '
+		};
+		const result = AnalysisResultSchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+
+	it('rejects an insufficient result with a whitespace-only analysisId', () => {
+		const malformed = {
+			...InsufficientFixture,
+			analysisId: '   '
+		};
+		const result = AnalysisResultSchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+
+	it('rejects an insufficient result with a whitespace-only reason', () => {
+		const malformed = {
+			...InsufficientFixture,
+			reason: '   '
+		};
+		const result = AnalysisResultSchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+
+	it('rejects a failed result with a whitespace-only analysisId', () => {
+		const malformed = {
+			...FailureFixture,
+			analysisId: '   '
+		};
+		const result = AnalysisResultSchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+
+	it('rejects a failed result with a whitespace-only errorCode', () => {
+		const malformed = {
+			...FailureFixture,
+			errorCode: '   '
+		};
+		const result = AnalysisResultSchema.safeParse(malformed);
+		expect(result.success).toBe(false);
+	});
+
+	it('rejects a failed result with a whitespace-only message', () => {
+		const malformed = {
+			...FailureFixture,
+			message: '   '
+		};
 		const result = AnalysisResultSchema.safeParse(malformed);
 		expect(result.success).toBe(false);
 	});
