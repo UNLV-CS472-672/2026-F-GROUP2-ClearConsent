@@ -1,6 +1,10 @@
 <script lang="ts" generics="TData extends RowData">
 	import { createTable, FlexRender, type ColumnDef, type RowData } from '@tanstack/svelte-table';
 	import { features } from '$lib/components/datatableFeatures';
+	// temporary imports
+	import type { Pathname } from '$app/types';
+	import { resolve } from '$app/paths';
+	// --
 
 	let {
 		data,
@@ -29,7 +33,7 @@
 			],
 			pagination: {
 				pageIndex: 0,
-				get pageSize () {
+				get pageSize() {
 					return Number(pageSize);
 				}
 			}
@@ -112,7 +116,7 @@
 								>
 									<!-- Note: Likely need to change to button for fetching AnalysisResults-->
 									<a
-										href={cell.getValue() as string}
+										href={resolve(cell.getValue() as Pathname)}
 										class="mt-1 mb-1 flex justify-center overflow-hidden rounded-xl border border-gray-500 bg-darkest pt-0.5 pb-0.5 hover:bg-dark-fg"
 										>View</a
 									>
@@ -136,16 +140,16 @@
 	</div>
 	<!-- Controls -->
 	<div class="mt-2 grid w-full grid-cols-3 items-center gap-5 text-sm">
-			<div class="col-start-1 inline-flex justify-start font-semibold">
-				<input
-					type="search"
-					placeholder="Search for policy by name..."
-					oninput={(event) => {
-						table.getColumn('name')?.setFilterValue(event.currentTarget.value);
-					}}
-					class="flex field-sizing-content max-w-xl flex-col items-center justify-center border border-gray-400 pr-2 pl-2"
-				/>
-			</div>
+		<div class="col-start-1 inline-flex justify-start font-semibold">
+			<input
+				type="search"
+				placeholder="Search for policy by name..."
+				oninput={(event) => {
+					table.getColumn('name')?.setFilterValue(event.currentTarget.value);
+				}}
+				class="flex field-sizing-content max-w-xl flex-col items-center justify-center border border-gray-400 pr-2 pl-2"
+			/>
+		</div>
 		<div class="col-start-2 inline-flex justify-center gap-5">
 			<button
 				class="cursor-pointer rounded-xl border bg-floral-white pr-2 pl-2 font-semibold hover:bg-gray-300

@@ -7,7 +7,6 @@
 	import { features } from '$lib/components/datatableFeatures';
 	let { children }: LayoutProps = $props();
 
-	import Table from '$lib/components/Table.svelte';
 	import DataTable from '$lib/components/DataTable.svelte';
 
 	const TABS = [
@@ -74,7 +73,7 @@
 		columnHelper.accessor('timestamp', {
 			id: 'timestamp',
 			header: 'Timestamp',
-			cell: (info) => new Date(info.getValue()).toLocaleString(),
+			cell: (info: any) => new Date(info.getValue()).toLocaleString(),
 			minSize: 35,
 			maxSize: 40
 		}),

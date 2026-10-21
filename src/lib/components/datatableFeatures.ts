@@ -14,19 +14,19 @@ import {
 } from '@tanstack/svelte-table';
 
 export const features = tableFeatures({
-		rowPaginationFeature,
-		rowSortingFeature,
-		columnFilteringFeature,
-		columnSizingFeature,
-		filteredRowModel: createFilteredRowModel(),
-		paginatedRowModel: createPaginatedRowModel(),
-		sortedRowModel: createSortedRowModel(),
-		sortFns: {
-			alphanumeric: sortFn_alphanumeric,
-			text: sortFn_text,
-			datetime: sortFn_datetime
-		},
-		filterFns: {
-			includesString: filterFn_includesString
-		}
-	});
+	rowPaginationFeature,
+	rowSortingFeature,
+	columnFilteringFeature,
+	columnSizingFeature,
+	filteredRowModel: createFilteredRowModel(),
+	paginatedRowModel: createPaginatedRowModel(),
+	sortedRowModel: createSortedRowModel(),
+	sortFns: {
+		alphanumeric: sortFn_alphanumeric,
+		text: sortFn_text,
+		datetime: sortFn_datetime
+	},
+	filterFns: {
+		includesString: filterFn_includesString
+	}
+});

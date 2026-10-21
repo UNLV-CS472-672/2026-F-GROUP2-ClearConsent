@@ -91,7 +91,7 @@
 	}
 
 	let data: temporary_data[] = $state([]);
-	gen_randomtempdata().then((res) => data = res);
+	gen_randomtempdata().then((res) => (data = res));
 	// ---
 	const columnHelper = createColumnHelper<typeof features, temporary_data>();
 
@@ -100,7 +100,7 @@
 			header: 'Name',
 			size: 40
 		}),
-	
+
 		columnHelper.accessor('hash', {
 			header: 'Hash',
 			minSize: 50,
@@ -109,7 +109,7 @@
 		columnHelper.accessor('timestamp', {
 			id: 'timestamp',
 			header: 'Timestamp',
-			cell: (info) => new Date(info.getValue()).toLocaleString(),
+			cell: (info: any) => new Date(info.getValue()).toLocaleString(),
 			minSize: 50,
 			maxSize: 75
 		}),
@@ -123,11 +123,11 @@
 	]);
 </script>
 
-<div class="flex flex-col w-full items-center justify-center pb-5">
+<div class="flex w-full flex-col items-center justify-center pb-5">
 	<!-- <div
 		class="flex h-7/8 w-7/8 flex-col items-center justify-center overflow-scroll border border-black/40 inset-shadow-xs inset-shadow-black"
 	> -->
-		<h1 class="font-lg mb-5 font-bold">Nothing substantial here yet.</h1>
-		<DataTable {data} {columns}></DataTable>
+	<h1 class="font-lg mb-5 font-bold">Nothing substantial here yet.</h1>
+	<DataTable {data} {columns}></DataTable>
 	<!-- </div> -->
 </div>
