@@ -1,6 +1,4 @@
 <script lang="ts" generics="TData extends RowData">
-	// Todo: Add Filtering/Search. Likely replaces pagination...
-	//
 	import { createTable, FlexRender, type ColumnDef, type RowData } from '@tanstack/svelte-table';
 	import { features } from '$lib/components/datatableFeatures';
 
@@ -11,8 +9,9 @@
 		data: TData[];
 		columns: ColumnDef<typeof features, TData>[];
 	} = $props();
+	// initial pageSize (amount of rows per page)
+	let pageSize = $state<string>('5');
 
-	let pageSize = $state<string>('10');
 	const table = createTable({
 		features,
 		get columns() {
@@ -30,7 +29,9 @@
 			],
 			pagination: {
 				pageIndex: 0,
-				pageSize: 10
+				get pageSize () {
+					return Number(pageSize);
+				}
 			}
 		}
 	});
@@ -59,7 +60,7 @@
 							>
 								<span class="inline-flex items-center">
 									<FlexRender {header} />
-									<!-- Sort Buttons... -->
+									<!-- Sort Buttons... Tentative-->
 									{#if header.column.getCanSort()}
 										<svg
 											width="100%"
@@ -133,9 +134,8 @@
 			</tbody>
 		</table>
 	</div>
-
+	<!-- Controls -->
 	<div class="mt-2 grid w-full grid-cols-3 items-center gap-5 text-sm">
-		{#if table.atoms.pagination.get().pageSize > 10}
 			<div class="col-start-1 inline-flex justify-start font-semibold">
 				<input
 					type="search"
@@ -146,11 +146,9 @@
 					class="flex field-sizing-content max-w-xl flex-col items-center justify-center border border-gray-400 pr-2 pl-2"
 				/>
 			</div>
-		{/if}
-
 		<div class="col-start-2 inline-flex justify-center gap-5">
 			<button
-				class="cursor-pointer rounded-xl border bg-floral-white pr-2 pl-2 font-semibold hover:bg-dark
+				class="cursor-pointer rounded-xl border bg-floral-white pr-2 pl-2 font-semibold hover:bg-gray-300
 			    disabled:cursor-default disabled:bg-gray-500 disabled:hover:bg-gray-500"
 				onclick={() => table.previousPage()}
 				disabled={!table.getCanPreviousPage()}
@@ -161,7 +159,7 @@
 				{table.getPageCount()}
 			</span>
 			<button
-				class="cursor-pointer rounded-xl border bg-floral-white pr-2 pl-2 font-semibold
+				class="cursor-pointer rounded-xl border bg-floral-white pr-2 pl-2 font-semibold hover:bg-gray-300
 			    disabled:cursor-default disabled:bg-gray-500 disabled:hover:bg-gray-500"
 				onclick={() => table.nextPage()}
 				disabled={!table.getCanNextPage()}
@@ -173,13 +171,13 @@
 				<span class="me-1.5">Results per page:</span>
 				<select
 					bind:value={pageSize}
-					// value={table.atoms.pagination.get().pageSize}
 					name="pageSizeSelector"
 					id="pageSizeSelector"
 					title="Results per Page"
 					class="rounded-md border border-gray-300 pr-1 pl-1 shadow-xs hover:bg-gray-100 focus:border-gray-400"
 					onchange={() => table.setPageSize(Number(pageSize))}
 				>
+					<option value="5">5</option>
 					<option value="10">10</option>
 					<option value="25">25</option>
 					<option value="50">50</option>

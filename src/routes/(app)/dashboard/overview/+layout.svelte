@@ -87,7 +87,6 @@
 		})
 	]);
 	// ----------------
-	let sortedTimestamp: boolean = $state(true);
 </script>
 
 <div class="inline-block h-screen pl-15">
@@ -131,7 +130,7 @@
 
 	<div class="grid-row-3 grid gap-10 py-5">
 		<div class="history-container relative row-span-1 block">
-			<div class="mx-auto flex justify-center">
+			<div class="mx-auto flex justify-center pb-5">
 				<div
 					class="max-w-md min-w-50 rounded-md bg-white/85 shadow-xs shadow-black/40 hover:bg-white"
 				>
@@ -145,55 +144,6 @@
 			</div>
 			<DataTable data={sampledata} {columns}></DataTable>
 			<br />
-			<!-- Table + Table item component -->
-			<!-- Todo: -->
-			<!-- Import a premade data table instead of creating a component. -->
-			<!-- Truncate table to display most recent n submitted/uploaded -->
-			<Table>
-				<tr class="border border-floral-white bg-darker text-darktext">
-					<td
-						class="border-r text-center text-xl font-bold hover:cursor-pointer hover:bg-dark"
-						onclick={() => {
-							if (sortedTimestamp) {
-								sampledata.sort((a, b) => a.name.localeCompare(b.name)).reverse();
-								sortedTimestamp = false;
-							} else sampledata.reverse();
-						}}>Name</td
-					>
-					<td class="border-r text-center text-xl font-bold">Hash</td>
-					<td
-						class="border-r text-center text-xl font-bold hover:cursor-pointer hover:bg-dark"
-						onclick={() => {
-							if (!sortedTimestamp) {
-								sampledata.sort((a, b) => {
-									return new Date(b.timestamp).valueOf() - new Date(a.timestamp).valueOf();
-								});
-							} else {
-								sampledata.reverse();
-							}
-							sortedTimestamp = true;
-						}}>Timestamp</td
-					>
-					<td></td>
-					<!--- stub for styling -->
-				</tr>
-				{#each sampledata as item (item.name)}
-					<tr class="border border-floral-white bg-darker text-darktext">
-						<td class="truncate border-r pr-1 pl-1" title={item.name}>{item.name}</td>
-						<td class="truncate border-r pr-1 pl-1" title={item.hash}>{item.hash}</td>
-						<td class="border-r pr-1 pl-1" title={item.timestamp as string}
-							>{new Date(item.timestamp).toLocaleString()}</td
-						>
-						<td class="view pt-2 pb-2 text-center">
-							<a
-								href="#{item.name}"
-								class="rounded-lg bg-dark pt-1 pr-2 pb-1 pl-2 text-center text-darktext hover:bg-dark-fg hover:text-url-hover"
-								>View</a
-							>
-						</td>
-					</tr>
-				{/each}
-			</Table>
 		</div>
 	</div>
 </div>
