@@ -47,7 +47,7 @@ type OpenAIClientLike = {
 
 export type OpenAIClientFactory = (options: ClientOptions) => OpenAIClientLike;
 
-const ResponseEnvelopeSchema = z
+export const ResponseEnvelopeSchema = z
 	.object({
 		status: z.string(),
 		incomplete_details: z
@@ -78,7 +78,7 @@ function defaultClientFactory(options: ClientOptions): OpenAIClientLike {
 	return new OpenAI(options) as unknown as OpenAIClientLike;
 }
 
-function hasRefusal(output: unknown[]): boolean {
+export function hasRefusal(output: unknown[]): boolean {
 	return output.some((item) => {
 		if (!item || typeof item !== 'object' || !('type' in item) || item.type !== 'message') {
 			return false;
@@ -94,7 +94,9 @@ function hasRefusal(output: unknown[]): boolean {
 	});
 }
 
-function parseUsage(usage: z.infer<typeof ResponseEnvelopeSchema>['usage']): ProviderUsage | null {
+export function parseUsage(
+	usage: z.infer<typeof ResponseEnvelopeSchema>['usage']
+): ProviderUsage | null {
 	if (!usage) return null;
 	return {
 		inputTokens: usage.input_tokens ?? 0,
@@ -104,7 +106,7 @@ function parseUsage(usage: z.infer<typeof ResponseEnvelopeSchema>['usage']): Pro
 	};
 }
 
-function mapProviderError(error: unknown): Stage1Error {
+export function mapProviderError(error: unknown): Stage1Error {
 	if (isStage1Error(error)) return error;
 	if (error instanceof z.ZodError || error instanceof SyntaxError) {
 		return new Stage1Error(
