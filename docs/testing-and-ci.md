@@ -53,10 +53,13 @@ npm run build
 
 - `package.json` defines `test`, `test:watch`, and `test:e2e`.
 - `vitest.config.ts` configures Vitest with the SvelteKit plugin and jsdom.
-- `src/routes.test.ts` renders the existing welcome route and checks its
-  heading and documentation link.
+- `src/routes.test.ts` checks the current root page; `src/routes/study/study.test.ts`
+  checks the study index, its input links, and its explanation of unfinished results.
 - `playwright.config.ts` selects Chromium and starts Vite on port 4173.
-- `tests/e2e/welcome.spec.ts` checks the rendered page in a real browser.
+- `tests/e2e/welcome.spec.ts` checks the current root page.
+- `tests/e2e/study-navigation.spec.ts` follows the study index links to the
+  current forms and preview screens in a real browser. It does not call an
+  external policy site or assert that analysis, preferences, or history work.
 - `.github/workflows/ci.yml` installs dependencies and Chromium, then runs
   lint, Svelte checks, unit tests, the production build, and end-to-end tests.
 - `.gitignore` excludes Playwright's generated `test-results` directory.
