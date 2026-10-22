@@ -1,11 +1,12 @@
 # ClearConsent dashboard navigation for user study
 
-The dashboard at `/dashboard/overview` is the walkthrough screen. Its URL and Paste Text tabs open the existing input forms. The root `/` is reserved for John's authentication entry in PR #43.
+The dashboard at `/dashboard/overview` is the walkthrough screen. Its URL and Paste Text tabs open the existing input forms. The root `/` has a temporary demo access link to the dashboard until John's authentication entry in PR #43 is integrated.
 
 ## Current routes
 
 ```mermaid
 flowchart TD
+    Entry["Temporary demo entry: /"] --> Dashboard
     Dashboard["Dashboard: /dashboard/overview"] --> URL["URL input: /dashboard/overview/extract"]
     Dashboard --> Text["Paste Text: /dashboard/overview/text"]
     Dashboard --> Preferences["Preferences: /preferences"]
@@ -14,7 +15,7 @@ flowchart TD
     Text --> TextOutput["Validated text, hash, and time"]
 ```
 
-The input forms do not yet produce a complete analysis. Preference choices are not persisted, and history rows are sample data. The Stage 1 server analysis endpoint is not connected to the dashboard. Search and history View controls are present in the dashboard but do not lead to working results.
+The entry link opens the dashboard without signing in or saving data. The input forms do not yet produce a complete analysis. Preference choices are not persisted, and history rows are sample data. The Stage 1 server analysis endpoint is not connected to the dashboard. Search and history View controls are present in the dashboard but do not lead to working results.
 
 ## Auth handoff to connect
 

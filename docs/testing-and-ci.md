@@ -53,9 +53,9 @@ npm run build
 
 - `package.json` defines `test`, `test:watch`, and `test:e2e`.
 - `vitest.config.ts` configures Vitest with the SvelteKit plugin and jsdom.
-- `src/routes.test.ts` checks the current root page.
+- `src/routes.test.ts` checks the temporary demo entry and its dashboard link.
 - `playwright.config.ts` selects Chromium and starts Vite on port 4173.
-- `tests/e2e/welcome.spec.ts` checks the current root page.
+- `tests/e2e/welcome.spec.ts` follows the temporary demo entry into the dashboard.
 - `tests/e2e/dashboard-navigation.spec.ts` follows the dashboard links to the
   current forms in a real browser. It does not call an external policy site or
   assert that analysis, preferences, or history work.
