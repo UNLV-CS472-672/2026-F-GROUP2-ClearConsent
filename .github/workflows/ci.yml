@@ -26,7 +26,11 @@ jobs:
       - name: Check formatting and lint
         run: npm run lint
       - name: Run Svelte checks
-        run: npm run check
+        run: npx svelte-kit sync && npm run check
+        env:
+          PUBLIC_SUPABASE_URL: 'https://eccdgjwsllkkdvsqtlzq.supabase.co'
+          PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_KXwbXRolrFfu8y2gsWgsfA_DykUtsV8'
+
       - name: Run unit tests
         run: npm test
       - name: Run synthetic offline evaluation regressions
@@ -37,7 +41,3 @@ jobs:
         run: npm run build
       - name: Run end-to-end tests
         run: npm run test:e2e
-
-        env:
-          PUBLIC_SUPABASE_URL: 'https://eccdgjwsllkkdvsqtlzq.supabase.co'
-          PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_KXwbXRolrFfu8y2gsWgsfA_DykUtsV8'
