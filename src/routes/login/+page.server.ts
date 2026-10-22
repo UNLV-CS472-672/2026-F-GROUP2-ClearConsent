@@ -13,7 +13,7 @@ export const actions: Actions = {
 		}
 
 		// Use the modern server client setup via locals
-		const { data: _data, error } = await locals.supabase.auth.signInWithPassword({
+		const { error } = await locals.supabase.auth.signInWithPassword({
 			email,
 			password
 		});

@@ -12,7 +12,7 @@ export const actions: Actions = {
 			return fail(400, { message: 'Email and password are required', success: false });
 		}
 
-		const { data: _data, error } = await locals.supabase.auth.signUp({
+		const { error } = await locals.supabase.auth.signUp({
 			email,
 			password
 		});
