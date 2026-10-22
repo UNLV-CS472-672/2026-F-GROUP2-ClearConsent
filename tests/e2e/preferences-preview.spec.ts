@@ -23,5 +23,5 @@ test('preferences preview changes format without claiming to save choices', asyn
 	await page.reload();
 	await expect(page.getByRole('checkbox', { name: /Data sharing/ })).not.toBeChecked();
 	await page.getByRole('link', { name: 'Back to dashboard' }).click();
-	await expect(page).toHaveURL(/\/dashboard\/overview$/);
+	await expect(page).toHaveURL(/\/dashboard\/overview\/extract$/);
 });

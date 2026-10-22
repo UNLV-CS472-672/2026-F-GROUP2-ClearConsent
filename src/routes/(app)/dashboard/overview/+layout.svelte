@@ -13,10 +13,13 @@
 		timestamp: string;
 	}
 
-	const TABS = [
-		{ name: 'URL', href: '/dashboard/overview/extract' },
-		{ name: 'Paste Text', href: '/dashboard/overview/text' },
-		{ name: 'Search', href: '#search' }
+	const INPUT_METHODS = [
+		{ name: 'URL', description: 'Start from a web address', href: '/dashboard/overview/extract' },
+		{
+			name: 'Paste Text',
+			description: 'Use text you already have',
+			href: '/dashboard/overview/text'
+		}
 	] as const;
 
 	let sampledata: historyitem[] = $state(
@@ -87,22 +90,29 @@
 					</div>
 				</div>
 				<nav aria-label="Policy input methods" class="input-nav">
-					{#each TABS as tab (tab.name)}
-						{#if tab.href === '#search'}
-							<a href="#search" class:active={page.url.hash === '#search'}>{tab.name}</a>
-						{:else}
-							<a href={resolve(tab.href)} class:active={page.url.pathname === tab.href}
-								>{tab.name}</a
+					{#each INPUT_METHODS as method, index (method.name)}
+						<a
+							href={resolve(method.href)}
+							class="method-card"
+							class:active={page.url.pathname === method.href}
+							aria-current={page.url.pathname === method.href ? 'page' : undefined}
+						>
+							<span class="method-top"
+								><span>0{index + 1} / INPUT</span>{#if page.url.pathname === method.href}<span
+										class="method-state">SELECTED</span
+									>{/if}</span
 							>
-						{/if}
+							<strong>{method.name}</strong>
+							<small>{method.description}</small>
+						</a>
 					{/each}
+					<div class="method-card unavailable" aria-disabled="true">
+						<span class="method-top"><span>03 / LATER</span><span>COMING SOON</span></span>
+						<strong>Search</strong>
+						<small>Find a previous analysis</small>
+					</div>
 				</nav>
 				<div class="route-content">
-					{#if page.url.pathname === '/dashboard/overview'}
-						<p class="choose-method">
-							Select <strong>URL</strong> or <strong>Paste Text</strong> above to try an input form.
-						</p>
-					{/if}
 					{@render children()}
 				</div>
 			</section>
@@ -328,26 +338,70 @@
 		line-height: 1.55;
 	}
 	.input-nav {
-		display: flex;
-		gap: 7px;
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 12px;
 		margin-top: 26px;
-		padding-bottom: 11px;
-		border-bottom: 1px solid #d7e1ea;
 	}
-	.input-nav a {
-		padding: 10px 15px;
-		border: 1px solid transparent;
-		border-radius: 5px;
-		color: #456075;
-		font-size: 13px;
-		font-weight: 750;
+	.method-card {
+		display: grid;
+		align-content: start;
+		gap: 7px;
+		min-height: 114px;
+		padding: 14px 16px;
+		border: 1px solid #cad8e3;
+		border-top: 4px solid #9fb8c7;
+		border-radius: 7px;
+		background: #f8fafc;
+		box-shadow: 0 3px 8px #132c4210;
+		color: #294456;
 		text-decoration: none;
 	}
-	.input-nav a:hover,
-	.input-nav a.active {
-		border-color: #b9e9e4;
-		background: #e3f8f4;
-		color: #116873;
+	.method-card:hover:not(.unavailable) {
+		border-color: #2ca6af;
+		border-top-color: #2ca6af;
+		box-shadow: 0 6px 16px #11788322;
+	}
+	.method-card.active {
+		border-color: #188a94;
+		border-top-color: #0e737e;
+		background: #dcf6f1;
+		box-shadow:
+			0 0 0 2px #2ca6af55,
+			0 8px 20px #11788322;
+		color: #0d606b;
+	}
+	.method-top {
+		display: flex;
+		justify-content: space-between;
+		gap: 6px;
+		color: #597486;
+		font-size: 9px;
+		font-weight: 800;
+		letter-spacing: 0.1em;
+	}
+	.method-state {
+		color: #0d737b;
+	}
+	.method-card strong {
+		font-size: 18px;
+		font-weight: 750;
+	}
+	.method-card small {
+		color: #526b7c;
+		font-size: 11px;
+		line-height: 1.4;
+	}
+	.method-card.unavailable {
+		border-color: #e3e9ee;
+		border-top-color: #d3dde5;
+		background: #f5f7f9;
+		box-shadow: none;
+		color: #7a8b9b;
+	}
+	.method-card.unavailable small,
+	.method-card.unavailable .method-top {
+		color: #8999a8;
 	}
 	.route-content {
 		min-width: 0;
@@ -374,15 +428,6 @@
 	}
 	.route-content :global(button[type='submit']:hover:not(:disabled)) {
 		background: #116873;
-	}
-	.choose-method {
-		margin: 0;
-		padding: 20px 22px;
-		border: 1px dashed #accbd3;
-		border-radius: 5px;
-		background: #f6fafb;
-		color: #526b7c;
-		font-size: 14px;
 	}
 	.history-heading {
 		margin-bottom: 24px;
@@ -503,10 +548,14 @@
 			font-size: 36px;
 		}
 		.input-nav {
-			overflow-x: auto;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
-		.input-nav a {
-			flex-shrink: 0;
+		.method-card {
+			padding: 12px;
+		}
+		.method-card.unavailable {
+			grid-column: 1 / -1;
+			min-height: 86px;
 		}
 		.section-heading {
 			align-items: start;

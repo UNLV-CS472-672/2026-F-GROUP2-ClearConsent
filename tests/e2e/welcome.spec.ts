@@ -8,6 +8,6 @@ test('demo entry opens the dashboard', async ({ page }) => {
 	).toBeVisible();
 	await expect(page.getByText('It does not sign you in or save data.')).toBeVisible();
 	await page.getByRole('link', { name: 'Continue with demo access' }).click();
-	await expect(page).toHaveURL(/\/dashboard\/overview$/);
+	await expect(page).toHaveURL(/\/dashboard\/overview\/extract$/);
 	await expect(page.getByRole('heading', { name: 'Policy workspace' })).toBeVisible();
 });
