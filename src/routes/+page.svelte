@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-    import { resolve } from '$app/paths';
+	import { resolve } from '$app/paths';
 	let { data }: { data: PageData } = $props();
 </script>
 
