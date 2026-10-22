@@ -59,6 +59,8 @@ npm run build
 - `tests/e2e/dashboard-navigation.spec.ts` follows the dashboard links to the
   current forms in a real browser. It does not call an external policy site or
   assert that analysis, preferences, or history work.
+- `tests/e2e/preferences-preview.spec.ts` checks that the temporary format
+  preview responds to choices, resets on reload, and links back to the dashboard.
 - `.github/workflows/ci.yml` installs dependencies and Chromium, then runs
   lint, Svelte checks, unit tests, the production build, and end-to-end tests.
 - `.gitignore` excludes Playwright's generated `test-results` directory.

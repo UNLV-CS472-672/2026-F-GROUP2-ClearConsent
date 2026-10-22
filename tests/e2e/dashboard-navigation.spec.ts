@@ -24,6 +24,6 @@ test('dashboard keeps the policy input forms accessible', async ({ page }) => {
 		.getByRole('link', { name: 'Preferences' })
 		.click();
 	await expect(page).toHaveURL(/\/preferences$/);
-	await expect(page.getByRole('heading', { name: 'Preferences' })).toBeVisible();
-	await expect(page.locator('input[name="Tracking"]')).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Make the explanation yours.' })).toBeVisible();
+	await expect(page.getByRole('checkbox', { name: /Tracking and ads/ })).toBeVisible();
 });

@@ -15,7 +15,9 @@ flowchart TD
     Text --> TextOutput["Validated text, hash, and time"]
 ```
 
-The entry link opens the dashboard without signing in or saving data. The input forms do not yet produce a complete analysis. Preference choices are not persisted, and history rows are sample data. The Stage 1 server analysis endpoint is not connected to the dashboard. Search and history View controls are present in the dashboard but do not lead to working results.
+The entry link opens the dashboard without signing in or saving data. The input forms do not yet produce a complete analysis. The Preferences page offers temporary privacy-topic, detail-level, and answer-style controls. Detail and style change only an illustrative example on that page; no choices are saved or sent to analysis. History rows are sample data. The Stage 1 server analysis endpoint is not connected to the dashboard. Search and history View controls are present in the dashboard but do not lead to working results.
+
+Answer style and detail level are study concepts, not accepted requirements or implemented analysis settings. [FR-8](../requirements/detailed-functional-requirements.md#fr-8--plain-language-summary) requires plain language, source support, and preservation of conditions and uncertainty at every level. The current [Stage 2 contract](../stage-2-consolidation.md#preferences) uses privacy preferences only for relevance and ordering. Connecting presentation choices to real output needs a separate design decision and tests that the underlying findings and evidence stay intact.
 
 ## Auth handoff to connect
 
@@ -48,4 +50,4 @@ flowchart TD
 
 DP1 feedback asked the team to distinguish signed-in and unsigned-in paths and describe saving consistently. [UI issue #18](https://github.com/UNLV-CS472-672/2026-F-GROUP2-ClearConsent/issues/18) sketches the page layout.
 
-For a walkthrough before the auth handoff works, open `/dashboard/overview` directly and use the same example policy or policy text for each participant. After the handoff is connected, start at `/` to test the actual entry flow. Record observations of implemented screens separately from reactions to the intended journey.
+For a walkthrough before the auth handoff works, start at `/` and use the demo entry. Use the same example policy or policy text for each participant. After auth is connected, start at `/` again to test the real sign-in flow. Record observations of implemented screens separately from reactions to the intended journey.
