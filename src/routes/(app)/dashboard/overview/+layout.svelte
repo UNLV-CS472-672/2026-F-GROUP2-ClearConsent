@@ -62,11 +62,14 @@
 			</div>
 		</div>
 
-		<div class="col-start-2 mx-auto -mt-5 flex h-fit">
+		<nav aria-label="Dashboard links" class="col-start-2 mx-auto -mt-5 flex h-fit gap-5">
 			<a href={resolve('/preferences')} class="text-[.90rem] text-gray-800 hover:text-blue-800"
 				>Preferences</a
 			>
-		</div>
+			<a href={resolve('/study')} class="text-[.90rem] text-gray-800 hover:text-blue-800"
+				>Study map</a
+			>
+		</nav>
 	</div>
 
 	<div class="flex justify-center pt-10 pb-10">

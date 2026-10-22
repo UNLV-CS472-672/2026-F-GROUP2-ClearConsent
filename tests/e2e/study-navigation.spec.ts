@@ -36,3 +36,9 @@ test('preview links reach the existing dashboard, preferences, and sample histor
 		page.getByText('Nothing substantial here yet. (Duplicate of overview)')
 	).toBeVisible();
 });
+
+test('the dashboard links back to the study map', async ({ page }) => {
+	await page.goto('/dashboard/overview');
+	await page.getByRole('link', { name: 'Study map' }).click();
+	await expect(page).toHaveURL(/\/study$/);
+});
