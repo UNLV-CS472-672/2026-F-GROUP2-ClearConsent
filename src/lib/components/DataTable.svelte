@@ -112,8 +112,8 @@
 								>
 									<!-- Note: Likely need to change to button for fetching AnalysisResults-->
 									<a
-										href={cell.getValue()}
-										rel=external
+										href={cell.getValue() as string}
+										rel="external"
 										class="mt-1 mb-1 flex justify-center overflow-hidden rounded-xl border border-gray-500 bg-darkest pt-0.5 pb-0.5 hover:bg-dark-fg"
 										>View</a
 									>
