@@ -1,10 +1,6 @@
 <script lang="ts" generics="TData extends RowData">
 	import { createTable, FlexRender, type ColumnDef, type RowData } from '@tanstack/svelte-table';
 	import { features } from '$lib/components/datatableFeatures';
-	// temporary imports
-	import type { Pathname } from '$app/types';
-	import { resolve } from '$app/paths';
-	// --
 
 	let {
 		data,
@@ -116,7 +112,8 @@
 								>
 									<!-- Note: Likely need to change to button for fetching AnalysisResults-->
 									<a
-										href={resolve(cell.getValue() as Pathname)}
+										href={cell.getValue()}
+										rel=external
 										class="mt-1 mb-1 flex justify-center overflow-hidden rounded-xl border border-gray-500 bg-darkest pt-0.5 pb-0.5 hover:bg-dark-fg"
 										>View</a
 									>
