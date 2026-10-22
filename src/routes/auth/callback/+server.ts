@@ -11,5 +11,6 @@ export const GET: RequestHandler = async ({ url, locals }) => {
     }
   }
 
-  throw redirect(303, '/login?error=auth_failed');
+  // If something goes wrong (expired code, bad link), redirect back to login with an error indication
+	throw redirect(303, '/login?auth_error=true');
 };

@@ -28,15 +28,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   const { session } = await event.locals.safeGetSession();
 
-  // 3. Absolute Route Guard rules
-  const isAuthRoute = event.url.pathname.startsWith('/login') || event.url.pathname.startsWith('/auth');
+  const publicRoutes = ['/', '/login', '/register'];
+  const isPublicRoute = publicRoutes.includes(event.url.pathname);
 
-  if (!session && !isAuthRoute) {
-    throw redirect(303, '/login');
-  }
-
-  if (session && event.url.pathname === '/login') {
-    throw redirect(303, '/');
+  if (!session && !isPublicRoute) {
+    throw redirect(303, '/login')
   }
 
   return resolve(event);
