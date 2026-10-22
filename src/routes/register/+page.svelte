@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ActionData } from './$types';
-
+    import { resolve } from '$app/paths';
 	// Svelte 5 rune to read form response statuses sent back by the server
 	let { form }: { form: ActionData & { message?: string; success?: boolean } } = $props();
 </script>
@@ -38,7 +38,7 @@
 	</form>
 
 	<p class="toggle-text">
-		Already have an account? <a href="/login">Log In instead</a>
+		Already have an account? <a href={resolve('/login')}>Log In instead</a>
 	</p>
 </main>
 

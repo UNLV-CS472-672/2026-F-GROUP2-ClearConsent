@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-
+    import { resolve } from '$app/paths';
 	let { data }: { data: PageData } = $props();
 </script>
 
@@ -13,8 +13,8 @@
 	{:else}
 		<p>Welcome to Clear Consent!</p>
 		<div class="auth-buttons">
-			<a href="/login" class="btn btn-primary">Login</a>
-			<a href="/register" class="btn btn-secondary">Register</a>
+			<a href={resolve('/login')} class="btn btn-primary">Login</a>
+			<a href={resolve('/register')} class="btn btn-secondary">Register</a>
 		</div>
 	{/if}
 </main>
