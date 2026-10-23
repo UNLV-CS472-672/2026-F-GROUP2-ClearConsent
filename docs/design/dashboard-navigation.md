@@ -24,6 +24,8 @@ Answer style and detail level are study concepts, not accepted requirements or i
 
 [Dashboard PR #33](https://github.com/UNLV-CS472-672/2026-F-GROUP2-ClearConsent/pull/33) provides `/dashboard` and redirects it to `/dashboard/overview`. [Auth PR #43](https://github.com/UNLV-CS472-672/2026-F-GROUP2-ClearConsent/pull/43) provides login and registration from `/`. This branch sends successful login and returning sessions to `/dashboard/overview`; `/auth/callback` remains available while email confirmation establishes a session.
 
+Registration requests an email confirmation redirect to the origin where signup started, at `/auth/callback`. The Supabase project owner must set the Auth Site URL to `https://clearconsent.site` and allow `https://clearconsent.site/auth/callback` under Redirect URLs. For local confirmation tests, also allow the exact local callback URL being used, such as `http://127.0.0.1:5180/auth/callback`. Without an allowed redirect, Supabase may fall back to its Site URL; the first local test's email sent the browser to an inactive `localhost:5173` even though the email arrived. A working confirmation link should finish at the app, after which the test account can sign in.
+
 ```mermaid
 flowchart LR
     Site["clearconsent.site /"] --> Auth["Authentication entry: PR #43"]
