@@ -53,14 +53,18 @@ npm run build
 
 - `package.json` defines `test`, `test:watch`, and `test:e2e`.
 - `vitest.config.ts` configures Vitest with the SvelteKit plugin and jsdom.
-- `src/routes.test.ts` checks the temporary demo entry and its dashboard link.
+- `src/routes.test.ts` checks the signed-out auth entry.
+- `src/entry-handoff.test.ts` checks the returning-session redirect.
 - `playwright.config.ts` selects Chromium and starts Vite on port 4173.
-- `tests/e2e/welcome.spec.ts` follows the temporary demo entry into the dashboard.
-- `tests/e2e/dashboard-navigation.spec.ts` follows the dashboard links to the
-  current forms in a real browser. It does not call an external policy site or
-  assert that analysis, preferences, or history work.
-- `tests/e2e/preferences-preview.spec.ts` checks that the temporary format
-  preview responds to choices, resets on reload, and links back to the dashboard.
+- `tests/e2e/welcome.spec.ts` checks the signed-out entry and confirmation callback.
+- `tests/e2e/dashboard-navigation.spec.ts` checks the anonymous redirect. With
+  `STUDY_TEST_EMAIL` and `STUDY_TEST_PASSWORD` for a confirmed test account, it
+  also follows the dashboard links to the current forms in a real browser. It
+  does not call an external policy site or assert that analysis or history work.
+- `tests/e2e/preferences-preview.spec.ts` uses that test account to check that
+  the temporary format preview responds to choices, resets on reload, and links
+  back to the dashboard. Without those credentials, the two signed-in browser
+  tests are skipped.
 - `.github/workflows/ci.yml` installs dependencies and Chromium, then runs
   lint, Svelte checks, unit tests, the production build, and end-to-end tests.
 - `.gitignore` excludes Playwright's generated `test-results` directory.
