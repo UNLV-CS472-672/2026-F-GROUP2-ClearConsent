@@ -92,6 +92,9 @@
 			</div>
 			<nav aria-label="Dashboard links" class="dashboard-links">
 				<a href={resolve('/preferences')}>Preferences</a>
+				<form action={resolve('/logout')} method="POST">
+					<button type="submit">Sign out</button>
+				</form>
 			</nav>
 		</header>
 
@@ -242,6 +245,26 @@
 	}
 	.dashboard-links a:hover {
 		color: #70ebe0;
+	}
+	.dashboard-links form {
+		margin: 0;
+	}
+	.dashboard-links button {
+		padding: 8px 12px;
+		border: 1px solid #5a8095;
+		border-radius: 5px;
+		background: transparent;
+		color: #d9e8f1;
+		font: inherit;
+		cursor: pointer;
+	}
+	.dashboard-links button:hover {
+		border-color: #70ebe0;
+		color: #70ebe0;
+	}
+	.dashboard-links button:focus-visible {
+		outline: 3px solid #42cabc;
+		outline-offset: 3px;
 	}
 	.hero {
 		display: flex;
