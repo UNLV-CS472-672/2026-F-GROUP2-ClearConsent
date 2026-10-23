@@ -26,10 +26,12 @@
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
 		"@playwright/test": "^1.63.0",
+		"@supabase/auth-helpers-sveltekit": "^0.15.0",
+		"@supabase/supabase-js": "^2.118.0",
 		"@sveltejs/adapter-cloudflare": "^7.2.8",
 		"@sveltejs/kit": "^2.63.0",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
-		"@tailwindcss/vite": "^4.3.0",
+		"@tailwindcss/vite": "^4.3.3",
 		"@testing-library/svelte": "^5.4.2",
 		"@types/node": "^22",
 		"eslint": "^10.4.1",
@@ -44,7 +46,7 @@
 		"supabase": "^2.117.0",
 		"svelte": "^5.56.1",
 		"svelte-check": "^4.6.0",
-		"tailwindcss": "^4.3.0",
+		"tailwindcss": "^4.3.3",
 		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.60.1",
 		"vite": "^8.0.16",
@@ -52,8 +54,9 @@
 		"wrangler": "4.130.0"
 	},
 	"dependencies": {
-		"@supabase/supabase-js": "^2.117.2",
-		"unpdf": "^1.8.1",
+		"@supabase/ssr": "^0.12.7",
+		"@supabase/supabase-js": "^2.118.0",
+		"@tanstack/svelte-table": "^9.3.1",
 		"openai": "7.30.0",
 		"unpdf": "^1.8.1",
 		"zod": "4.6.5"

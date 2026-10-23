@@ -1,6 +1,14 @@
 import { expect, test } from '@playwright/test';
+import { hasStudyAccount, signInForStudy } from './study-auth';
+
+test('signed-out visitors are sent to login', async ({ page }) => {
+	await page.goto('/dashboard/overview');
+	await expect(page).toHaveURL(/\/login$/);
+});
 
 test('dashboard keeps the policy input forms accessible', async ({ page }) => {
+	test.skip(!hasStudyAccount, 'Requires a confirmed study test account');
+	await signInForStudy(page);
 	await page.goto('/dashboard/overview');
 	await expect(page).toHaveURL(/\/dashboard\/overview\/extract$/);
 	await expect(page.getByRole('heading', { name: 'Policy workspace' })).toBeVisible();

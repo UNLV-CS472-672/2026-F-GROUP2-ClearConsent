@@ -1,82 +1,133 @@
 <script lang="ts">
-	interface historyitem {
+	import DataTable from '$lib/components/DataTable.svelte';
+	import type { features } from '$lib/components/datatableFeatures';
+	import { createColumnHelper } from '@tanstack/svelte-table';
+	import type { ColumnDef } from '@tanstack/svelte-table';
+	// Temporary for display purposes
+	interface temporary_data {
 		name: string;
 		hash: string;
-		timestamp: string;
+		salt?: string;
+		timestamp: number | string | Date;
+		url: string | any;
 	}
-	let sampledata: historyitem[] = $state(
-		[
-			{
-				name: 'da9ba6d0-535f-4b2d-91e7-963a11b2be80',
-				hash: '54248a1050215c844265b0cd7c8195550b078da89b3020f9e08c39adbca5d61e',
-				timestamp: '2026-05-21T20:58:15.036527'
-			},
-			{
-				name: '64e62b78-2301-4885-8abe-a055a52baea9',
-				hash: '51be3220bb1ff77823a593f3d1feff521e3ce64fc4c5f6eefbc4bd6b0e8a83c2',
-				timestamp: '2023-06-02T19:01:09.048173'
-			},
-			{
-				name: '3009af3f-9887-4b2e-a8f6-86034b8a05ee',
-				hash: '94332a41dfb863a1783c56599272044af4619ee3cf3cafd70abf91b0f9a800c3',
-				timestamp: '2023-05-17T15:52:20.032869'
-			},
-			{
-				name: 'b2477fa4-e287-47de-a6bd-9d3f7fd0e85e',
-				hash: 'b8c365a93890fb1e26847a44ce313bf3a8ad8a492b2c2b141541b2de03b8e1a9',
-				timestamp: '2024-05-24T12:34:06.031373'
-			},
-			{
-				name: '67a6f38f-f984-482b-b850-6b0ab37385b7',
-				hash: '0885decab358e032855611289e5a88dff0b9d3fdab5dff3854455b6aeeca42b0',
-				timestamp: '2021-03-27T17:46:40.077959'
-			}
-		].toSorted((a, b) => {
-			return new Date(b.timestamp).valueOf() - new Date(a.timestamp).valueOf();
+
+	const companies = [
+		'Apple',
+		'Microsoft',
+		'Amazon',
+		'Alphabet',
+		'Meta',
+		'NVIDIA',
+		'Tesla',
+		'Netflix',
+		'Adobe',
+		'Salesforce',
+		'IBM',
+		'Intel',
+		'Cisco',
+		'Oracle',
+		'Qualcomm',
+		'AMD',
+		'Shopify',
+		'Spotify',
+		'Uber',
+		'Airbnb',
+		'PayPal',
+		'Visa',
+		'Mastercard',
+		'JPMorgan Chase',
+		'Goldman Sachs',
+		'Bank of America',
+		'Walmart',
+		'Target',
+		'Costco',
+		'Coca-Cola',
+		'PepsiCo',
+		'Nike',
+		'Adidas',
+		'Toyota',
+		'Honda',
+		'Ford',
+		'General Motors',
+		'BMW',
+		'Mercedes-Benz',
+		'Samsung',
+		'Sony',
+		'LG',
+		'Nintendo',
+		'IKEA',
+		'Unilever',
+		'Procter & Gamble',
+		'Johnson & Johnson',
+		'Pfizer',
+		'DHL',
+		'FedEx'
+	];
+	async function getHash(data: string, salt: string = '') {
+		const bytes = new TextEncoder().encode(data + salt);
+		const digest = await crypto.subtle.digest('SHA-256', bytes);
+		return Array.from(new Uint8Array(digest))
+			.map((byte) => byte.toString(16).padStart(2, '0'))
+			.join('');
+	}
+	function randomTimestamp(): string {
+		let s = new Date('2016-01-01').getTime();
+		// Return as ISOString and format as necessary
+		return new Date(Math.random() * (Date.now() - s) + s).toISOString();
+	}
+	async function genRandomTempData(): Promise<temporary_data[]> {
+		let data: temporary_data[] = [];
+		for (let i = 0; i < companies.length; i++)
+			data.push({
+				name: companies[i],
+				hash: await getHash(companies[i]),
+				timestamp: randomTimestamp(),
+				get url() {
+					return '#' + this.hash;
+				}
+			});
+		return data;
+	}
+
+	let data: temporary_data[] = $state([]);
+	genRandomTempData().then((res) => (data = res));
+	// ---
+	const columnHelper = createColumnHelper<typeof features, temporary_data>();
+
+	const columns: ColumnDef<typeof features, temporary_data>[] = columnHelper.columns([
+		columnHelper.accessor('name', {
+			header: 'Name',
+			size: 40
+		}),
+
+		columnHelper.accessor('hash', {
+			header: 'Hash',
+			minSize: 50,
+			maxSize: 300
+		}),
+		columnHelper.accessor('timestamp', {
+			id: 'timestamp',
+			header: 'Timestamp',
+			cell: (info: any) => new Date(info.getValue()).toLocaleString(),
+			minSize: 50,
+			maxSize: 75
+		}),
+		columnHelper.accessor('url', {
+			id: 'url',
+			header: ' ',
+			minSize: 0,
+			maxSize: 35,
+			enableSorting: false
 		})
-	);
-	let sortedTimestamp: boolean = $state(true);
-	import Table from '$lib/components/Table.svelte';
+	]);
 </script>
 
-<div class="flex h-screen w-full items-center justify-center pb-5">
-	<div
-		class="flex h-7/8 w-7/8 flex-col items-center justify-center border border-black/40 inset-shadow-xs inset-shadow-black"
-	>
-		<h1 class="font-lg font-bold">Nothing substantial here yet. (Duplicate of overview)</h1>
-		<Table>
-			<tr class="border">
-				<td
-					class="border-r text-center text-xl font-bold hover:cursor-pointer hover:bg-slate-400"
-					onclick={() => {
-						if (sortedTimestamp) {
-							sampledata.sort((a, b) => a.name.localeCompare(b.name)).reverse();
-							sortedTimestamp = false;
-						} else sampledata.reverse();
-					}}>Name</td
-				>
-				<td class="border-r text-center text-xl font-bold">Hash</td>
-				<td
-					class="text-center text-xl font-bold hover:cursor-pointer hover:bg-slate-400"
-					onclick={() => {
-						if (!sortedTimestamp) {
-							sampledata.sort((a, b) => {
-								return new Date(b.timestamp).valueOf() - new Date(a.timestamp).valueOf();
-							});
-						} else {
-							sampledata.reverse();
-						}
-						sortedTimestamp = true;
-					}}>Timestamp</td
-				>
-			</tr>
-			{#each sampledata as item (item.name)}
-				<tr class="border">
-					<td class="truncate border-r pr-1 pl-1" title={item.name}>{item.name}</td>
-					<td class="truncate border-r pr-1 pl-1" title={item.hash}>{item.hash}</td>
-					<td class="pr-1 pl-1" title={item.timestamp}>{item.timestamp}</td>
-				</tr>
-			{/each}
-		</Table>
-	</div>
+<div class="flex w-full flex-col items-center justify-center pb-5">
+	<!-- <div
+		class="flex h-7/8 w-7/8 flex-col items-center justify-center overflow-scroll border border-black/40 inset-shadow-xs inset-shadow-black"
+	> -->
+	<h1 class="font-lg mb-5 font-bold">Nothing substantial here yet.</h1>
+	<DataTable {data} {columns}></DataTable>
+	<!-- </div> -->
 </div>

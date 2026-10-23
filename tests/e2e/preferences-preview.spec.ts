@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { hasStudyAccount, signInForStudy } from './study-auth';
 
 test('preferences preview changes format without claiming to save choices', async ({ page }) => {
+	test.skip(!hasStudyAccount, 'Requires a confirmed study test account');
+	await signInForStudy(page);
 	await page.goto('/preferences');
 	await expect(
 		page.getByText('They are not saved and do not change a real analysis.')
