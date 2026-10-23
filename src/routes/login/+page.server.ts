@@ -22,7 +22,6 @@ export const actions: Actions = {
 			return fail(400, { message: error.message, success: false });
 		}
 
-		// If successful, push them back to the home or dashboard route
-		throw redirect(303, '/');
+		throw redirect(303, '/dashboard/overview');
 	}
 };
