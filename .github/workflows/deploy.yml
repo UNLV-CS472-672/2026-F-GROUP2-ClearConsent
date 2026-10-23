@@ -39,6 +39,9 @@ jobs:
         run: npm ci
       - name: Build the validated application
         run: npm run build
+        env:
+          PUBLIC_SUPABASE_URL: 'https://eccdgjwsllkkdvsqtlzq.supabase.co'
+          PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_KXwbXRolrFfu8y2gsWgsfA_DykUtsV8'
       - name: Skip superseded main commits
         id: revision
         shell: bash

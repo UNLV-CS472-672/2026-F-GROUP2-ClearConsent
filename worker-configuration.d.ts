@@ -4,7 +4,7 @@
 interface __BaseEnv_Env {
 	ASSETS: Fetcher;
 	PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_KXwbXRolrFfu8y2gsWgsfA_DykUtsV8";
-	PUBLIC_SUPABASE_URL: "https://eccdgjwsllkkdvsqtlzq.supabase.co/rest/v1/";
+	PUBLIC_SUPABASE_URL: "https://eccdgjwsllkkdvsqtlzq.supabase.co";
 }
 declare namespace Cloudflare {
 	interface GlobalProps {
