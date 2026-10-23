@@ -2,15 +2,14 @@
 	import { createTable, FlexRender, type ColumnDef, type RowData } from '@tanstack/svelte-table';
 	import { features } from '$lib/components/datatableFeatures';
 
-	let {
-		data,
-		columns
-	}: {
+	type Props = {
 		data: TData[];
 		columns: ColumnDef<typeof features, TData>[];
-	} = $props();
+	};
+	let { data, columns }: Props = $props();
 	// initial pageSize (amount of rows per page)
-	let pageSize = $state<string>('5');
+	let pageSize = $state('5');
+	const pageSizeSteps = ['5', '10', '25', '50', '100'];
 
 	const table = createTable({
 		features,
@@ -178,11 +177,9 @@
 					class="rounded-md border border-gray-300 pr-1 pl-1 shadow-xs hover:bg-gray-100 focus:border-gray-400"
 					onchange={() => table.setPageSize(Number(pageSize))}
 				>
-					<option value="5">5</option>
-					<option value="10">10</option>
-					<option value="25">25</option>
-					<option value="50">50</option>
-					<option value="100">100</option>
+					{#each pageSizeSteps as opt (opt)}
+						<option value={opt}>{opt}</option>
+					{/each}
 				</select>
 			</span>
 		</div>

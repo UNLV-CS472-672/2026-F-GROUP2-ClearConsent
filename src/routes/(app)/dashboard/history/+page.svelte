@@ -64,25 +64,25 @@
 		'DHL',
 		'FedEx'
 	];
-	async function gethash(data: string, salt: string = '') {
+	async function getHash(data: string, salt: string = '') {
 		const bytes = new TextEncoder().encode(data + salt);
 		const digest = await crypto.subtle.digest('SHA-256', bytes);
 		return Array.from(new Uint8Array(digest))
 			.map((byte) => byte.toString(16).padStart(2, '0'))
 			.join('');
 	}
-	function randomtimestamp(): string {
+	function randomTimestamp(): string {
 		let s = new Date('2016-01-01').getTime();
 		// Return as ISOString and format as necessary
 		return new Date(Math.random() * (Date.now() - s) + s).toISOString();
 	}
-	async function gen_randomtempdata(): Promise<temporary_data[]> {
+	async function genRandomTempData(): Promise<temporary_data[]> {
 		let data: temporary_data[] = [];
 		for (let i = 0; i < companies.length; i++)
 			data.push({
 				name: companies[i],
-				hash: await gethash(companies[i]),
-				timestamp: randomtimestamp(),
+				hash: await getHash(companies[i]),
+				timestamp: randomTimestamp(),
 				get url() {
 					return '#' + this.hash;
 				}
@@ -91,7 +91,7 @@
 	}
 
 	let data: temporary_data[] = $state([]);
-	gen_randomtempdata().then((res) => (data = res));
+	genRandomTempData().then((res) => (data = res));
 	// ---
 	const columnHelper = createColumnHelper<typeof features, temporary_data>();
 
