@@ -12,7 +12,8 @@ test('dashboard keeps the policy input forms accessible', async ({ page }) => {
 	await page.goto('/dashboard/overview');
 	await expect(page).toHaveURL(/\/dashboard\/overview\/extract$/);
 	await expect(page.getByRole('heading', { name: 'Policy workspace' })).toBeVisible();
-	await expect(page.getByText('Sample entries show the planned history layout.')).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'No saved analyses yet' })).toBeVisible();
+	await expect(page.getByText('Hash', { exact: true })).toHaveCount(0);
 
 	const methods = page.getByRole('navigation', { name: 'Policy input methods' });
 	const urlCard = methods.getByRole('link', { name: /URL/ });
@@ -35,4 +36,9 @@ test('dashboard keeps the policy input forms accessible', async ({ page }) => {
 	await expect(page).toHaveURL(/\/preferences$/);
 	await expect(page.getByRole('heading', { name: 'Make the explanation yours.' })).toBeVisible();
 	await expect(page.getByRole('checkbox', { name: /Tracking and ads/ })).toBeVisible();
+
+	await page.getByRole('link', { name: 'Back to dashboard' }).click();
+	await page.getByRole('button', { name: 'Sign out' }).click();
+	await expect(page).toHaveURL(/\/$/);
+	await expect(page.getByRole('link', { name: 'Login' })).toBeVisible();
 });

@@ -2,19 +2,7 @@
 	import type { LayoutProps } from './$types';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { createColumnHelper } from '@tanstack/svelte-table';
-	import type { ColumnDef } from '@tanstack/svelte-table';
-	import { features } from '$lib/components/datatableFeatures';
-	import DataTable from '$lib/components/DataTable.svelte';
 	let { children }: LayoutProps = $props();
-
-	// --- Temporary
-	interface historyitem {
-		name: string;
-		hash: string;
-		timestamp: string;
-		url: string;
-	}
 
 	const INPUT_METHODS = [
 		{ name: 'URL', description: 'Start from a web address', href: '/dashboard/overview/extract' },
@@ -24,63 +12,6 @@
 			href: '/dashboard/overview/text'
 		}
 	] as const;
-
-	let sampledata: historyitem[] = $state(
-		[
-			{
-				name: 'da9ba6d0-535f-4b2d-91e7-963a11b2be80',
-				hash: '54248a1050215c844265b0cd7c8195550b078da89b3020f9e08c39adbca5d61e',
-				timestamp: '2026-05-21T20:58:15.036527',
-				url: '#54248a1050215c844265b0cd7c8195550b078da89b3020f9e08c39adbca5d61e'
-			},
-			{
-				name: '64e62b78-2301-4885-8abe-a055a52baea9',
-				hash: '51be3220bb1ff77823a593f3d1feff521e3ce64fc4c5f6eefbc4bd6b0e8a83c2',
-				timestamp: '2023-06-02T19:01:09.048173',
-				url: '#51be3220bb1ff77823a593f3d1feff521e3ce64fc4c5f6eefbc4bd6b0e8a83c2'
-			},
-			{
-				name: '3009af3f-9887-4b2e-a8f6-86034b8a05ee',
-				hash: '94332a41dfb863a1783c56599272044af4619ee3cf3cafd70abf91b0f9a800c3',
-				timestamp: '2023-05-17T15:52:20.032869',
-				url: '#94332a41dfb863a1783c56599272044af4619ee3cf3cafd70abf91b0f9a800c3'
-			},
-			{
-				name: 'b2477fa4-e287-47de-a6bd-9d3f7fd0e85e',
-				hash: 'b8c365a93890fb1e26847a44ce313bf3a8ad8a492b2c2b141541b2de03b8e1a9',
-				timestamp: '2024-05-24T12:34:06.031373',
-				url: '#b8c365a93890fb1e26847a44ce313bf3a8ad8a492b2c2b141541b2de03b8e1a9'
-			},
-			{
-				name: '67a6f38f-f984-482b-b850-6b0ab37385b7',
-				hash: '0885decab358e032855611289e5a88dff0b9d3fdab5dff3854455b6aeeca42b0',
-				timestamp: '2021-03-27T17:46:40.077959',
-				url: '#0885decab358e032855611289e5a88dff0b9d3fdab5dff3854455b6aeeca42b0'
-			}
-		].toSorted((a, b) => {
-			return new Date(b.timestamp).valueOf() - new Date(a.timestamp).valueOf();
-		})
-	);
-	// ----------------
-	const columnHelper = createColumnHelper<typeof features, historyitem>();
-	const columns: ColumnDef<typeof features, historyitem>[] = columnHelper.columns([
-		columnHelper.accessor('name', { id: 'name', header: 'Name', maxSize: 60 }),
-		columnHelper.accessor('hash', { id: 'hash', header: 'Hash', minSize: 50, maxSize: 100 }),
-		columnHelper.accessor('timestamp', {
-			id: 'timestamp',
-			header: 'Timestamp',
-			cell: (info: any) => new Date(info.getValue()).toLocaleString(),
-			minSize: 35,
-			maxSize: 40
-		}),
-		columnHelper.accessor('url', {
-			id: 'url',
-			header: '',
-			minSize: 0,
-			maxSize: 20,
-			enableSorting: false
-		})
-	]);
 </script>
 
 <div class="dashboard-frame">
@@ -150,17 +81,20 @@
 				<div class="section-heading history-heading">
 					<div>
 						<p class="section-label">02 / HISTORY</p>
-						<h2 id="history-title">History</h2>
-						<p>
-							Sample entries show the planned history layout. Saved analyses are not connected yet.
-						</p>
+						<h2 id="history-title">Recent analyses</h2>
 					</div>
-					<span class="sample-badge">SAMPLE DATA</span>
 				</div>
-				<div class="history-table">
-					<DataTable data={sampledata} {columns} />
+				<div class="history-empty">
+					<span class="history-empty-mark" aria-hidden="true">◫</span>
+					<div>
+						<h3>No saved analyses yet</h3>
+						<p>
+							Once saving is connected, your completed policies will appear here with a readable
+							title and date.
+						</p>
+						<span class="history-status">Saving is coming soon</span>
+					</div>
 				</div>
-				<p class="scroll-hint">Scroll sideways to see the full sample table.</p>
 			</section>
 		</div>
 		<footer>
@@ -435,66 +369,46 @@
 		background: #116873;
 	}
 	.history-heading {
-		margin-bottom: 24px;
+		margin-bottom: 18px;
 	}
-	.sample-badge {
-		flex-shrink: 0;
-		padding: 7px 9px;
-		border-radius: 3px;
-		background: #e8f1f6;
-		color: #266c83;
+	.history-empty {
+		display: flex;
+		align-items: flex-start;
+		gap: 18px;
+		padding: 27px;
+		border: 1px dashed #b9d0dd;
+		border-radius: 7px;
+		background: #f5fafb;
+	}
+	.history-empty-mark {
+		display: grid;
+		flex: 0 0 42px;
+		place-items: center;
+		width: 42px;
+		height: 42px;
+		border-radius: 8px;
+		background: #e1f3f0;
+		color: #167f88;
+		font-size: 24px;
+	}
+	.history-empty h3 {
+		margin: 0 0 6px;
+		color: #243b4d;
+		font-size: 16px;
+	}
+	.history-empty p {
+		max-width: 540px;
+		margin: 0 0 13px;
+		color: #5a6b80;
+		font-size: 13px;
+		line-height: 1.55;
+	}
+	.history-status {
+		color: #137b80;
 		font-size: 10px;
 		font-weight: 800;
 		letter-spacing: 0.1em;
-	}
-	.history-table {
-		overflow-x: auto;
-		border: 1px solid #d7e1ea;
-		border-radius: 6px;
-	}
-	.history-table :global(table) {
-		width: 100%;
-		min-width: 720px;
-		border-collapse: collapse;
-		table-layout: fixed;
-	}
-	.history-table :global(tr:first-child) {
-		background: #e8f1f6;
-		color: #2e5267;
-	}
-	.history-table :global(tr:not(:first-child)) {
-		border-top: 1px solid #e4ebf1;
-		background: white;
-		color: #294456;
-	}
-	.history-table :global(tr:not(:first-child):hover) {
-		background: #f6fafb;
-	}
-	.history-table :global(td) {
-		padding: 13px 10px;
-		border-color: #e4ebf1;
-		font-size: 12px;
-	}
-	.history-table :global(tr:first-child td) {
-		font-size: 11px;
-		font-weight: 800;
-		letter-spacing: 0.04em;
-	}
-	.history-table :global(tr:first-child td[title]:hover) {
-		cursor: pointer;
-	}
-	.history-table :global(.view a) {
-		background: #e3f8f4;
-		color: #126573;
-		font-size: 11px;
-		font-weight: 750;
-		text-decoration: none;
-	}
-	.scroll-hint {
-		display: none;
-		margin: 9px 0 0;
-		color: #6a7e92;
-		font-size: 11px;
+		text-transform: uppercase;
 	}
 	footer {
 		display: flex;
@@ -538,9 +452,6 @@
 		.route-content :global(form),
 		.route-content :global(input) {
 			max-width: 100%;
-		}
-		.scroll-hint {
-			display: block;
 		}
 	}
 	@media (max-width: 480px) {
