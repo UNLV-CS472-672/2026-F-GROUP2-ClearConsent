@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+// Shared non-empty string function check
+// Takes string as input, fails when string has no non-whitespace character
+const notBlank = (message: string) => z.string().regex(/\S/, message);
+
 // Fixed 'Category' Enum (Aligned with risk scoring requirements)
 export const FindingCategoryEnum = z.enum([
 	'collection',
@@ -29,20 +33,20 @@ export type AttentionLabel = z.infer<typeof AttentionLabelEnum>;
 
 // Evidence Item Schema (Source passage references)
 export const EvidenceItemSchema = z.object({
-	passageId: z.string().min(1),
-	excerpt: z.string().min(1, 'Non-empty quote excerpt is required')
+	passageId: notBlank('Evidence item requires an ID'),
+	excerpt: notBlank('Non-empty quote excerpt is required')
 });
 
 export type EvidenceItem = z.infer<typeof EvidenceItemSchema>;
 
 // Distinct Finding Schema (consumed by risk scoring)
 export const FindingSchema = z.object({
-	id: z.string().min(1, 'Finding ID is required (e.g., "F1")'),
+	id: notBlank('Finding ID is required (e.g., "F1")'),
 	category: FindingCategoryEnum,
-	plain_language_description: z.string().min(1, 'Plain-language summary is required'),
-	dataCategories: z.array(z.string()).default([]),
-	purposes: z.array(z.string()).default([]),
-	recipients: z.array(z.string()).default([]),
+	plain_language_description: notBlank('Plain-language summary is required'),
+	dataCategories: z.array(notBlank('Data category must be stated')).default([]),
+	purposes: z.array(notBlank('Purpose must be stated')).default([]),
+	recipients: z.array(notBlank('Recipients must be stated')).default([]),
 	evidence: z
 		.array(EvidenceItemSchema)
 		.min(1, 'At least one evidence item is required to prevent uncited claims')
@@ -52,11 +56,13 @@ export type Finding = z.infer<typeof FindingSchema>;
 
 // Readable Takeaway Schema (UI presentation layer)
 export const TakeawaySchema = z.strictObject({
-	id: z.string().min(1, 'Takeaway ID is required'),
-	topic: z.string().min(1, 'Topic label is required'),
-	reason: z.string().min(1, 'Reason explaining the statement and conditions is required'),
+	id: notBlank('Takeaway ID is required'),
+	topic: notBlank('Topic label is required'),
+	reason: notBlank('Reason explaining the statement and conditions is required'),
 	label: AttentionLabelEnum,
-	findingIds: z.array(z.string()).min(1, 'Takeaway must link to at least one finding')
+	findingIds: z
+		.array(notBlank('Takeaway must have a written finding ID'))
+		.min(1, 'Takeaway must link to at least one finding')
 });
 
 export type Takeaway = z.infer<typeof TakeawaySchema>;
@@ -64,16 +70,16 @@ export type Takeaway = z.infer<typeof TakeawaySchema>;
 // Discriminated Union states for Analysis Result
 export const AnalysisInProgressSchema = z.object({
 	status: z.literal('in_progress'),
-	analysisId: z.string().min(1),
+	analysisId: notBlank('Analysis requires an ID'),
 	schemaVersion: z.number().int().positive()
 });
 
 export const AnalysisSuccessSchema = z
 	.object({
 		status: z.literal('success'),
-		analysisId: z.string().min(1),
+		analysisId: notBlank('Analysis requires an ID on success'),
 		schemaVersion: z.number().int().positive(),
-		summary: z.string().min(1, 'Success state requires an overall readable summary'),
+		summary: notBlank('Success state requires an overall readable summary'),
 		findings: z.array(FindingSchema).min(1, 'Success state requires at least one finding'),
 		takeaways: z.array(TakeawaySchema).min(1, 'Success state requires at least one takeaway')
 	})
@@ -106,19 +112,19 @@ export const AnalysisSuccessSchema = z
 
 export const AnalysisInsufficientSchema = z.strictObject({
 	status: z.literal('insufficient'),
-	analysisId: z.string().min(1),
+	analysisId: notBlank('Analysis requires an ID on insufficient'),
 	schemaVersion: z.number().int().positive(),
-	reason: z
-		.string()
-		.min(1, 'Insufficient state requires an explanation for why analysis could not be completed')
+	reason: notBlank(
+		'Insufficient state requires an explanation for why analysis could not be completed'
+	)
 });
 
 export const AnalysisFailedSchema = z.strictObject({
 	status: z.literal('failed'),
-	analysisId: z.string().min(1),
+	analysisId: notBlank('Analysis requires an ID on failed'),
 	schemaVersion: z.number().int().positive(),
-	errorCode: z.string().min(1, 'Error code is required for failure states'),
-	message: z.string().min(1, 'Error message is required')
+	errorCode: notBlank('Error code is required for failure states'),
+	message: notBlank('Error message is required')
 });
 
 // Main Discriminated Union Contract
