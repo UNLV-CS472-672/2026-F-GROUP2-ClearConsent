@@ -1,99 +1,82 @@
 <script lang="ts">
 	import type { ActionData } from './$types';
 	import { resolve } from '$app/paths';
-	// Svelte 5 rune to read form response statuses sent back by the server
+	import '$lib/styles/auth-page.css';
 	let { form }: { form: ActionData & { message?: string; success?: boolean } } = $props();
 </script>
 
-<main class="register-container">
-	<h2>Create an Account</h2>
+<svelte:head><title>Create an account | ClearConsent</title></svelte:head>
 
-	<!-- Display status alerts back to the user -->
-	{#if form?.message}
-		<div class="alert" class:success={form?.success} class:error={!form?.success}>
-			{form.message}
+<main class="auth-page">
+	<div class="auth-shell">
+		<header class="auth-header">
+			<a class="auth-identity" href={resolve('/')} aria-label="ClearConsent home">
+				<span class="auth-brand-mark" aria-hidden="true">C</span>
+				<span class="auth-brand-name"
+					><strong>ClearConsent</strong><small>POLICY WORKSPACE</small></span
+				>
+			</a>
+			<a class="auth-back" href={resolve('/')}>← Back to home</a>
+		</header>
+		<div class="auth-layout">
+			<section class="auth-story" aria-label="About ClearConsent">
+				<p class="auth-eyebrow">CLEARCONSENT / STUDY PREVIEW</p>
+				<h2>Help shape a clearer policy workspace.</h2>
+				<p>
+					Explore the current layout and tell us which details and explanations would be useful to
+					you.
+				</p>
+			</section>
+			<section class="auth-panel" aria-labelledby="register-title">
+				<p class="auth-kicker">02 / CREATE ACCOUNT</p>
+				<h1 id="register-title">Get started.</h1>
+				<p class="auth-intro">Create an account to explore the study workspace.</p>
+				{#if form?.message}
+					<div
+						class="auth-alert"
+						class:success={form?.success}
+						role={form?.success ? 'status' : 'alert'}
+					>
+						{form.message}
+					</div>
+				{/if}
+				<form class="auth-form" method="POST">
+					<div class="auth-field">
+						<label for="email">Email Address</label>
+						<input
+							type="email"
+							id="email"
+							name="email"
+							autocomplete="email"
+							required
+							placeholder="name@example.com"
+						/>
+					</div>
+					<div class="auth-field">
+						<label for="password">Password</label>
+						<input
+							type="password"
+							id="password"
+							name="password"
+							autocomplete="new-password"
+							required
+							minlength="6"
+							placeholder="••••••••"
+						/>
+					</div>
+					<button class="auth-submit" type="submit">Sign Up</button>
+				</form>
+				<p class="auth-note">
+					We will email you a confirmation link. Check junk or spam if it does not arrive.
+				</p>
+				<p class="auth-switch">
+					Already have an account? <a href={resolve('/login')}>Log In instead</a>
+				</p>
+			</section>
 		</div>
-	{/if}
-
-	<!-- Standard HTML Form submitting natively via POST to our default action -->
-	<form method="POST">
-		<div class="form-group">
-			<label for="email">Email Address</label>
-			<input type="email" id="email" name="email" required placeholder="name@example.com" />
-		</div>
-
-		<div class="form-group">
-			<label for="password">Password</label>
-			<input
-				type="password"
-				id="password"
-				name="password"
-				required
-				minlength="6"
-				placeholder="••••••••"
-			/>
-		</div>
-
-		<button type="submit" class="btn-submit">Sign Up</button>
-	</form>
-
-	<p class="toggle-text">
-		Already have an account? <a href={resolve('/login')}>Log In instead</a>
-	</p>
+		<footer class="auth-footer">
+			<span>ClearConsent / study preview</span><span>Policy analysis is still being connected.</span
+			>
+		</footer>
+	</div>
 </main>
-
-<style>
-	.register-container {
-		max-width: 400px;
-		margin: 3rem auto;
-		padding: 2rem;
-		border: 1px solid #e2e8f0;
-		border-radius: 8px;
-		font-family: sans-serif;
-	}
-	.form-group {
-		margin-bottom: 1.25rem;
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-	input {
-		padding: 0.5rem;
-		border: 1px solid #cbd5e1;
-		border-radius: 4px;
-	}
-	.btn-submit {
-		width: 100%;
-		padding: 0.75rem;
-		background-color: #2563eb;
-		color: white;
-		border: none;
-		border-radius: 4px;
-		font-weight: bold;
-		cursor: pointer;
-	}
-	.btn-submit:hover {
-		background-color: #1d4ed8;
-	}
-	.alert {
-		padding: 0.75rem;
-		margin-bottom: 1rem;
-		border-radius: 4px;
-		font-size: 0.9rem;
-	}
-	.alert.error {
-		background-color: #fee2e2;
-		color: #991b1b;
-		border: 1px solid #fca5a5;
-	}
-	.alert.success {
-		background-color: #dcfce7;
-		color: #166534;
-		border: 1px solid #bbf7d0;
-	}
-	.toggle-text {
-		margin-top: 1.5rem;
-		text-align: center;
-		font-size: 0.9rem;
-	}
-</style>

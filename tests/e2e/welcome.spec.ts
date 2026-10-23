@@ -13,6 +13,19 @@ test('shows the study entry and auth links', async ({ page }) => {
 	);
 });
 
+test('entry links lead to the styled auth forms', async ({ page }) => {
+	await page.goto('/');
+	await page.getByRole('link', { name: 'Sign in' }).click();
+	await expect(page.getByRole('heading', { name: 'Welcome back.' })).toBeVisible();
+	await expect(page.getByRole('textbox', { name: 'Email Address' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Log In' })).toBeVisible();
+
+	await page.getByRole('link', { name: 'Create an account' }).click();
+	await expect(page.getByRole('heading', { name: 'Get started.' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Sign Up' })).toBeVisible();
+	await expect(page.getByText('Check junk or spam if it does not arrive.')).toBeVisible();
+});
+
 test('email confirmation callback can run before a session exists', async ({ page }) => {
 	await page.goto('/auth/callback');
 	await expect(page).toHaveURL(/\/login\?auth_error=true$/);
