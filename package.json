@@ -56,6 +56,7 @@
 	"dependencies": {
 		"@supabase/ssr": "^0.12.7",
 		"@supabase/supabase-js": "^2.118.0",
+		"@tanstack/svelte-table": "^9.3.1",
 		"openai": "7.30.0",
 		"unpdf": "^1.8.1",
 		"zod": "4.6.5"
