@@ -47,3 +47,4 @@ jobs:
         env:
           PUBLIC_SUPABASE_URL: 'https://eccdgjwsllkkdvsqtlzq.supabase.co'
           PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_KXwbXRolrFfu8y2gsWgsfA_DykUtsV8'
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
