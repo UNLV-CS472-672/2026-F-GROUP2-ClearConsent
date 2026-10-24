@@ -29,8 +29,6 @@ npm ci
 npm run check
 npm run lint
 npm run build
-npm run check
-npm run lint
 ```
 
 Use `npm ci` for an existing checkout so dependencies follow the committed
@@ -59,8 +57,23 @@ npm run build
 npm run preview
 ```
 
-Preview normally serves `http://localhost:4173`. Both should display the SvelteKit
-starter page. Stop the server with Ctrl+C.
+Preview normally serves `http://localhost:4173`. Stop the server with Ctrl+C.
+
+## User study walkthrough
+
+The entry page at `/` links to registration and sign-in. A confirmed account
+opens the dashboard after sign-in; returning sessions go there directly. The
+dashboard opens the URL input by default and links to Paste Text, Preferences,
+and sign-out. URL input extracts policy text, and Paste Text accepts text for
+submission. The dashboard shows an empty state for recent analyses because
+saved history is not connected yet.
+
+Preferences is a temporary study preview. Its answer style and detail controls
+change an invented example on that page only; they are not saved and do not
+change analysis output. The current forms do not produce a completed policy
+analysis. Use this walkthrough to study navigation, layout, and expectations;
+evaluate analysis quality once a result is connected. The visual design is still
+in progress.
 
 ## Stage 1 policy analysis
 
@@ -145,6 +158,10 @@ npm run test:e2e
 The end-to-end suite starts the local Vite development server automatically.
 CI installs Chromium with `npx playwright install --with-deps chromium` before
 running the suite.
+The CI and deployment workflows use `actions/checkout@v5` and
+`actions/setup-node@v5`, whose action runtime is Node 24. They still install the
+application's Node version from `.nvmrc` (`22.20.0`); this action update does not
+change local setup or application runtime requirements.
 
 ## Production deployment
 
