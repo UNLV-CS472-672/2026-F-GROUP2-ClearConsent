@@ -82,19 +82,28 @@
 						<fieldset>
 							<legend>Level of detail</legend>
 							<div class="option-row">
-								<label><input type="radio" value="quick" bind:group={detail} /> Quick scan</label>
-								<label><input type="radio" value="balanced" bind:group={detail} /> Balanced</label>
-								<label><input type="radio" value="detailed" bind:group={detail} /> Detailed</label>
+								<label
+									><input type="radio" name="detail-level" value="quick" bind:group={detail} /> Quick
+									scan</label
+								>
+								<label
+									><input type="radio" name="detail-level" value="balanced" bind:group={detail} /> Balanced</label
+								>
+								<label
+									><input type="radio" name="detail-level" value="detailed" bind:group={detail} /> Detailed</label
+								>
 							</div>
 						</fieldset>
 						<fieldset>
 							<legend>Answer style</legend>
 							<div class="option-row">
 								<label
-									><input type="radio" value="bullets" bind:group={style} /> Bullet points</label
+									><input type="radio" name="answer-style" value="bullets" bind:group={style} /> Bullet
+									points</label
 								>
 								<label
-									><input type="radio" value="paragraph" bind:group={style} /> Short paragraph</label
+									><input type="radio" name="answer-style" value="paragraph" bind:group={style} /> Short
+									paragraph</label
 								>
 							</div>
 						</fieldset>
