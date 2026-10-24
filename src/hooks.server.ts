@@ -9,7 +9,7 @@ const admin = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 	auth: { persistSession: false }
 });
 
-const CALLBACK_PATH = '/auth/callback'; // change this to your actual callback route
+const CALLBACK_PATH = '/auth/callback'; // callback route
 
 export const handle: Handle = async ({ event, resolve }) => {
 	// 0. Log callback hits before anything else can redirect the request
