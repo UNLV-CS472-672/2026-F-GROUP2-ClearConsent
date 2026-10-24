@@ -2,10 +2,15 @@ import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY } from '$env/static/public';
-import { SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
+import { env } from '$env/dynamic/private';
+
+const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
+if (!serviceKey) {
+	throw new Error('SUPABASE_SERVICE_ROLE_KEY is not set');
+}
 
 // Server-only client for writing logs. Bypasses RLS, so never send it to the browser.
-const admin = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+const admin = createClient(PUBLIC_SUPABASE_URL, serviceKey, {
 	auth: { persistSession: false }
 });
 
