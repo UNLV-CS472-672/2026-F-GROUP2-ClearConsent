@@ -33,7 +33,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	const { session } = await event.locals.safeGetSession();
 
-	const publicRoutes = ['/', '/login', '/register'];
+	const publicRoutes = ['/', '/login', '/register', '/auth/callback'];
 	const isPublicRoute = publicRoutes.includes(event.url.pathname);
 
 	if (!session && !isPublicRoute) {
