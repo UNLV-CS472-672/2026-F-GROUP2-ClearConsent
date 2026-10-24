@@ -371,6 +371,10 @@
 	}
 	.preview-output ul {
 		padding-left: 19px;
+		list-style: disc outside;
+	}
+	.preview-output li::marker {
+		color: #167f88;
 	}
 	.preview-output li + li {
 		margin-top: 10px;
