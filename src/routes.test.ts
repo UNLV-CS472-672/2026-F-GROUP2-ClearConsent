@@ -3,10 +3,13 @@ import { describe, expect, it } from 'vitest';
 
 import Page from './routes/+page.svelte';
 
-describe('welcome page', () => {
-	it('renders the project starting page', () => {
+describe('study entry page', () => {
+	it('shows the entry heading and sign-in path', () => {
 		render(Page);
 
-		expect(screen.getByText('Welcome to Clear Consent!')).toBeTruthy();
+		expect(
+			screen.getByRole('heading', { level: 1, name: 'A clearer way to inspect a privacy policy.' })
+		).toBeTruthy();
+		expect(screen.getByRole('link', { name: 'Sign in' })).toBeTruthy();
 	});
 });

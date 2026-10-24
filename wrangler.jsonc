@@ -10,7 +10,7 @@
 	},
 	"vars": {
 		"PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_KXwbXRolrFfu8y2gsWgsfA_DykUtsV8",
-		"PUBLIC_SUPABASE_URL": "https://eccdgjwsllkkdvsqtlzq.supabase.co/rest/v1/"
+		"PUBLIC_SUPABASE_URL": "https://eccdgjwsllkkdvsqtlzq.supabase.co"
 	},
 	"workers_dev": true,
 	"preview_urls": true

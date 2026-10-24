@@ -62,10 +62,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	const { session } = await event.locals.safeGetSession();
 
-	// The callback must be reachable without a session so it can finish sign-in
-	const publicRoutes = ['/', '/login', '/register'];
-	const isPublicRoute =
-		publicRoutes.includes(event.url.pathname) || event.url.pathname.startsWith(CALLBACK_PATH);
+	const publicRoutes = ['/', '/login', '/register', '/auth/callback'];
+	const isPublicRoute = publicRoutes.includes(event.url.pathname);
 
 	if (!session && !isPublicRoute) {
 		throw redirect(303, '/login');
