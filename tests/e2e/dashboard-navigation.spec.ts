@@ -40,5 +40,5 @@ test('dashboard keeps the policy input forms accessible', async ({ page }) => {
 	await page.getByRole('link', { name: 'Back to dashboard' }).click();
 	await page.getByRole('button', { name: 'Sign out' }).click();
 	await expect(page).toHaveURL(/\/$/);
-	await expect(page.getByRole('link', { name: 'Login' })).toBeVisible();
+	await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible();
 });
