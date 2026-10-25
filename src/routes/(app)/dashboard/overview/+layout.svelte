@@ -55,12 +55,22 @@
 						</p>
 					</div>
 				</div>
-				<p class="mt-4">
-					For the user study, <a class="underline" href={resolve('/study-sample')}
-						>read the sample policy</a
-					>, then use “Use study sample” in either form. Results are prepared examples for this
-					policy only.
-				</p>
+				<div class="study-callout">
+					<div>
+						<p class="section-label">USER STUDY / FIXED SAMPLE</p>
+						<h3>Try the sample policy</h3>
+						<p>
+							Open the prepared result for the same fictional policy every participant will use. No
+							live analysis or saving takes place.
+						</p>
+					</div>
+					<div class="study-actions">
+						<a class="sample-link" href={resolve('/study-sample')}>Read sample policy</a>
+						<a class="sample-submit" href={resolve('/dashboard/overview/result') + studyQuery}
+							>Submit study sample <span aria-hidden="true">→</span></a
+						>
+					</div>
+				</div>
 				<nav aria-label="Policy input methods" class="input-nav">
 					{#each INPUT_METHODS as method, index (method.name)}
 						<a
@@ -288,6 +298,64 @@
 		font-size: 13px;
 		line-height: 1.55;
 	}
+	.study-callout {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 24px;
+		margin-top: 22px;
+		padding: 20px 22px;
+		border: 1px solid #a8d7d8;
+		border-radius: 8px;
+		background: linear-gradient(120deg, #effaf9, #f7fbfd);
+	}
+	.study-callout .section-label {
+		margin-bottom: 7px;
+	}
+	.study-callout h3 {
+		margin: 0 0 7px;
+		font-size: 18px;
+		letter-spacing: -0.025em;
+	}
+	.study-callout p:last-child {
+		max-width: 580px;
+		margin: 0;
+		color: #4d6574;
+		font-size: 13px;
+		line-height: 1.5;
+	}
+	.study-actions {
+		display: flex;
+		flex: 0 0 auto;
+		align-items: center;
+		gap: 14px;
+	}
+	.study-actions a {
+		font-size: 12px;
+		font-weight: 750;
+		text-decoration: none;
+	}
+	.sample-link {
+		color: #0d6771;
+	}
+	.sample-link:hover {
+		text-decoration: underline;
+	}
+	.sample-submit {
+		display: inline-flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 14px;
+		min-height: 42px;
+		padding: 10px 14px;
+		border-radius: 5px;
+		background: #147f88;
+		color: white;
+		box-shadow: 0 4px 12px #147f8829;
+	}
+	.sample-submit:hover {
+		background: #0d6570;
+	}
 	.input-nav {
 		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -439,6 +507,14 @@
 		outline-offset: 3px;
 	}
 	@media (max-width: 720px) {
+		.study-callout,
+		.study-actions {
+			align-items: stretch;
+			flex-direction: column;
+		}
+		.study-actions {
+			gap: 12px;
+		}
 		.dashboard-frame {
 			padding: 0;
 		}

@@ -8,6 +8,8 @@ test('fixed sample reaches prepared results from both input methods', async ({ p
 	page.on('request', (request) => {
 		if (request.url().includes('/api/analyze')) analysisCalls++;
 	});
+	await page.getByRole('link', { name: 'Submit study sample' }).click();
+	await expect(page.getByRole('heading', { name: 'Study example results' })).toBeVisible();
 	await page.goto('/preferences');
 	await page.getByRole('radio', { name: 'Detailed', exact: true }).check();
 	await page.getByRole('link', { name: /Continue with study sample/ }).click();
