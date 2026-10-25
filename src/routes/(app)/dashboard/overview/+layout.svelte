@@ -2,10 +2,16 @@
 	import type { LayoutProps } from './$types';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { detailLevel } from '$lib/study/sample';
+	const studyQuery = $derived('?detail=' + detailLevel(page.url.searchParams.get('detail')));
 	let { children }: LayoutProps = $props();
 
 	const INPUT_METHODS = [
-		{ name: 'URL', description: 'Start from a web address', href: '/dashboard/overview/extract' },
+		{
+			name: 'URL',
+			description: 'Start from a web address',
+			href: '/dashboard/overview/extract'
+		},
 		{
 			name: 'Paste Text',
 			description: 'Use text you already have',
@@ -49,10 +55,16 @@
 						</p>
 					</div>
 				</div>
+				<p class="mt-4">
+					For the user study, <a class="underline" href={resolve('/study-sample')}
+						>read the sample policy</a
+					>, then use “Use study sample” in either form. Results are prepared examples for this
+					policy only.
+				</p>
 				<nav aria-label="Policy input methods" class="input-nav">
 					{#each INPUT_METHODS as method, index (method.name)}
 						<a
-							href={resolve(method.href)}
+							href={resolve(`${method.href}?${studyQuery.slice(1)}`)}
 							class="method-card"
 							class:active={page.url.pathname === method.href}
 							aria-current={page.url.pathname === method.href ? 'page' : undefined}

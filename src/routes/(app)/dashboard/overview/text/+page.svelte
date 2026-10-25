@@ -1,4 +1,8 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import { samplePolicy, isSamplePolicy, detailLevel } from '$lib/study/sample';
+
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import type { SubmitFunction } from './$types';
@@ -7,7 +11,16 @@
 	let input = $state('');
 	let result: any = $state(null);
 
-	const submit: SubmitFunction = async () => {
+	const submit: SubmitFunction = async ({ cancel }) => {
+		if (isSamplePolicy(input)) {
+			cancel();
+			await goto(
+				resolve(
+					`/dashboard/overview/result?detail=${detailLevel(page.url.searchParams.get('detail'))}`
+				)
+			);
+			return;
+		}
 		loading = true;
 		error = '';
 		result = null;
@@ -29,6 +42,16 @@
 	};
 </script>
 
+<div class="mb-4">
+	<button
+		type="button"
+		class="rounded border px-3 py-2"
+		onclick={() => {
+			input = samplePolicy;
+		}}>Use study sample</button
+	>
+	<p class="mt-2">Prepared study results are available only for the fixed sample policy.</p>
+</div>
 <div class="flex flex-col pb-10">
 	<form method="POST" class="m-auto flex flex-col items-end gap-2" use:enhance={submit}>
 		<textarea

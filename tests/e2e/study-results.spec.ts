@@ -1,0 +1,28 @@
+import { expect, test } from '@playwright/test';
+import { hasStudyAccount, signInForStudy } from './study-auth';
+
+test('fixed sample reaches prepared results from both input methods', async ({ page }) => {
+	test.skip(!hasStudyAccount, 'Requires a confirmed study test account');
+	await signInForStudy(page);
+	let analysisCalls = 0;
+	page.on('request', (request) => {
+		if (request.url().includes('/api/analyze')) analysisCalls++;
+	});
+	await page.goto('/preferences');
+	await page.getByRole('radio', { name: 'Detailed', exact: true }).check();
+	await page.getByRole('link', { name: /Continue with study sample/ }).click();
+	await page.getByRole('button', { name: 'Use study sample' }).click();
+	await page.getByRole('button', { name: 'Extract', exact: true }).click();
+	await expect(page.getByRole('heading', { name: 'Study example results' })).toBeVisible();
+	await expect(page.getByText('Level of detail: detailed')).toBeVisible();
+	await expect(page.getByText('Evidence:', { exact: true }).first()).toBeVisible();
+	await page.getByRole('link', { name: 'Try Paste Text' }).click();
+	await page.getByRole('button', { name: 'Use study sample' }).click();
+	await page.getByRole('button', { name: 'Submit', exact: true }).click();
+	await expect(page.getByRole('heading', { name: 'Study example results' })).toBeVisible();
+	expect(analysisCalls).toBe(0);
+	await page.goto('/dashboard/overview/result?detail=quick');
+	await expect(page.getByText('Evidence:', { exact: true })).toHaveCount(0);
+	await page.getByRole('link', { name: 'Back to dashboard', exact: true }).click();
+	await expect(page.getByRole('heading', { name: 'Policy workspace' })).toBeVisible();
+});

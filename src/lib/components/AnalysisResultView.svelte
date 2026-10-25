@@ -1,6 +1,9 @@
 <script lang="ts">
 	import type { AnalysisResult } from '$lib/contracts/analysis';
-	let { result }: { result: AnalysisResult } = $props();
+	let {
+		result,
+		detail = 'detailed'
+	}: { result: AnalysisResult; detail?: 'quick' | 'balanced' | 'detailed' } = $props();
 </script>
 
 {#if result.status === 'failed'}
@@ -37,32 +40,36 @@
 				<!-- <p>Finding IDs: {takeaway.findingIds.join(', ')}</p> -->
 				<!-- TODO: determine if layout requires finding IDs to be shown as a list -->
 
-				{#each linked as finding (finding.id)}
-					{@const number = result.findings.indexOf(finding) + 1}
-					<div class="mt-3 ml-3 border-l-4 border-gray-300 pl-4">
-						<h2 class="mt-4 leading-relaxed font-semibold">
-							#{number} | Category: {finding.category}
-						</h2>
-						<p>Description: {finding.plain_language_description}</p>
+				{#if detail !== 'quick'}
+					{#each linked as finding (finding.id)}
+						{@const number = result.findings.indexOf(finding) + 1}
+						<div class="mt-3 ml-3 border-l-4 border-gray-300 pl-4">
+							<h2 class="mt-4 leading-relaxed font-semibold">
+								#{number} | Category: {finding.category}
+							</h2>
+							<p>Description: {finding.plain_language_description}</p>
 
-						{#if finding.dataCategories.length > 0}
-							<p>Data Category: [ {finding.dataCategories.join(', ')} ]</p>
-						{/if}
+							{#if finding.dataCategories.length > 0}
+								<p>Data Category: [ {finding.dataCategories.join(', ')} ]</p>
+							{/if}
 
-						{#if finding.purposes.length > 0}
-							<p>Purpose: [ {finding.purposes.join(', ')} ]</p>
-						{/if}
+							{#if finding.purposes.length > 0}
+								<p>Purpose: [ {finding.purposes.join(', ')} ]</p>
+							{/if}
 
-						{#if finding.recipients.length > 0}
-							<p>Recipients: [ {finding.recipients.join(', ')} ]</p>
-						{/if}
-						<h2 class="mt-2 leading-relaxed font-semibold">Evidence:</h2>
-						{#each finding.evidence as evid, j (j)}
-							<p>#{number}.{j + 1}</p>
-							<p>Excerpt: "{evid.excerpt}"</p>
-						{/each}
-					</div>
-				{/each}
+							{#if finding.recipients.length > 0}
+								<p>Recipients: [ {finding.recipients.join(', ')} ]</p>
+							{/if}
+							{#if detail === 'detailed'}
+								<h2 class="mt-2 leading-relaxed font-semibold">Evidence:</h2>
+								{#each finding.evidence as evid, j (j)}
+									<p>#{number}.{j + 1}</p>
+									<p>Excerpt: "{evid.excerpt}"</p>
+								{/each}
+							{/if}
+						</div>
+					{/each}
+				{/if}
 			</div>
 		{/each}
 	</div>
