@@ -66,8 +66,11 @@
 					</div>
 					<div class="study-actions">
 						<a class="sample-link" href={resolve('/study-sample')}>Read sample policy</a>
-						<a class="sample-submit" href={resolve('/dashboard/overview/result') + studyQuery}
-							>Submit study sample <span aria-hidden="true">→</span></a
+						<a
+							class="sample-submit"
+							href={resolve(
+								`/dashboard/overview/result?detail=${detailLevel(page.url.searchParams.get('detail'))}`
+							)}>Submit study sample <span aria-hidden="true">→</span></a
 						>
 					</div>
 				</div>
