@@ -5,9 +5,9 @@ test('preferences preview changes format without claiming to save choices', asyn
 	test.skip(!hasStudyAccount, 'Requires a confirmed study test account');
 	await signInForStudy(page);
 	await page.goto('/preferences');
-	await expect(
-		page.getByText('They are not saved and do not change a real analysis.')
-	).toBeVisible();
+	await expect(page.getByRole('note')).toContainText(
+		'The level of detail carries into the study example when you continue below. Choices are not saved. Answer style and privacy interests apply only to this preview.'
+	);
 
 	const preview = page.getByRole('region', { name: 'See the answer format' });
 	await page.getByRole('radio', { name: 'Quick scan' }).check();
@@ -26,5 +26,9 @@ test('preferences preview changes format without claiming to save choices', asyn
 	await page.reload();
 	await expect(page.getByRole('checkbox', { name: /Data sharing/ })).not.toBeChecked();
 	await page.getByRole('link', { name: 'Back to dashboard' }).click();
-	await expect(page).toHaveURL(/\/dashboard\/overview\/extract$/);
+	await expect(page).toHaveURL(
+		(url) =>
+			url.pathname === '/dashboard/overview/extract' &&
+			url.searchParams.get('detail') === 'balanced'
+	);
 });

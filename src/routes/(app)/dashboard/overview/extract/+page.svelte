@@ -1,4 +1,9 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import { detailLevel, isSamplePolicyUrl } from '$lib/study/sample';
+	import { page } from '$app/state';
+
 	let url = $state('');
 	let loading = $state(false);
 	let result: any = $state(null);
@@ -6,6 +11,14 @@
 
 	async function submit(event: Event) {
 		event.preventDefault();
+		if (isSamplePolicyUrl(url, new URL(resolve('/study-sample'), page.url.origin))) {
+			await goto(
+				resolve(
+					`/dashboard/overview/result?detail=${detailLevel(page.url.searchParams.get('detail'))}`
+				)
+			);
+			return;
+		}
 		loading = true;
 		result = null;
 		error = '';
@@ -23,6 +36,16 @@
 	}
 </script>
 
+<div class="mb-4">
+	<button
+		type="button"
+		class="rounded border px-3 py-2"
+		onclick={() => {
+			url = new URL(resolve('/study-sample'), page.url.origin).href;
+		}}>Use study sample</button
+	>
+	<p class="mt-2">Prepared study results are available only for the fixed sample policy.</p>
+</div>
 <div class="flex max-w-xl flex-col items-center justify-center px-4 py-12">
 	<h1 class="mb-6 text-2xl font-semibold">Extract text from a URL</h1>
 

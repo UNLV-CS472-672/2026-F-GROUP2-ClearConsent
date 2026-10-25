@@ -2,10 +2,17 @@
 	import type { LayoutProps } from './$types';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { detailLevel } from '$lib/study/sample';
+	const studyQuery = $derived('?detail=' + detailLevel(page.url.searchParams.get('detail')));
+	const showingResult = $derived(page.url.pathname === '/dashboard/overview/result');
 	let { children }: LayoutProps = $props();
 
 	const INPUT_METHODS = [
-		{ name: 'URL', description: 'Start from a web address', href: '/dashboard/overview/extract' },
+		{
+			name: 'URL',
+			description: 'Start from a web address',
+			href: '/dashboard/overview/extract'
+		},
 		{
 			name: 'Paste Text',
 			description: 'Use text you already have',
@@ -29,73 +36,107 @@
 			</nav>
 		</header>
 
-		<section class="hero" aria-labelledby="dashboard-title">
-			<div>
-				<p class="eyebrow">CLEARCONSENT / WORKSPACE</p>
-				<h1 id="dashboard-title">Policy workspace</h1>
-				<p>Submit a policy URL or paste its text to begin.</p>
-			</div>
-		</section>
+		{#if !showingResult}
+			<section class="hero" aria-labelledby="dashboard-title">
+				<div>
+					<p class="eyebrow">CLEARCONSENT / WORKSPACE</p>
+					<h1 id="dashboard-title">Policy workspace</h1>
+					<p>Submit a policy URL or paste its text to begin.</p>
+				</div>
+			</section>
+		{/if}
 
 		<div class="dashboard-content">
-			<section class="submission-panel" aria-labelledby="submission-title">
-				<div class="section-heading">
-					<div>
-						<p class="section-label">01 / SUBMIT</p>
-						<h2 id="submission-title">Start with a policy</h2>
-						<p>
-							These forms currently validate text or extract it from a URL. Full analysis is still
-							being connected.
-						</p>
+			<section
+				class="submission-panel"
+				class:result-panel={showingResult}
+				aria-labelledby={showingResult ? 'result-title' : 'submission-title'}
+			>
+				{#if !showingResult}
+					<div class="section-heading">
+						<div>
+							<p class="section-label">01 / SUBMIT</p>
+							<h2 id="submission-title">Start with a policy</h2>
+							<p>
+								These forms currently validate text or extract it from a URL. Full analysis is still
+								being connected.
+							</p>
+						</div>
 					</div>
-				</div>
-				<nav aria-label="Policy input methods" class="input-nav">
-					{#each INPUT_METHODS as method, index (method.name)}
-						<a
-							href={resolve(method.href)}
-							class="method-card"
-							class:active={page.url.pathname === method.href}
-							aria-current={page.url.pathname === method.href ? 'page' : undefined}
-						>
-							<span class="method-top"
-								><span>0{index + 1} / INPUT</span>{#if page.url.pathname === method.href}<span
-										class="method-state">SELECTED</span
-									>{/if}</span
+					<div class="study-callout">
+						<div>
+							<p class="section-label">USER STUDY / FIXED SAMPLE</p>
+							<h3>Try the sample policy</h3>
+							<p>
+								Open the prepared result for the same fictional policy every participant will use.
+								No live analysis or saving takes place.
+							</p>
+						</div>
+						<div class="study-actions">
+							<a
+								class="sample-link"
+								href={resolve(
+									`/study-sample?detail=${detailLevel(page.url.searchParams.get('detail'))}`
+								)}>Read sample policy</a
 							>
-							<strong>{method.name}</strong>
-							<small>{method.description}</small>
-						</a>
-					{/each}
-					<div class="method-card unavailable" aria-disabled="true">
-						<span class="method-top"><span>03 / LATER</span><span>COMING SOON</span></span>
-						<strong>Search</strong>
-						<small>Find a previous analysis</small>
+							<a
+								class="sample-submit"
+								href={resolve(
+									`/dashboard/overview/result?detail=${detailLevel(page.url.searchParams.get('detail'))}`
+								)}>Submit study sample <span aria-hidden="true">→</span></a
+							>
+						</div>
 					</div>
-				</nav>
-				<div class="route-content">
+					<nav aria-label="Policy input methods" class="input-nav">
+						{#each INPUT_METHODS as method, index (method.name)}
+							<a
+								href={resolve(`${method.href}?${studyQuery.slice(1)}`)}
+								class="method-card"
+								class:active={page.url.pathname === method.href}
+								aria-current={page.url.pathname === method.href ? 'page' : undefined}
+							>
+								<span class="method-top"
+									><span>0{index + 1} / INPUT</span>{#if page.url.pathname === method.href}<span
+											class="method-state">SELECTED</span
+										>{/if}</span
+								>
+								<strong>{method.name}</strong>
+								<small>{method.description}</small>
+							</a>
+						{/each}
+						<div class="method-card unavailable" aria-disabled="true">
+							<span class="method-top"><span>03 / LATER</span><span>COMING SOON</span></span>
+							<strong>Search</strong>
+							<small>Find a previous analysis</small>
+						</div>
+					</nav>
+				{/if}
+				<div class="route-content" class:result-content={showingResult}>
 					{@render children()}
 				</div>
 			</section>
 
-			<section class="history-panel" aria-labelledby="history-title">
-				<div class="section-heading history-heading">
-					<div>
-						<p class="section-label">02 / HISTORY</p>
-						<h2 id="history-title">Recent analyses</h2>
+			{#if !showingResult}
+				<section class="history-panel" aria-labelledby="history-title">
+					<div class="section-heading history-heading">
+						<div>
+							<p class="section-label">02 / HISTORY</p>
+							<h2 id="history-title">Recent analyses</h2>
+						</div>
 					</div>
-				</div>
-				<div class="history-empty">
-					<span class="history-empty-mark" aria-hidden="true">◫</span>
-					<div>
-						<h3>No saved analyses yet</h3>
-						<p>
-							Once saving is connected, your completed policies will appear here with a readable
-							title and date.
-						</p>
-						<span class="history-status">Saving is coming soon</span>
+					<div class="history-empty">
+						<span class="history-empty-mark" aria-hidden="true">◫</span>
+						<div>
+							<h3>No saved analyses yet</h3>
+							<p>
+								Once saving is connected, your completed policies will appear here with a readable
+								title and date.
+							</p>
+							<span class="history-status">Saving is coming soon</span>
+						</div>
 					</div>
-				</div>
-			</section>
+				</section>
+			{/if}
 		</div>
 		<footer>
 			<strong>ClearConsent</strong><span>Privacy policy workspace</span>
@@ -258,6 +299,9 @@
 	.submission-panel {
 		border-top: 3px solid #2ca6af;
 	}
+	.result-panel {
+		padding: 34px;
+	}
 	.section-heading {
 		display: flex;
 		align-items: end;
@@ -275,6 +319,64 @@
 		color: #5a6b80;
 		font-size: 13px;
 		line-height: 1.55;
+	}
+	.study-callout {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 24px;
+		margin-top: 22px;
+		padding: 20px 22px;
+		border: 1px solid #a8d7d8;
+		border-radius: 8px;
+		background: linear-gradient(120deg, #effaf9, #f7fbfd);
+	}
+	.study-callout .section-label {
+		margin-bottom: 7px;
+	}
+	.study-callout h3 {
+		margin: 0 0 7px;
+		font-size: 18px;
+		letter-spacing: -0.025em;
+	}
+	.study-callout p:last-child {
+		max-width: 580px;
+		margin: 0;
+		color: #4d6574;
+		font-size: 13px;
+		line-height: 1.5;
+	}
+	.study-actions {
+		display: flex;
+		flex: 0 0 auto;
+		align-items: center;
+		gap: 14px;
+	}
+	.study-actions a {
+		font-size: 12px;
+		font-weight: 750;
+		text-decoration: none;
+	}
+	.sample-link {
+		color: #0d6771;
+	}
+	.sample-link:hover {
+		text-decoration: underline;
+	}
+	.sample-submit {
+		display: inline-flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 14px;
+		min-height: 42px;
+		padding: 10px 14px;
+		border-radius: 5px;
+		background: #147f88;
+		color: white;
+		box-shadow: 0 4px 12px #147f8829;
+	}
+	.sample-submit:hover {
+		background: #0d6570;
 	}
 	.input-nav {
 		display: grid;
@@ -345,6 +447,9 @@
 	.route-content {
 		min-width: 0;
 		padding-top: 27px;
+	}
+	.route-content.result-content {
+		padding-top: 0;
 	}
 	.route-content :global(form),
 	.route-content :global(.w-200) {
@@ -427,6 +532,14 @@
 		outline-offset: 3px;
 	}
 	@media (max-width: 720px) {
+		.study-callout,
+		.study-actions {
+			align-items: stretch;
+			flex-direction: column;
+		}
+		.study-actions {
+			gap: 12px;
+		}
 		.dashboard-frame {
 			padding: 0;
 		}

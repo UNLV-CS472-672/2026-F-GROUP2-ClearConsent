@@ -5,9 +5,21 @@
 	type Style = 'bullets' | 'paragraph';
 
 	const topics = [
-		{ value: 'sharing', title: 'Data sharing', description: 'Who receives my information?' },
-		{ value: 'tracking', title: 'Tracking and ads', description: 'How is my activity used?' },
-		{ value: 'retention', title: 'Data retention', description: 'How long is it kept?' }
+		{
+			value: 'sharing',
+			title: 'Data sharing',
+			description: 'Who receives my information?'
+		},
+		{
+			value: 'tracking',
+			title: 'Tracking and ads',
+			description: 'How is my activity used?'
+		},
+		{
+			value: 'retention',
+			title: 'Data retention',
+			description: 'How long is it kept?'
+		}
 	] as const;
 
 	let focusAreas = $state<string[]>([]);
@@ -42,7 +54,9 @@
 				<span class="brand-mark" aria-hidden="true">C</span>
 				<span><strong>ClearConsent</strong><small>Policy workspace</small></span>
 			</div>
-			<a class="back-link" href={resolve('/dashboard/overview')}>← Back to dashboard</a>
+			<a class="back-link" href={resolve(`/dashboard/overview/extract?detail=${detail}`)}
+				>← Back to dashboard</a
+			>
 		</header>
 
 		<section class="hero" aria-labelledby="preferences-title">
@@ -55,11 +69,16 @@
 			<div class="notice" role="note">
 				<strong>Study preview</strong>
 				<span>
-					These choices work on this page only. They are not saved and do not change a real
-					analysis.
+					The level of detail carries into the study example when you continue below. Choices are
+					not saved. Answer style and privacy interests apply only to this preview.
 				</span>
 			</div>
 
+			<p class="mb-4">
+				<a class="back-link" href={resolve(`/dashboard/overview/extract?detail=${detail}`)}
+					>Continue with study sample →</a
+				>
+			</p>
 			<div class="columns">
 				<div class="controls">
 					<section class="panel" aria-labelledby="topics-title">
@@ -120,7 +139,9 @@
 						<p class="preview-label">EXAMPLE ANSWER</p>
 						{#if style === 'bullets'}
 							<ul>
-								{#each previewSentences as sentence (sentence)}<li>{sentence}</li>{/each}
+								{#each previewSentences as sentence (sentence)}<li>
+										{sentence}
+									</li>{/each}
 							</ul>
 						{:else}
 							<p>{previewSentences.join(' ')}</p>
@@ -140,7 +161,9 @@
 			</div>
 		</div>
 
-		<footer><strong>ClearConsent</strong><span>Preferences study preview</span></footer>
+		<footer>
+			<strong>ClearConsent</strong><span>Preferences study preview</span>
+		</footer>
 	</div>
 </main>
 
