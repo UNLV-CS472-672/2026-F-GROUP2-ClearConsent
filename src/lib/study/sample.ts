@@ -108,3 +108,14 @@ export function isSamplePolicy(text: string) {
 export function detailLevel(value: string | null) {
 	return value === 'quick' || value === 'detailed' ? value : 'balanced';
 }
+
+export function isSamplePolicyUrl(value: string, sampleUrl: URL) {
+	try {
+		const candidate = new URL(value.trim());
+		// Detail changes presentation only; other URL differences must not select the fixture.
+		candidate.searchParams.delete('detail');
+		return candidate.href === sampleUrl.href;
+	} catch {
+		return false;
+	}
+}

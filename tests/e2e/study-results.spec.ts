@@ -5,8 +5,10 @@ test('fixed sample reaches prepared results from both input methods', async ({ p
 	test.skip(!hasStudyAccount, 'Requires a confirmed study test account');
 	await signInForStudy(page);
 	let analysisCalls = 0;
+	let extractionCalls = 0;
 	page.on('request', (request) => {
 		if (request.url().includes('/api/analyze')) analysisCalls++;
+		if (request.url().includes('/api/extract')) extractionCalls++;
 	});
 	await page.getByRole('link', { name: 'Submit study sample' }).click();
 	await expect(page.getByRole('heading', { name: 'Study example results' })).toBeVisible();
@@ -25,6 +27,15 @@ test('fixed sample reaches prepared results from both input methods', async ({ p
 	await expect(page.getByText('Detailed', { exact: true })).toBeVisible();
 	await expect(page.locator('details.evidence').first()).toHaveAttribute('open', '');
 	await expect(page.locator('blockquote').first()).toBeVisible();
+	await page.getByRole('link', { name: 'Read sample policy' }).click();
+	const copiedSampleUrl = page.url();
+	expect(new URL(copiedSampleUrl).searchParams.get('detail')).toBe('detailed');
+	await page.goto('/dashboard/overview/extract?detail=detailed');
+	await page.locator('input[type="url"]').fill(copiedSampleUrl);
+	await page.getByRole('button', { name: 'Extract', exact: true }).click();
+	await expect(page.getByRole('heading', { name: 'Study example results' })).toBeVisible();
+	await expect(page.getByText('Detailed', { exact: true })).toBeVisible();
+	expect(extractionCalls).toBe(0);
 	await page.getByRole('link', { name: 'Try Paste Text' }).click();
 	await page.getByRole('button', { name: 'Use study sample' }).click();
 	await page.getByRole('button', { name: 'Submit', exact: true }).click();

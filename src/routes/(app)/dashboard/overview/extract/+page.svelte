@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { detailLevel } from '$lib/study/sample';
+	import { detailLevel, isSamplePolicyUrl } from '$lib/study/sample';
 	import { page } from '$app/state';
 
 	let url = $state('');
@@ -11,7 +11,7 @@
 
 	async function submit(event: Event) {
 		event.preventDefault();
-		if (url.trim() === new URL(resolve('/study-sample'), page.url.origin).href) {
+		if (isSamplePolicyUrl(url, new URL(resolve('/study-sample'), page.url.origin))) {
 			await goto(
 				resolve(
 					`/dashboard/overview/result?detail=${detailLevel(page.url.searchParams.get('detail'))}`

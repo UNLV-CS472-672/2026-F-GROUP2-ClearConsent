@@ -23,7 +23,10 @@ test('dashboard keeps the policy input forms accessible', async ({ page }) => {
 	await expect(textCard).not.toHaveAttribute('aria-current', 'page');
 
 	await textCard.click();
-	await expect(page).toHaveURL(/\/dashboard\/overview\/text$/);
+	await expect(page).toHaveURL(
+		(url) =>
+			url.pathname === '/dashboard/overview/text' && url.searchParams.get('detail') === 'balanced'
+	);
 	await expect(textCard).toHaveAttribute('aria-current', 'page');
 	await expect(page.getByRole('textbox', { name: 'Ctrl+Enter to submit.' })).toBeVisible();
 	await expect(methods.getByText('Search')).toBeVisible();
