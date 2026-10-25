@@ -17,7 +17,9 @@
 	<p class="mt-4">Level of detail: {detail}</p>
 	<AnalysisResultView result={studyResult} {detail} />
 	<nav aria-label="Result navigation" class="mt-6 flex flex-wrap gap-4">
-		<a class="underline" href={resolve('/dashboard/overview')}>Back to dashboard</a>
+		<a class="underline" href={resolve(`/dashboard/overview/extract?detail=${detail}`)}
+			>Back to dashboard</a
+		>
 		<a class="underline" href={resolve(`/dashboard/overview/extract?detail=${detail}`)}>Try URL</a>
 		<a class="underline" href={resolve(`/dashboard/overview/text?detail=${detail}`)}
 			>Try Paste Text</a

@@ -30,5 +30,6 @@ test('fixed sample reaches prepared results from both input methods', async ({ p
 	await page.locator('details.evidence summary').first().click();
 	await expect(page.locator('blockquote').first()).toBeVisible();
 	await page.getByRole('link', { name: 'Back to dashboard', exact: true }).click();
+	await expect(page).toHaveURL(/\/dashboard\/overview\/extract\?detail=quick$/);
 	await expect(page.getByRole('heading', { name: 'Policy workspace' })).toBeVisible();
 });
