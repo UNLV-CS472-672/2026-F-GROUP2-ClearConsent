@@ -10,13 +10,15 @@ test('fixed sample reaches prepared results from both input methods', async ({ p
 	});
 	await page.getByRole('link', { name: 'Submit study sample' }).click();
 	await expect(page.getByRole('heading', { name: 'Study example results' })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Start with a policy' })).toHaveCount(0);
+	await expect(page.getByRole('heading', { name: 'Recent analyses' })).toHaveCount(0);
 	await page.goto('/preferences');
 	await page.getByRole('radio', { name: 'Detailed', exact: true }).check();
 	await page.getByRole('link', { name: /Continue with study sample/ }).click();
 	await page.getByRole('button', { name: 'Use study sample' }).click();
 	await page.getByRole('button', { name: 'Extract', exact: true }).click();
 	await expect(page.getByRole('heading', { name: 'Study example results' })).toBeVisible();
-	await expect(page.getByText('Level of detail: detailed')).toBeVisible();
+	await expect(page.getByText('Detailed', { exact: true })).toBeVisible();
 	await expect(page.locator('details.evidence').first()).toHaveAttribute('open', '');
 	await expect(page.locator('blockquote').first()).toBeVisible();
 	await page.getByRole('link', { name: 'Try Paste Text' }).click();
