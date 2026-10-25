@@ -146,6 +146,7 @@
 
 <style>
 	.dashboard-frame {
+		width: 100%;
 		min-height: 100vh;
 		padding: 0 28px;
 		background: #0b1220;
