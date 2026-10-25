@@ -34,7 +34,7 @@
 	<AnalysisResultView result={studyResult} {detail} />
 
 	<nav aria-label="Result navigation" class="result-actions">
-		<a href={resolve('/study-sample')}>Read sample policy</a>
+		<a href={resolve(`/study-sample?detail=${detail}`)}>Read sample policy</a>
 		<a href={resolve(`/dashboard/overview/extract?detail=${detail}`)}>Try URL input</a>
 		<a href={resolve(`/dashboard/overview/text?detail=${detail}`)}>Try Paste Text</a>
 		<a href={resolve('/preferences')}>Change detail preference</a>

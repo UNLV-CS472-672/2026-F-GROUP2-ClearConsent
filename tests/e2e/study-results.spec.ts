@@ -12,6 +12,10 @@ test('fixed sample reaches prepared results from both input methods', async ({ p
 	await expect(page.getByRole('heading', { name: 'Study example results' })).toBeVisible();
 	await expect(page.getByRole('heading', { name: 'Start with a policy' })).toHaveCount(0);
 	await expect(page.getByRole('heading', { name: 'Recent analyses' })).toHaveCount(0);
+	await page.getByRole('link', { name: 'Read sample policy' }).click();
+	await expect(page.getByRole('heading', { name: 'Study sample privacy policy' })).toBeVisible();
+	await page.getByRole('link', { name: 'Submit study sample' }).click();
+	await expect(page.getByRole('heading', { name: 'Study example results' })).toBeVisible();
 	await page.goto('/preferences');
 	await page.getByRole('radio', { name: 'Detailed', exact: true }).check();
 	await page.getByRole('link', { name: /Continue with study sample/ }).click();

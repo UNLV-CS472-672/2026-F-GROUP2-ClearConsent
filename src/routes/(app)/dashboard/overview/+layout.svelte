@@ -73,7 +73,12 @@
 							</p>
 						</div>
 						<div class="study-actions">
-							<a class="sample-link" href={resolve('/study-sample')}>Read sample policy</a>
+							<a
+								class="sample-link"
+								href={resolve(
+									`/study-sample?detail=${detailLevel(page.url.searchParams.get('detail'))}`
+								)}>Read sample policy</a
+							>
 							<a
 								class="sample-submit"
 								href={resolve(
