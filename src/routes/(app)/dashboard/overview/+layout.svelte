@@ -91,6 +91,8 @@
 						{#each INPUT_METHODS as method, index (method.name)}
 							<a
 								href={resolve(`${method.href}?${studyQuery.slice(1)}`)}
+								data-sveltekit-noscroll
+								data-sveltekit-keepfocus
 								class="method-card"
 								class:active={page.url.pathname === method.href}
 								aria-current={page.url.pathname === method.href ? 'page' : undefined}
