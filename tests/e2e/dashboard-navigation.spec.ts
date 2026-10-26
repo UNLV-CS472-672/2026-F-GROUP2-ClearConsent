@@ -45,3 +45,37 @@ test('dashboard keeps the policy input forms accessible', async ({ page }) => {
 	await expect(page).toHaveURL(/\/$/);
 	await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible();
 });
+
+for (const viewport of [
+	{ name: 'desktop', width: 1280, height: 720 },
+	{ name: 'phone', width: 390, height: 844 }
+]) {
+	test(`switching input methods keeps the scroll position on ${viewport.name}`, async ({
+		page
+	}) => {
+		test.skip(!hasStudyAccount, 'Requires a confirmed study test account');
+		await page.setViewportSize(viewport);
+		await signInForStudy(page);
+
+		const methods = page.getByRole('navigation', { name: 'Policy input methods' });
+		const urlCard = methods.getByRole('link', { name: /URL/ });
+		const textCard = methods.getByRole('link', { name: /Paste Text/ });
+		await methods.evaluate((nav) => window.scrollTo(0, nav.getBoundingClientRect().top - 40));
+		const scrolled = await page.evaluate(() => window.scrollY);
+		expect(scrolled).toBeGreaterThan(0);
+
+		await textCard.click();
+		await expect(textCard).toHaveAttribute('aria-current', 'page');
+		await expect(textCard).toBeFocused();
+		expect(await page.evaluate(() => window.scrollY)).toBe(scrolled);
+
+		await urlCard.click();
+		await expect(urlCard).toHaveAttribute('aria-current', 'page');
+		await expect(urlCard).toBeFocused();
+		expect(await page.evaluate(() => window.scrollY)).toBe(scrolled);
+
+		await page.getByRole('link', { name: /Submit study sample/ }).click();
+		await expect(page).toHaveURL(/\/dashboard\/overview\/result/);
+		await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+	});
+}
