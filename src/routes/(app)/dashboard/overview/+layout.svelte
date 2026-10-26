@@ -8,7 +8,14 @@
 		page.url.pathname === '/dashboard/overview/result' ||
 			page.url.pathname.startsWith('/dashboard/overview/analyze/')
 	);
-	let { children }: LayoutProps = $props();
+	let { children, data }: LayoutProps = $props();
+
+	const formatDate = (iso: string) =>
+		new Date(iso).toLocaleDateString(undefined, {
+			month: 'short',
+			day: 'numeric',
+			year: 'numeric'
+		});
 
 	const INPUT_METHODS = [
 		{
@@ -129,17 +136,34 @@
 							<h2 id="history-title">Recent analyses</h2>
 						</div>
 					</div>
-					<div class="history-empty">
-						<span class="history-empty-mark" aria-hidden="true">◫</span>
-						<div>
-							<h3>No saved analyses yet</h3>
-							<p>
-								Once saving is connected, your completed policies will appear here with a readable
-								title and date.
-							</p>
-							<span class="history-status">Saving is coming soon</span>
+					{#if data.recentSources.length > 0}
+						<ul class="history-list">
+							{#each data.recentSources as source (source.id)}
+								<li>
+									<a
+										class="history-item"
+										href={resolve(
+											`/dashboard/overview/analyze/${source.id}?${studyQuery.slice(1)}`
+										)}
+									>
+										<span class="history-text">
+											<strong>{source.title ?? source.url ?? 'Untitled'}</strong>
+											{#if source.title && source.url}<small>{source.url}</small>{/if}
+										</span>
+										<time datetime={source.created_at}>{formatDate(source.created_at)}</time>
+									</a>
+								</li>
+							{/each}
+						</ul>
+					{:else}
+						<div class="history-empty">
+							<span class="history-empty-mark" aria-hidden="true">◫</span>
+							<div>
+								<h3>No saved analyses yet</h3>
+								<p>Your completed policies will appear here.</p>
+							</div>
 						</div>
-					</div>
+					{/if}
 				</section>
 			{/if}
 		</div>
@@ -514,12 +538,52 @@
 		font-size: 13px;
 		line-height: 1.55;
 	}
-	.history-status {
+	.history-list {
+		display: grid;
+		gap: 10px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.history-item {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 18px;
+		padding: 14px 16px;
+		border: 1px solid #cad8e3;
+		border-radius: 7px;
+		background: #f8fafc;
+		color: #243b4d;
+		text-decoration: none;
+	}
+	.history-item:hover {
+		border-color: #2ca6af;
+		box-shadow: 0 6px 16px #11788322;
+	}
+	.history-text {
+		display: grid;
+		gap: 4px;
+		min-width: 0;
+	}
+	.history-text strong,
+	.history-text small {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.history-text strong {
+		font-size: 14px;
+	}
+	.history-text small {
+		color: #5a6b80;
+		font-size: 11px;
+	}
+	.history-item time {
+		flex: 0 0 auto;
 		color: #137b80;
-		font-size: 10px;
-		font-weight: 800;
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
+		font-size: 11px;
+		font-weight: 750;
 	}
 	footer {
 		display: flex;
