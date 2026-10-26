@@ -1,26 +1,27 @@
 import { Stage1Error, isStage1Error } from '../errors';
 import type { Stage1Result } from '../schemas';
 import { validateSourceSnapshot } from '../source';
-import type { ProviderConsolidation, Stage2Provider } from './provider';
-import type { Stage2Result } from './schemas';
+import { ConsolidationError } from './errors';
+import type { ProviderConsolidation, ConsolidationProvider } from './provider';
+import type { ConsolidationResult } from './schemas';
 import { selectEligibleCandidates, validateConsolidation } from './validate';
 
-// Used when Stage 1 found nothing to consolidate. FR-7: no findings is not the same as no risk.
+// Used when extraction found nothing to consolidate. FR-7: no findings is not the same as no risk.
 export const NO_FINDINGS_SUMMARY =
 	'No supported privacy practices were identified in the submitted text. This does not mean the policy has no privacy risks; the text may not describe its practices clearly or completely.';
 
-// The library may receive a Stage 1 result from outside the server in the future, so re-check
+// The library may receive an extraction result from outside the server in the future, so re-check
 // that every verified excerpt is still the source's own text before anything is presented.
-function checkStage1Result(stage1: Stage1Result): void {
-	validateSourceSnapshot(stage1.source);
-	const text = stage1.source.passages.map((passage) => passage.text).join('');
+function checkExtraction(extraction: Stage1Result): void {
+	validateSourceSnapshot(extraction.source);
+	const text = extraction.source.passages.map((passage) => passage.text).join('');
 	const ids = new Set<string>();
-	for (const candidate of stage1.candidates) {
+	for (const candidate of extraction.candidates) {
 		if (ids.has(candidate.id)) {
 			throw new Stage1Error(
 				'reference_validation_failed',
 				502,
-				`Stage 1 result repeats candidate ID ${candidate.id}.`
+				`Extraction result repeats candidate ID ${candidate.id}.`
 			);
 		}
 		ids.add(candidate.id);
@@ -32,7 +33,7 @@ function checkStage1Result(stage1: Stage1Result): void {
 				throw new Stage1Error(
 					'reference_validation_failed',
 					502,
-					`Stage 1 evidence for ${candidate.id} does not match the source text.`
+					`Extraction evidence for ${candidate.id} does not match the source text.`
 				);
 			}
 		}
@@ -44,15 +45,15 @@ const LIMITATIONS = {
 	semanticReviewRequired: true
 } as const;
 
-export async function runStage2Consolidation(
-	stage1: Stage1Result,
-	provider: Stage2Provider
-): Promise<Stage2Result> {
-	checkStage1Result(stage1);
-	const preferences = stage1.downstream.preferences;
+export async function runConsolidation(
+	extraction: Stage1Result,
+	provider: ConsolidationProvider
+): Promise<ConsolidationResult> {
+	checkExtraction(extraction);
+	const preferences = extraction.downstream.preferences;
 	const downstream = { nextStage: 'personalized_evaluation', preferences } as const;
 
-	if (stage1.candidates.length === 0) {
+	if (extraction.candidates.length === 0) {
 		return {
 			stage: 'consolidation',
 			schemaVersion: 'stage2-internal-v1',
@@ -66,23 +67,23 @@ export async function runStage2Consolidation(
 			downstream,
 			provider: null,
 			limitations: LIMITATIONS,
-			extraction: stage1
+			extraction: extraction
 		};
 	}
 
-	const { eligible, heldBack } = selectEligibleCandidates(stage1.candidates);
+	const { eligible, heldBack } = selectEligibleCandidates(extraction.candidates);
 	if (eligible.length === 0) {
 		throw new Stage1Error(
 			'reference_validation_failed',
 			502,
-			`None of the ${stage1.candidates.length} Stage 1 candidates had every excerpt verified, so none can be presented.`
+			`None of the ${extraction.candidates.length} extraction candidates had every excerpt verified, so none can be presented.`
 		);
 	}
 
 	let consolidation: ProviderConsolidation;
 	try {
 		consolidation = await provider.consolidate({
-			source: stage1.source,
+			source: extraction.source,
 			candidates: eligible,
 			preferences
 		});
@@ -91,16 +92,23 @@ export async function runStage2Consolidation(
 		throw new Stage1Error(
 			'provider_unavailable',
 			502,
-			'The Stage 2 provider failed unexpectedly.',
+			'The consolidation provider failed unexpectedly.',
 			{ cause: error }
 		);
 	}
 
-	const validated = validateConsolidation(consolidation.output, eligible, preferences);
+	let validated: ReturnType<typeof validateConsolidation>;
+	try {
+		validated = validateConsolidation(consolidation.output, eligible, preferences);
+	} catch (error) {
+		// The model already responded, so keep the call's model and usage on the error for logging.
+		if (!isStage1Error(error)) throw error;
+		throw new ConsolidationError(error, { model: consolidation.model, usage: consolidation.usage });
+	}
 	const complete =
 		validated.rejectedOutput.length === 0 &&
 		validated.excludedCandidates.every((item) => item.code !== 'unaccounted');
-	const order = new Map(stage1.candidates.map((candidate, index) => [candidate.id, index]));
+	const order = new Map(extraction.candidates.map((candidate, index) => [candidate.id, index]));
 
 	return {
 		stage: 'consolidation',
@@ -126,6 +134,6 @@ export async function runStage2Consolidation(
 			usage: consolidation.usage
 		},
 		limitations: LIMITATIONS,
-		extraction: stage1
+		extraction: extraction
 	};
 }

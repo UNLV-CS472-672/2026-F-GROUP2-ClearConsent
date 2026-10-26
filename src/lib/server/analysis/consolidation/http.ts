@@ -4,20 +4,27 @@ import type { Stage1Environment, Stage1ProviderFactory } from '../http';
 import { createOpenAIStage1Provider } from '../openai-provider';
 import type { OpenAIProviderConfig } from '../openai-provider';
 import type { Stage1Result } from '../schemas';
-import { createOpenAIStage2Provider } from './openai-provider';
-import { runStage2Consolidation } from './pipeline';
-import type { Stage2Provider } from './provider';
-import type { Stage2Result } from './schemas';
+import { ConsolidationError } from './errors';
+import { createOpenAIConsolidationProvider } from './openai-provider';
+import { runConsolidation } from './pipeline';
+import type { ConsolidationProvider } from './provider';
+import type { ConsolidationResult } from './schemas';
 
-export type Stage2ProviderFactory = (config: OpenAIProviderConfig) => Stage2Provider;
+export type ConsolidationProviderFactory = (config: OpenAIProviderConfig) => ConsolidationProvider;
+
+export type ConsolidatedAnalysisOptions = {
+	// Both default to the real OpenAI providers. Tests pass fakes here.
+	createExtractionProvider?: Stage1ProviderFactory;
+	createConsolidationProvider?: ConsolidationProviderFactory;
+};
 
 // Counts only: no summary, finding text, excerpts, or preferences.
-function logStage2(result: Stage2Result, durationMs: number): void {
+function logConsolidation(result: ConsolidationResult, durationMs: number): void {
 	const excluded = (code: string) =>
 		result.excludedCandidates.filter((item) => item.code === code).length;
 	console.info(
 		JSON.stringify({
-			event: 'stage2_consolidation',
+			event: 'consolidation',
 			outcome: result.stageStatus,
 			analysisStatus: result.analysisStatus,
 			durationMs,
@@ -33,7 +40,7 @@ function logStage2(result: Stage2Result, durationMs: number): void {
 	);
 }
 
-// A Stage 2 failure keeps the validated Stage 1 work visible, but never as a complete analysis.
+// A consolidation failure keeps the validated extraction visible, but never as a complete analysis.
 function failureResponse(error: Stage1Error, extraction: Stage1Result): Response {
 	return Response.json(
 		{
@@ -51,39 +58,51 @@ function failureResponse(error: Stage1Error, extraction: Stage1Result): Response
 	);
 }
 
-// Runs the unchanged Stage 1 handler (access check, body limits, config, extraction, logging),
-// then Stage 2 on its result. Any Stage 1 failure is returned exactly as Stage 1 produced it.
+// Runs the unchanged extraction handler (access check, body limits, config, extraction, logging),
+// then consolidation on its result. An extraction failure is returned exactly as it was produced.
+//
+// Usage: handleConsolidatedAnalysisHttpRequest(request, env)
+//    or: handleConsolidatedAnalysisHttpRequest(request, env, { createConsolidationProvider: fake })
 export async function handleConsolidatedAnalysisHttpRequest(
 	request: Request,
 	environment: Stage1Environment,
-	createStage1Provider: Stage1ProviderFactory = createOpenAIStage1Provider,
-	createStage2Provider: Stage2ProviderFactory = createOpenAIStage2Provider
+	{
+		createExtractionProvider = createOpenAIStage1Provider,
+		createConsolidationProvider = createOpenAIConsolidationProvider
+	}: ConsolidatedAnalysisOptions = {}
 ): Promise<Response> {
-	// Stage 1 validates the environment before building its provider, so Stage 2 reuses exactly
-	// the same checked settings.
+	// Extraction validates the environment before building its provider, so consolidation reuses
+	// exactly the same checked settings.
 	let config: OpenAIProviderConfig | undefined;
-	const stage1Response = await handleStage1HttpRequest(request, environment, (checked) => {
+	const extractionResponse = await handleStage1HttpRequest(request, environment, (checked) => {
 		config = checked;
-		return createStage1Provider(checked);
+		return createExtractionProvider(checked);
 	});
-	if (!stage1Response.ok || config === undefined) return stage1Response;
+	if (!extractionResponse.ok || config === undefined) return extractionResponse;
 
 	const startedAt = performance.now();
-	const extraction = (await stage1Response.json()) as Stage1Result;
+	const extraction = (await extractionResponse.json()) as Stage1Result;
 	try {
-		const result = await runStage2Consolidation(extraction, createStage2Provider(config));
-		logStage2(result, Math.round(performance.now() - startedAt));
+		const result = await runConsolidation(extraction, createConsolidationProvider(config));
+		logConsolidation(result, Math.round(performance.now() - startedAt));
 		return Response.json(result);
 	} catch (error) {
 		const stageError = isStage1Error(error)
 			? error
-			: new Stage1Error('internal_error', 500, 'Stage 2 failed unexpectedly.', { cause: error });
+			: new Stage1Error('internal_error', 500, 'Consolidation failed unexpectedly.', {
+					cause: error
+				});
 		console.warn(
 			JSON.stringify({
-				event: 'stage2_consolidation',
+				event: 'consolidation',
 				outcome: 'failed',
 				code: stageError.code,
-				durationMs: Math.round(performance.now() - startedAt)
+				durationMs: Math.round(performance.now() - startedAt),
+				// Present when the model had already responded, so the paid call is still logged.
+				...(stageError instanceof ConsolidationError && {
+					model: stageError.call.model,
+					usage: stageError.call.usage
+				})
 			})
 		);
 		return failureResponse(stageError, extraction);

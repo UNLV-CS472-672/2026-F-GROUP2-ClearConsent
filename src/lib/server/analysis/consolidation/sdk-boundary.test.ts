@@ -2,9 +2,9 @@
 import OpenAI from 'openai';
 import { describe, expect, it, vi } from 'vitest';
 import type { OpenAIClientFactory } from '../openai-provider';
-import { createOpenAIStage2Provider } from './openai-provider';
-import { runStage2Consolidation } from './pipeline';
-import { fitnessCandidates, fitnessFindings, stage1Result, SUMMARY } from './test-fixtures';
+import { createOpenAIConsolidationProvider } from './openai-provider';
+import { runConsolidation } from './pipeline';
+import { fitnessCandidates, fitnessFindings, extractionResult, SUMMARY } from './test-fixtures';
 
 // Exercises the installed SDK's serialization and Structured Outputs parser. Only its HTTP
 // transport is replaced; this test cannot contact a real provider.
@@ -39,7 +39,7 @@ function withTransport(text: string) {
 			}
 		};
 	};
-	return { provider: createOpenAIStage2Provider({ apiKey: 'test-key' }, factory), fetch };
+	return { provider: createOpenAIConsolidationProvider({ apiKey: 'test-key' }, factory), fetch };
 }
 
 describe('Stage 2 through the real SDK with an offline transport', () => {
@@ -47,7 +47,7 @@ describe('Stage 2 through the real SDK with an offline transport', () => {
 		const { provider, fetch } = withTransport(
 			JSON.stringify({ summary: SUMMARY, findings: fitnessFindings(), exclusions: [] })
 		);
-		const result = await runStage2Consolidation(await stage1Result(fitnessCandidates()), provider);
+		const result = await runConsolidation(await extractionResult(fitnessCandidates()), provider);
 
 		expect(fetch).toHaveBeenCalledTimes(1);
 		expect(result.analysisStatus).toBe('complete');
@@ -60,7 +60,7 @@ describe('Stage 2 through the real SDK with an offline transport', () => {
 			JSON.stringify({ summary: SUMMARY, findings, exclusions: [] })
 		);
 		await expect(
-			runStage2Consolidation(await stage1Result(fitnessCandidates()), provider)
+			runConsolidation(await extractionResult(fitnessCandidates()), provider)
 		).rejects.toMatchObject({ code: 'provider_malformed' });
 	});
 });

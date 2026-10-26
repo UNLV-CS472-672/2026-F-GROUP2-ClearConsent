@@ -1,7 +1,7 @@
 import { Stage1Error } from '../errors';
-import type { Stage2Result } from './schemas';
+import type { ConsolidationResult } from './schemas';
 
-// Maps a complete Stage 2 result onto the Supabase columns. Nothing here writes to the database;
+// Maps a complete consolidation result onto the Supabase columns. Nothing here writes to the database;
 // the persistence PR will insert these rows in one transaction once auth and sources are merged.
 
 export type AnalysisResultFields = {
@@ -42,8 +42,8 @@ export type FindingInsertRow = {
 };
 
 function requireComplete(
-	result: Stage2Result
-): asserts result is Stage2Result & { outcome: AnalysisResultFields['outcome'] } {
+	result: ConsolidationResult
+): asserts result is ConsolidationResult & { outcome: AnalysisResultFields['outcome'] } {
 	// NFR-5: only a complete analysis may be saved, so a partial result never reaches history.
 	if (result.analysisStatus !== 'complete' || result.outcome === null) {
 		throw new Stage1Error(
@@ -54,7 +54,7 @@ function requireComplete(
 	}
 }
 
-export function toAnalysisResultFields(result: Stage2Result): AnalysisResultFields {
+export function toAnalysisResultFields(result: ConsolidationResult): AnalysisResultFields {
 	requireComplete(result);
 	const { source } = result.extraction;
 	return {
@@ -67,13 +67,13 @@ export function toAnalysisResultFields(result: Stage2Result): AnalysisResultFiel
 
 export type FindingRows = {
 	rows: FindingInsertRow[];
-	// Stage 2 finding ID (F001) to database UUID, so #12's preference_evaluations can reference
+	// Consolidation finding ID (F001) to database UUID, so #12's preference_evaluations can reference
 	// findings in the same transaction.
 	idMap: Record<string, string>;
 };
 
 export function toFindingRows(
-	result: Stage2Result,
+	result: ConsolidationResult,
 	analysisId: string,
 	newId: () => string = () => crypto.randomUUID()
 ): FindingRows {
