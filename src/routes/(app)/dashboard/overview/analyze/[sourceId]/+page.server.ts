@@ -1,4 +1,4 @@
-import { redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AnalysisResult, AttentionLabel, FindingCategory } from '$lib/contracts/analysis';
 import { getSupabaseForUser } from '$lib/server/db/supabase';
@@ -91,13 +91,18 @@ function toAnalysisResult(analysis: Analysis, rows: FindingRow[]): AnalysisResul
 }
 
 async function findAnalysis(supabase: SupabaseClient, sourceId: string) {
-	const { data } = await supabase
+	const { data, error: findError } = await supabase
 		.from('analyses')
 		.select('id, summary')
 		.eq('source_id', sourceId)
 		.order('analyzed_at', { ascending: false })
 		.limit(1)
 		.maybeSingle();
+	// Only a successful empty lookup should start a new (paid) analysis.
+	if (findError) {
+		console.error('Failed to load analysis:', findError.message);
+		throw new Error('Unable to load the analysis.');
+	}
 	return data as Analysis | null;
 }
 
@@ -135,7 +140,7 @@ async function loadResult(
 		}
 	}
 
-	const { data: findings } = await supabase
+	const { data: findings, error: findingsError } = await supabase
 		.from('findings')
 		.select(
 			'id, category, plain_language_description, evidence, effect, ambiguous, data_categories, purposes, recipients'
@@ -143,7 +148,13 @@ async function loadResult(
 		.eq('analysis_id', analysis.id)
 		.order('display_order');
 
-	return toAnalysisResult(analysis, (findings ?? []) as FindingRow[]);
+	// A failed read must not be shown as "no findings".
+	if (findingsError) {
+		console.error('Failed to load findings:', findingsError.message);
+		throw new Error('Unable to load the findings.');
+	}
+
+	return toAnalysisResult(analysis, findings as FindingRow[]);
 }
 
 export const load: PageServerLoad = async ({ params, locals, fetch }) => {
@@ -154,12 +165,16 @@ export const load: PageServerLoad = async ({ params, locals, fetch }) => {
 
 	// Row-level security returns no row for another user's source, so ownership is enforced here.
 	const supabase = getSupabaseForUser(session.access_token);
-	const { data: source } = await supabase
+	const { data: source, error: sourceError } = await supabase
 		.from('sources')
 		.select('id, title, url')
 		.eq('id', params.sourceId)
 		.maybeSingle();
 
+	if (sourceError) {
+		console.error('Failed to load source:', sourceError.message);
+		error(500, 'Unable to load the source.');
+	}
 	if (!source) {
 		redirect(303, INPUT_PAGE);
 	}

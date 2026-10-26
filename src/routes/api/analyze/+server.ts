@@ -64,29 +64,27 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const analysisId = crypto.randomUUID();
 	const { rows } = toFindingRows(result, analysisId);
 
-	// Not atomic. On failure, delete the analysis (cascades to findings). The source belongs to the user and is kept.
-	const { error: analysisError } = await supabase.from('analyses').insert({
-		id: analysisId,
-		owner_id: user.id,
-		source_id: source.id,
-		source_type: source.url ? 'url' : 'pasted_text',
-		source_title: fields.source_title,
-		submitted_url: source.url,
-		final_url: source.url,
-		source_text: fields.source_text,
-		summary: fields.summary,
-		outcome: fields.outcome,
-		result_schema_version: 1
+	// save_analysis writes the analysis and its findings in one transaction, so a failure leaves
+	// neither behind and a concurrent read never sees an analysis without its findings.
+	const { error: saveError } = await supabase.rpc('save_analysis', {
+		p_analysis: {
+			id: analysisId,
+			source_id: source.id,
+			source_type: source.url ? 'url' : 'pasted_text',
+			submitted_url: source.url,
+			// The RPC requires this to match the stored source exactly.
+			source_text: source.text,
+			summary: fields.summary,
+			outcome: fields.outcome,
+			analysis_status: 'complete'
+		},
+		p_findings: rows,
+		// No personalization runs on this route yet.
+		p_evaluations: []
 	});
 
-	let findingsError = null;
-	if (!analysisError && rows.length > 0) {
-		({ error: findingsError } = await supabase.from('findings').insert(rows));
-	}
-
-	if (analysisError || findingsError) {
-		console.error('Failed to save analysis:', (analysisError ?? findingsError)?.message);
-		await supabase.from('analyses').delete().eq('id', analysisId);
+	if (saveError) {
+		console.error('Failed to save analysis:', saveError.message);
 		error(500, 'Unable to save the analysis.');
 	}
 
