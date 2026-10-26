@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { ProviderUsage, Stage1Result, VerifiedEvidence } from '../schemas';
 
-// Internal Stage 2 contract. The public Finding/result contract is still owned by issue #22; these
+// Internal consolidation contract. The public Finding/result contract is still owned by issue #22; these
 // values follow the categories agreed there and the fields issue #12 needs for scoring.
 export const FINDING_CATEGORIES = [
 	'collection',
@@ -65,7 +65,7 @@ export const ModelExclusionSchema = z.strictObject({
 	reason: z.string()
 });
 
-export const ModelStage2ResponseSchema = z.strictObject({
+export const ModelConsolidationResponseSchema = z.strictObject({
 	summary: z.string(),
 	findings: z.array(ModelFindingSchema),
 	exclusions: z.array(ModelExclusionSchema)
@@ -73,14 +73,18 @@ export const ModelStage2ResponseSchema = z.strictObject({
 
 export type ModelFinding = z.infer<typeof ModelFindingSchema>;
 export type ModelExclusion = z.infer<typeof ModelExclusionSchema>;
-export type ModelStage2Response = z.infer<typeof ModelStage2ResponseSchema>;
+export type ModelConsolidationResponse = z.infer<typeof ModelConsolidationResponseSchema>;
 
 export type ConsolidatedFinding = {
 	id: string;
 	category: FindingCategory;
 	description: string;
 	effect: FindingEffect;
+	// True only when the practice happens only if the user opts in or turns something on.
 	conditional: boolean;
+	// Every material condition, exception, or scope limit, such as "except records kept for legal
+	// obligations" or "covers sale only". Required when conditional is true, but a finding that is
+	// not opt-in can still have one, so it is not always null when conditional is false.
 	conditionNote: string | null;
 	ambiguous: boolean;
 	uncertaintyNote: string | null;
@@ -98,7 +102,7 @@ export type ConsolidatedFinding = {
 
 export type ExcludedCandidate = {
 	candidateId: string;
-	// unverified_evidence: held back by code because Stage 1 could not verify every excerpt.
+	// unverified_evidence: held back by code because extraction could not verify every excerpt.
 	// model_excluded: the model said the candidate is unsupported or not a privacy practice.
 	// unaccounted: the model did not place the candidate in a valid finding or exclusion.
 	code: 'unverified_evidence' | 'model_excluded' | 'unaccounted';
@@ -112,13 +116,13 @@ export type RejectedOutput = {
 	reason: string;
 };
 
-export type Stage2ModelInput = {
+export type ConsolidationModelInput = {
 	source: Stage1Result['source'];
 	candidates: Stage1Result['candidates'];
 	preferences: Record<string, unknown> | null;
 };
 
-export type Stage2Result = {
+export type ConsolidationResult = {
 	stage: 'consolidation';
 	schemaVersion: 'stage2-internal-v1';
 	// complete: every eligible candidate is in a valid finding or a model exclusion.
@@ -137,7 +141,7 @@ export type Stage2Result = {
 		nextStage: 'personalized_evaluation';
 		preferences: Record<string, unknown> | null;
 	};
-	// Null when no model call was needed (Stage 1 found no candidates).
+	// Null when no model call was needed (extraction found no candidates).
 	provider: {
 		model: string;
 		reasoningEffort: string;
@@ -148,6 +152,6 @@ export type Stage2Result = {
 		referenceValidation: 'structural_and_referential_only';
 		semanticReviewRequired: true;
 	};
-	// The complete Stage 1 result, including the source passages, for traceability.
+	// The complete extraction result, including the source passages, for traceability.
 	extraction: Stage1Result;
 };

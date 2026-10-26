@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Stage1Error } from '../errors';
-import { NO_FINDINGS_SUMMARY, runStage2Consolidation } from './pipeline';
-import type { Stage2Provider } from './provider';
+import { ConsolidationError } from './errors';
+import { NO_FINDINGS_SUMMARY, runConsolidation } from './pipeline';
+import { activePreferenceKeys } from './validate';
+import type { ConsolidationProvider } from './provider';
 import {
 	FITNESS_POLICY,
 	fitnessCandidates,
@@ -9,8 +11,8 @@ import {
 	modelFinding,
 	sentence,
 	stage1Candidate,
-	stage1Result,
-	stage2ProviderWith,
+	extractionResult,
+	consolidationProviderWith,
 	SUMMARY
 } from './test-fixtures';
 
@@ -20,9 +22,9 @@ function output(findings = fitnessFindings(), exclusions: unknown[] = []) {
 
 describe('Stage 2 consolidation', () => {
 	it('turns the fitness example into complete, source-linked findings', async () => {
-		const stage1 = await stage1Result(fitnessCandidates());
-		const provider = stage2ProviderWith(output());
-		const result = await runStage2Consolidation(stage1, provider);
+		const stage1 = await extractionResult(fitnessCandidates());
+		const provider = consolidationProviderWith(output());
+		const result = await runConsolidation(stage1, provider);
 
 		expect(result).toMatchObject({
 			stage: 'consolidation',
@@ -47,9 +49,9 @@ describe('Stage 2 consolidation', () => {
 	});
 
 	it('builds evidence only from verified Stage 1 excerpts sliced from the source', async () => {
-		const result = await runStage2Consolidation(
-			await stage1Result(fitnessCandidates()),
-			stage2ProviderWith(output())
+		const result = await runConsolidation(
+			await extractionResult(fitnessCandidates()),
+			consolidationProviderWith(output())
 		);
 		for (const finding of result.findings) {
 			expect(finding.evidence.length).toBeGreaterThan(0);
@@ -63,17 +65,17 @@ describe('Stage 2 consolidation', () => {
 	it('rejects model output that tries to supply its own evidence', async () => {
 		const injected = { ...modelFinding(), evidence: [{ excerpt: 'We sell your data.' }] };
 		await expect(
-			runStage2Consolidation(
-				await stage1Result(fitnessCandidates()),
-				stage2ProviderWith(output([injected]))
+			runConsolidation(
+				await extractionResult(fitnessCandidates()),
+				consolidationProviderWith(output([injected]))
 			)
 		).rejects.toMatchObject({ code: 'provider_malformed' });
 	});
 
 	it('orders findings by category, then source position, when there are no preferences', async () => {
-		const result = await runStage2Consolidation(
-			await stage1Result(fitnessCandidates()),
-			stage2ProviderWith(output())
+		const result = await runConsolidation(
+			await extractionResult(fitnessCandidates()),
+			consolidationProviderWith(output())
 		);
 		expect(result.findings.map((finding) => [finding.id, finding.category])).toEqual([
 			['F001', 'collection'],
@@ -87,23 +89,23 @@ describe('Stage 2 consolidation', () => {
 	});
 
 	it('gives the same result whatever order the model returns findings in', async () => {
-		const stage1 = await stage1Result(fitnessCandidates());
-		const forward = await runStage2Consolidation(stage1, stage2ProviderWith(output()));
-		const reversed = await runStage2Consolidation(
+		const stage1 = await extractionResult(fitnessCandidates());
+		const forward = await runConsolidation(stage1, consolidationProviderWith(output()));
+		const reversed = await runConsolidation(
 			stage1,
-			stage2ProviderWith(output(fitnessFindings().reverse()))
+			consolidationProviderWith(output(fitnessFindings().reverse()))
 		);
 		expect(reversed.findings).toEqual(forward.findings);
 	});
 
 	it('sends preferences to the model and shows findings related to them first', async () => {
 		const preferences = { retention: 'major', sharing: 'some' };
-		const stage1 = await stage1Result(fitnessCandidates(), preferences);
+		const stage1 = await extractionResult(fitnessCandidates(), preferences);
 		const findings = fitnessFindings();
 		findings[4].relevantPreferences = ['retention', 'not_a_user_key'];
 		findings[1].relevantPreferences = ['sharing', 'retention', 'sharing'];
-		const provider = stage2ProviderWith(output(findings));
-		const result = await runStage2Consolidation(stage1, provider);
+		const provider = consolidationProviderWith(output(findings));
+		const result = await runConsolidation(stage1, provider);
 
 		expect(provider.consolidate).toHaveBeenCalledWith(expect.objectContaining({ preferences }));
 		expect(result.downstream.preferences).toEqual(preferences);
@@ -120,9 +122,9 @@ describe('Stage 2 consolidation', () => {
 		expect(result.findings[0].relevantPreferences).toEqual(['retention', 'sharing']);
 		expect(result.findings[1].relevantPreferences).toEqual(['retention']);
 		// Preferences change only relevance and order, never the finding content.
-		const neutral = await runStage2Consolidation(
-			await stage1Result(fitnessCandidates()),
-			stage2ProviderWith(output(findings))
+		const neutral = await runConsolidation(
+			await extractionResult(fitnessCandidates()),
+			consolidationProviderWith(output(findings))
 		);
 		const strip = (items: typeof result.findings) =>
 			items
@@ -137,10 +139,10 @@ describe('Stage 2 consolidation', () => {
 	it('holds back candidates with any unverified excerpt and never sends them to the model', async () => {
 		const candidates = fitnessCandidates();
 		candidates[2] = stage1Candidate(sentence(2), [sentence(2), 'You may delete it later.']);
-		const stage1 = await stage1Result(candidates);
+		const stage1 = await extractionResult(candidates);
 		const findings = fitnessFindings().filter((finding) => finding.candidateIds[0] !== 'C003');
-		const provider = stage2ProviderWith(output(findings));
-		const result = await runStage2Consolidation(stage1, provider);
+		const provider = consolidationProviderWith(output(findings));
+		const result = await runConsolidation(stage1, provider);
 
 		const sent = vi.mocked(provider.consolidate).mock.calls[0][0];
 		expect(sent.candidates.map((candidate) => candidate.id)).not.toContain('C003');
@@ -156,9 +158,9 @@ describe('Stage 2 consolidation', () => {
 		candidates[2] = stage1Candidate(sentence(2), [sentence(2), 'You may delete it later.']);
 		const findings = fitnessFindings();
 		findings[0].candidateIds = ['C001', 'C099'];
-		const result = await runStage2Consolidation(
-			await stage1Result(candidates),
-			stage2ProviderWith(output(findings))
+		const result = await runConsolidation(
+			await extractionResult(candidates),
+			consolidationProviderWith(output(findings))
 		);
 
 		expect(result.rejectedOutput).toEqual([
@@ -178,9 +180,9 @@ describe('Stage 2 consolidation', () => {
 
 	it('reports a candidate the model left out instead of dropping it', async () => {
 		const findings = fitnessFindings().filter((finding) => finding.candidateIds[0] !== 'C006');
-		const result = await runStage2Consolidation(
-			await stage1Result(fitnessCandidates()),
-			stage2ProviderWith(output(findings))
+		const result = await runConsolidation(
+			await extractionResult(fitnessCandidates()),
+			consolidationProviderWith(output(findings))
 		);
 
 		expect(result.excludedCandidates).toEqual([
@@ -194,9 +196,9 @@ describe('Stage 2 consolidation', () => {
 			...fitnessCandidates(),
 			stage1Candidate('Location is sold to data brokers.', [sentence(1)])
 		];
-		const result = await runStage2Consolidation(
-			await stage1Result(candidates),
-			stage2ProviderWith(
+		const result = await runConsolidation(
+			await extractionResult(candidates),
+			consolidationProviderWith(
 				output(fitnessFindings(), [
 					{ candidateId: 'C008', reason: 'The sentence describes sharing, not sale.' }
 				])
@@ -218,9 +220,9 @@ describe('Stage 2 consolidation', () => {
 		[{ candidateId: 'C042', reason: 'Unknown.' }, 'unknown candidate'],
 		[{ candidateId: 'C001', reason: '   ' }, 'no reason']
 	])('rejects an invalid exclusion %#', async (exclusion, message) => {
-		const result = await runStage2Consolidation(
-			await stage1Result(fitnessCandidates()),
-			stage2ProviderWith(output(fitnessFindings(), [exclusion]))
+		const result = await runConsolidation(
+			await extractionResult(fitnessCandidates()),
+			consolidationProviderWith(output(fitnessFindings(), [exclusion]))
 		);
 		expect(result.rejectedOutput).toEqual([
 			{ kind: 'exclusion', index: 0, reason: expect.stringContaining(message) }
@@ -231,9 +233,9 @@ describe('Stage 2 consolidation', () => {
 	it('rejects a repeated exclusion of the same candidate', async () => {
 		const findings = fitnessFindings().filter((finding) => finding.candidateIds[0] !== 'C006');
 		const reason = 'Not supported.';
-		const result = await runStage2Consolidation(
-			await stage1Result(fitnessCandidates()),
-			stage2ProviderWith(
+		const result = await runConsolidation(
+			await extractionResult(fitnessCandidates()),
+			consolidationProviderWith(
 				output(findings, [
 					{ candidateId: 'C006', reason },
 					{ candidateId: 'C006', reason }
@@ -256,9 +258,9 @@ describe('Stage 2 consolidation', () => {
 	])('rejects a finding with missing required text %#', async (overrides, message) => {
 		const findings = fitnessFindings();
 		findings[0] = { ...findings[0], ...overrides };
-		const result = await runStage2Consolidation(
-			await stage1Result(fitnessCandidates()),
-			stage2ProviderWith(output(findings))
+		const result = await runConsolidation(
+			await extractionResult(fitnessCandidates()),
+			consolidationProviderWith(output(findings))
 		);
 		expect(result.rejectedOutput).toEqual([
 			{ kind: 'finding', index: 0, reason: expect.stringContaining(message) }
@@ -276,9 +278,9 @@ describe('Stage 2 consolidation', () => {
 			purposeTypes: ['legal_security', 'service', 'service'],
 			recipientTypes: ['other', 'service_provider']
 		};
-		const result = await runStage2Consolidation(
-			await stage1Result(fitnessCandidates()),
-			stage2ProviderWith(output(findings))
+		const result = await runConsolidation(
+			await extractionResult(fitnessCandidates()),
+			consolidationProviderWith(output(findings))
 		);
 		const finding = result.findings.find((item) => item.candidateIds[0] === 'C001')!;
 		expect(finding).toMatchObject({
@@ -295,9 +297,9 @@ describe('Stage 2 consolidation', () => {
 			candidateId: `C00${index + 1}`,
 			reason: 'Not about personal data.'
 		}));
-		const result = await runStage2Consolidation(
-			await stage1Result(fitnessCandidates()),
-			stage2ProviderWith(output([], exclusions))
+		const result = await runConsolidation(
+			await extractionResult(fitnessCandidates()),
+			consolidationProviderWith(output([], exclusions))
 		);
 		expect(result).toMatchObject({
 			analysisStatus: 'complete',
@@ -309,34 +311,34 @@ describe('Stage 2 consolidation', () => {
 	it('fails when every finding the model returned is invalid', async () => {
 		const findings = fitnessFindings().map((finding) => ({ ...finding, candidateIds: ['C999'] }));
 		await expect(
-			runStage2Consolidation(
-				await stage1Result(fitnessCandidates()),
-				stage2ProviderWith(output(findings))
+			runConsolidation(
+				await extractionResult(fitnessCandidates()),
+				consolidationProviderWith(output(findings))
 			)
 		).rejects.toMatchObject({ code: 'provider_malformed' });
 	});
 
 	it('fails on a blank summary', async () => {
 		await expect(
-			runStage2Consolidation(
-				await stage1Result(fitnessCandidates()),
-				stage2ProviderWith({ ...output(), summary: '  ' })
+			runConsolidation(
+				await extractionResult(fitnessCandidates()),
+				consolidationProviderWith({ ...output(), summary: '  ' })
 			)
 		).rejects.toMatchObject({ code: 'provider_malformed' });
 	});
 
 	it('fails on output that does not match the schema', async () => {
 		await expect(
-			runStage2Consolidation(
-				await stage1Result(fitnessCandidates()),
-				stage2ProviderWith({ summary: SUMMARY, findings: [{ category: 'privacy' }] })
+			runConsolidation(
+				await extractionResult(fitnessCandidates()),
+				consolidationProviderWith({ summary: SUMMARY, findings: [{ category: 'privacy' }] })
 			)
 		).rejects.toMatchObject({ code: 'provider_malformed' });
 	});
 
 	it('skips the model and reports no findings when Stage 1 found no candidates', async () => {
-		const provider = stage2ProviderWith(output());
-		const result = await runStage2Consolidation(await stage1Result([]), provider);
+		const provider = consolidationProviderWith(output());
+		const result = await runConsolidation(await extractionResult([]), provider);
 
 		expect(provider.consolidate).not.toHaveBeenCalled();
 		expect(result).toMatchObject({
@@ -353,40 +355,75 @@ describe('Stage 2 consolidation', () => {
 
 	it('fails without a model call when no candidate is fully verified', async () => {
 		const candidates = [stage1Candidate(sentence(0), [sentence(0), 'Invented sentence here.'])];
-		const provider = stage2ProviderWith(output());
+		const provider = consolidationProviderWith(output());
 		await expect(
-			runStage2Consolidation(await stage1Result(candidates), provider)
+			runConsolidation(await extractionResult(candidates), provider)
 		).rejects.toMatchObject({ code: 'reference_validation_failed' });
 		expect(provider.consolidate).not.toHaveBeenCalled();
 	});
 
 	it('refuses a Stage 1 result whose evidence no longer matches the source', async () => {
-		const stage1 = await stage1Result(fitnessCandidates());
+		const stage1 = await extractionResult(fitnessCandidates());
 		const evidence = stage1.candidates[0].evidence[0];
 		if (evidence.status === 'verified') evidence.excerpt = 'We sell card numbers.';
-		const provider = stage2ProviderWith(output());
-		await expect(runStage2Consolidation(stage1, provider)).rejects.toMatchObject({
+		const provider = consolidationProviderWith(output());
+		await expect(runConsolidation(stage1, provider)).rejects.toMatchObject({
 			code: 'reference_validation_failed'
 		});
 		expect(provider.consolidate).not.toHaveBeenCalled();
 	});
 
 	it('keeps provider failures distinct and wraps unexpected ones', async () => {
-		const stage1 = await stage1Result(fitnessCandidates());
-		const timeout: Stage2Provider = {
+		const stage1 = await extractionResult(fitnessCandidates());
+		const timeout: ConsolidationProvider = {
 			consolidate: vi
 				.fn()
 				.mockRejectedValue(
 					new Stage1Error('provider_timeout', 504, 'Timed out.', { retryable: true })
 				)
 		};
-		await expect(runStage2Consolidation(stage1, timeout)).rejects.toMatchObject({
+		await expect(runConsolidation(stage1, timeout)).rejects.toMatchObject({
 			code: 'provider_timeout'
 		});
 
-		const broken: Stage2Provider = { consolidate: vi.fn().mockRejectedValue(new Error('boom')) };
-		await expect(runStage2Consolidation(stage1, broken)).rejects.toMatchObject({
+		const broken: ConsolidationProvider = {
+			consolidate: vi.fn().mockRejectedValue(new Error('boom'))
+		};
+		await expect(runConsolidation(stage1, broken)).rejects.toMatchObject({
 			code: 'provider_unavailable'
+		});
+	});
+
+	it('ignores preference keys that are switched off when tagging relevance', async () => {
+		const preferences = { sharing: 'major', retention: 'none', use: false, collection: null };
+		const findings = fitnessFindings();
+		// The model tags every key; only "sharing" holds a real value.
+		for (const finding of findings) {
+			finding.relevantPreferences = ['sharing', 'retention', 'use', 'collection'];
+		}
+		const result = await runConsolidation(
+			await extractionResult(fitnessCandidates(), preferences),
+			consolidationProviderWith(output(findings))
+		);
+
+		for (const finding of result.findings) expect(finding.relevantPreferences).toEqual(['sharing']);
+		expect(activePreferenceKeys({ a: 'major', b: 'None', c: ' off ', d: 0, e: true })).toEqual([
+			'a',
+			'd',
+			'e'
+		]);
+	});
+
+	it("keeps the paid call's model and usage on validation failures", async () => {
+		const error = await runConsolidation(
+			await extractionResult(fitnessCandidates()),
+			consolidationProviderWith({ ...output(), summary: '  ' })
+		).catch((caught) => caught);
+
+		expect(error).toBeInstanceOf(ConsolidationError);
+		expect(error).toMatchObject({
+			code: 'provider_malformed',
+			call: { model: 'mock-model', usage: { totalTokens: 15 } }
 		});
 	});
 });

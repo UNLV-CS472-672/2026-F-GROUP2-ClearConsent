@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 import type { Stage1Provider } from '../provider';
 import { runStage1Analysis } from '../pipeline';
 import type { Stage1Result } from '../schemas';
-import type { Stage2Provider } from './provider';
+import type { ConsolidationProvider } from './provider';
 import type { ModelFinding } from './schemas';
 
 // The issue #12 fitness example, written as one synthetic policy.
@@ -46,7 +46,7 @@ export function fitnessCandidates() {
 	return [0, 1, 2, 3, 4, 5, 6].map((index) => stage1Candidate(sentence(index), [sentence(index)]));
 }
 
-export async function stage1Result(
+export async function extractionResult(
 	candidates: unknown[],
 	preferences?: Record<string, unknown>,
 	text = FITNESS_POLICY
@@ -144,7 +144,7 @@ export function fitnessFindings(): ModelFinding[] {
 	];
 }
 
-export function stage2ProviderWith(output: unknown): Stage2Provider {
+export function consolidationProviderWith(output: unknown): ConsolidationProvider {
 	return {
 		consolidate: vi.fn().mockResolvedValue({
 			output,

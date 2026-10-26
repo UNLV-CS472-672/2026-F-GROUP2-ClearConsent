@@ -1,22 +1,22 @@
 import { describe, expect, it } from 'vitest';
-import { runStage2Consolidation } from './pipeline';
+import { runConsolidation } from './pipeline';
 import { toAnalysisResultFields, toFindingRows } from './rows';
 import { FINDING_CATEGORIES, PURPOSE_TYPES, RECIPIENT_TYPES } from './schemas';
 import {
 	FITNESS_POLICY,
 	fitnessCandidates,
 	fitnessFindings,
-	stage1Result,
-	stage2ProviderWith,
+	extractionResult,
+	consolidationProviderWith,
 	SUMMARY
 } from './test-fixtures';
 
 async function completeResult() {
 	const findings = fitnessFindings();
 	findings[0].relevantPreferences = ['sharing'];
-	return runStage2Consolidation(
-		await stage1Result(fitnessCandidates(), { sharing: 'major' }),
-		stage2ProviderWith({ summary: SUMMARY, findings, exclusions: [] })
+	return runConsolidation(
+		await extractionResult(fitnessCandidates(), { sharing: 'major' }),
+		consolidationProviderWith({ summary: SUMMARY, findings, exclusions: [] })
 	);
 }
 
@@ -61,9 +61,9 @@ describe('Stage 2 database mapping', () => {
 
 	it('refuses to map a result that is not complete', async () => {
 		const findings = fitnessFindings().slice(1);
-		const partial = await runStage2Consolidation(
-			await stage1Result(fitnessCandidates()),
-			stage2ProviderWith({ summary: SUMMARY, findings, exclusions: [] })
+		const partial = await runConsolidation(
+			await extractionResult(fitnessCandidates()),
+			consolidationProviderWith({ summary: SUMMARY, findings, exclusions: [] })
 		);
 		expect(partial.analysisStatus).toBe('in_progress');
 		expect(() => toFindingRows(partial, 'analysis-uuid')).toThrow(/Only a complete analysis/);

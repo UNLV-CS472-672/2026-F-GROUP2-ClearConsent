@@ -1,11 +1,13 @@
+export { ConsolidationError } from './errors';
+export type { ConsolidationCallInfo } from './errors';
 export { handleConsolidatedAnalysisHttpRequest } from './http';
-export type { Stage2ProviderFactory } from './http';
-export { createOpenAIStage2Provider } from './openai-provider';
-export { NO_FINDINGS_SUMMARY, runStage2Consolidation } from './pipeline';
+export type { ConsolidatedAnalysisOptions, ConsolidationProviderFactory } from './http';
+export { createOpenAIConsolidationProvider } from './openai-provider';
+export { NO_FINDINGS_SUMMARY, runConsolidation } from './pipeline';
 export { toAnalysisResultFields, toFindingRows } from './rows';
-export { selectEligibleCandidates, validateConsolidation } from './validate';
+export { activePreferenceKeys, selectEligibleCandidates, validateConsolidation } from './validate';
 export { FINDING_CATEGORIES, FINDING_EFFECTS, PURPOSE_TYPES, RECIPIENT_TYPES } from './schemas';
-export type { Stage2Provider } from './provider';
+export type { ConsolidationProvider } from './provider';
 export type { AnalysisResultFields, FindingInsertRow, FindingRows } from './rows';
 export type {
 	ConsolidatedFinding,
@@ -15,5 +17,5 @@ export type {
 	PurposeType,
 	RecipientType,
 	RejectedOutput,
-	Stage2Result
+	ConsolidationResult
 } from './schemas';

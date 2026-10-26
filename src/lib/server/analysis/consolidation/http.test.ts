@@ -2,8 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Stage1Error } from '../errors';
 import type { Stage1Provider } from '../provider';
 import { handleConsolidatedAnalysisHttpRequest } from './http';
-import type { Stage2Provider } from './provider';
-import { modelFinding, stage1Candidate, stage2ProviderWith, SUMMARY } from './test-fixtures';
+import type { ConsolidationProvider } from './provider';
+import { modelFinding, stage1Candidate, consolidationProviderWith, SUMMARY } from './test-fixtures';
 
 const policy = 'We share card numbers with our payment processor to complete purchases.';
 
@@ -23,7 +23,7 @@ function request(body: unknown, token = 'local-secret'): Request {
 	});
 }
 
-function stage1With(candidates: unknown[]): Stage1Provider {
+function extractionWith(candidates: unknown[]): Stage1Provider {
 	return {
 		extract: vi.fn().mockResolvedValue({
 			output: { candidates },
@@ -35,24 +35,23 @@ function stage1With(candidates: unknown[]): Stage1Provider {
 	};
 }
 
-const oneCandidate = () => stage1With([stage1Candidate(policy, [policy])]);
-const goodStage2 = () =>
-	stage2ProviderWith({ summary: SUMMARY, findings: [modelFinding()], exclusions: [] });
+const oneCandidate = () => extractionWith([stage1Candidate(policy, [policy])]);
+const goodConsolidation = () =>
+	consolidationProviderWith({ summary: SUMMARY, findings: [modelFinding()], exclusions: [] });
 
 afterEach(() => {
 	vi.restoreAllMocks();
 });
 
 describe('consolidated analysis HTTP boundary', () => {
-	it('runs Stage 1 then Stage 2 and returns findings with the extraction', async () => {
+	it('runs extraction then consolidation and returns findings with the extraction', async () => {
 		const info = vi.spyOn(console, 'info').mockImplementation(() => undefined);
-		const stage2 = goodStage2();
-		const createStage2 = vi.fn(() => stage2);
+		const consolidation = goodConsolidation();
+		const createConsolidationProvider = vi.fn(() => consolidation);
 		const response = await handleConsolidatedAnalysisHttpRequest(
 			request({ text: policy, preferences: { sharing: 'major' } }),
 			environment,
-			() => oneCandidate(),
-			createStage2
+			{ createExtractionProvider: () => oneCandidate(), createConsolidationProvider }
 		);
 		const body = (await response.json()) as {
 			stage: string;
@@ -70,68 +69,98 @@ describe('consolidated analysis HTTP boundary', () => {
 		});
 		expect(body.findings[0].evidence[0].excerpt).toBe(policy);
 		expect(body.extraction).toMatchObject({ stage: 'evidence_extraction' });
-		// Stage 2 gets the same checked settings Stage 1 used.
-		expect(createStage2).toHaveBeenCalledWith({
+		// Consolidation gets the same checked settings extraction used.
+		expect(createConsolidationProvider).toHaveBeenCalledWith({
 			apiKey: 'test-key',
 			model: 'gpt-6-luna',
 			reasoningEffort: 'medium'
 		});
-		expect(stage2.consolidate).toHaveBeenCalledWith(
+		expect(consolidation.consolidate).toHaveBeenCalledWith(
 			expect.objectContaining({ preferences: { sharing: 'major' } })
 		);
-		// Both stages log, with counts only: no policy text, summary, or preferences.
+		// Both steps log, with counts only: no policy text, summary, or preferences.
 		const logged = info.mock.calls.map((call) => String(call[0])).join('\n');
 		expect(logged).toContain('stage1_analysis');
-		expect(logged).toContain('stage2_consolidation');
+		expect(logged).toContain('"event":"consolidation"');
 		expect(logged).not.toContain(policy);
 		expect(logged).not.toContain(SUMMARY);
 		expect(logged).not.toContain('major');
 	});
 
+	it('returns a partial result as 200 but keeps the analysis in progress', async () => {
+		vi.spyOn(console, 'info').mockImplementation(() => undefined);
+		// The second finding cites a candidate that doesn't exist, so it is rejected.
+		const partial = consolidationProviderWith({
+			summary: SUMMARY,
+			findings: [modelFinding(), modelFinding({ candidateIds: ['C099'] })],
+			exclusions: []
+		});
+		const response = await handleConsolidatedAnalysisHttpRequest(
+			request({ text: policy }),
+			environment,
+			{ createExtractionProvider: () => oneCandidate(), createConsolidationProvider: () => partial }
+		);
+		const body = (await response.json()) as {
+			stageStatus: string;
+			analysisStatus: string;
+			outcome: string | null;
+			rejectedOutput: unknown[];
+		};
+
+		expect(response.status).toBe(200);
+		expect(body).toMatchObject({
+			stageStatus: 'partial',
+			analysisStatus: 'in_progress',
+			outcome: null
+		});
+		expect(body.rejectedOutput).toHaveLength(1);
+	});
+
 	it.each([
 		['paid analysis disabled', { ...environment, ENABLE_PAID_ANALYSIS: '0' }, 'local-secret', 503],
 		['wrong access token', environment, 'wrong-token', 401]
-	])('returns the Stage 1 response unchanged when %s', async (_name, env, token, status) => {
+	])('returns the extraction response unchanged when %s', async (_name, env, token, status) => {
 		vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-		const createStage1 = vi.fn(() => oneCandidate());
-		const createStage2 = vi.fn(() => goodStage2());
+		const createExtractionProvider = vi.fn(() => oneCandidate());
+		const createConsolidationProvider = vi.fn(() => goodConsolidation());
 		const response = await handleConsolidatedAnalysisHttpRequest(
 			request({ text: policy }, token),
 			env,
-			createStage1,
-			createStage2
+			{
+				createExtractionProvider,
+				createConsolidationProvider
+			}
 		);
 		const body = (await response.json()) as { stage: string };
 
 		expect(response.status).toBe(status);
 		expect(body.stage).toBe('evidence_extraction');
-		expect(createStage1).not.toHaveBeenCalled();
-		expect(createStage2).not.toHaveBeenCalled();
+		expect(createExtractionProvider).not.toHaveBeenCalled();
+		expect(createConsolidationProvider).not.toHaveBeenCalled();
 	});
 
-	it('does not run Stage 2 when Stage 1 fails', async () => {
+	it('does not run consolidation when extraction fails', async () => {
 		vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 		const failing: Stage1Provider = {
 			extract: vi.fn().mockRejectedValue(new Stage1Error('provider_quota', 503, 'Quota reached.'))
 		};
-		const createStage2 = vi.fn(() => goodStage2());
+		const createConsolidationProvider = vi.fn(() => goodConsolidation());
 		const response = await handleConsolidatedAnalysisHttpRequest(
 			request({ text: policy }),
 			environment,
-			() => failing,
-			createStage2
+			{ createExtractionProvider: () => failing, createConsolidationProvider }
 		);
 		const body = (await response.json()) as { error: { code: string } };
 
 		expect(response.status).toBe(503);
 		expect(body.error.code).toBe('provider_quota');
-		expect(createStage2).not.toHaveBeenCalled();
+		expect(createConsolidationProvider).not.toHaveBeenCalled();
 	});
 
-	it('keeps Stage 1 work visible but incomplete when Stage 2 fails', async () => {
+	it('keeps extraction work visible but incomplete when consolidation fails', async () => {
 		vi.spyOn(console, 'info').mockImplementation(() => undefined);
 		vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-		const timeout: Stage2Provider = {
+		const timeout: ConsolidationProvider = {
 			consolidate: vi
 				.fn()
 				.mockRejectedValue(
@@ -141,8 +170,7 @@ describe('consolidated analysis HTTP boundary', () => {
 		const response = await handleConsolidatedAnalysisHttpRequest(
 			request({ text: policy }),
 			environment,
-			() => oneCandidate(),
-			() => timeout
+			{ createExtractionProvider: () => oneCandidate(), createConsolidationProvider: () => timeout }
 		);
 		const body = (await response.json()) as {
 			stage: string;
@@ -162,15 +190,45 @@ describe('consolidated analysis HTTP boundary', () => {
 		expect(body.extraction.candidates).toHaveLength(1);
 	});
 
-	it('reports an unexpected Stage 2 failure as internal', async () => {
+	it('logs the usage of a paid call that failed after the model responded', async () => {
+		vi.spyOn(console, 'info').mockImplementation(() => undefined);
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+		// A blank summary fails validation after the model has already been paid for.
+		const blank = consolidationProviderWith({
+			summary: '  ',
+			findings: [modelFinding()],
+			exclusions: []
+		});
+		const response = await handleConsolidatedAnalysisHttpRequest(
+			request({ text: policy }),
+			environment,
+			{ createExtractionProvider: () => oneCandidate(), createConsolidationProvider: () => blank }
+		);
+		const body = (await response.json()) as { error: { code: string } };
+		const logged = JSON.parse(String(warn.mock.calls.at(-1)![0]));
+
+		expect(response.status).toBe(502);
+		expect(body.error.code).toBe('provider_malformed');
+		expect(logged).toMatchObject({
+			event: 'consolidation',
+			outcome: 'failed',
+			code: 'provider_malformed',
+			model: 'mock-model',
+			usage: { totalTokens: 15 }
+		});
+	});
+
+	it('reports an unexpected consolidation failure as internal', async () => {
 		vi.spyOn(console, 'info').mockImplementation(() => undefined);
 		vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 		const response = await handleConsolidatedAnalysisHttpRequest(
 			request({ text: policy }),
 			environment,
-			() => oneCandidate(),
-			() => {
-				throw new TypeError('bug in server code');
+			{
+				createExtractionProvider: () => oneCandidate(),
+				createConsolidationProvider: () => {
+					throw new TypeError('bug in server code');
+				}
 			}
 		);
 		const body = (await response.json()) as { error: { code: string } };
@@ -179,19 +237,21 @@ describe('consolidated analysis HTTP boundary', () => {
 		expect(body.error.code).toBe('internal_error');
 	});
 
-	it('skips the Stage 2 call and reports no findings when Stage 1 finds nothing', async () => {
+	it('skips the consolidation call and reports no findings when extraction finds nothing', async () => {
 		vi.spyOn(console, 'info').mockImplementation(() => undefined);
-		const stage2 = goodStage2();
+		const consolidation = goodConsolidation();
 		const response = await handleConsolidatedAnalysisHttpRequest(
 			request({ text: policy }),
 			environment,
-			() => stage1With([]),
-			() => stage2
+			{
+				createExtractionProvider: () => extractionWith([]),
+				createConsolidationProvider: () => consolidation
+			}
 		);
 		const body = (await response.json()) as { analysisStatus: string; outcome: string };
 
 		expect(response.status).toBe(200);
 		expect(body).toMatchObject({ analysisStatus: 'complete', outcome: 'no_findings' });
-		expect(stage2.consolidate).not.toHaveBeenCalled();
+		expect(consolidation.consolidate).not.toHaveBeenCalled();
 	});
 });

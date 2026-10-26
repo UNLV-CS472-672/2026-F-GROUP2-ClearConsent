@@ -2,7 +2,7 @@ import { Stage1Error } from '../errors';
 import type { ValidatedCandidate, VerifiedEvidence } from '../schemas';
 import {
 	FINDING_CATEGORIES,
-	ModelStage2ResponseSchema,
+	ModelConsolidationResponseSchema,
 	PURPOSE_TYPES,
 	RECIPIENT_TYPES
 } from './schemas';
@@ -18,7 +18,7 @@ export type EligibleCandidates = {
 	heldBack: ExcludedCandidate[];
 };
 
-// Stage 1's rule: a candidate may be presented only when every one of its excerpts is verified.
+// Extraction's rule: a candidate may be presented only when every one of its excerpts is verified.
 // Qualifiers are not linked to individual excerpts, so one unverified excerpt may be the only
 // support for an exception. Such candidates never reach the model.
 export function selectEligibleCandidates(candidates: ValidatedCandidate[]): EligibleCandidates {
@@ -147,17 +147,46 @@ export type ValidatedConsolidation = {
 	rejectedOutput: RejectedOutput[];
 };
 
+// Values that mean "this preference is off", so they never mark a finding as relevant.
+const OFF_VALUES = new Set(['', 'none', 'off', 'no', 'false']);
+
+// Preference keys the user actually holds: a key set to null, false, or a value like "none" is
+// treated as not set, so it can't move a finding up the display order.
+export function activePreferenceKeys(preferences: Record<string, unknown> | null): string[] {
+	if (!preferences) return [];
+	return Object.entries(preferences)
+		.filter(([, value]) => {
+			if (value === null || value === undefined || value === false) return false;
+			if (typeof value === 'string') return !OFF_VALUES.has(value.trim().toLowerCase());
+			return true;
+		})
+		.map(([key]) => key);
+}
+
+/**
+ * Checks the model's consolidation output and turns it into findings the app can show.
+ *
+ * 1. Checks the output matches the schema and has a summary (otherwise provider_malformed).
+ * 2. Builds each finding. A finding is rejected (listed in rejectedOutput) if it cites an
+ *    unknown or held-back candidate, or is missing required text. Its evidence is copied from
+ *    the cited candidates' verified excerpts, never from the model.
+ * 3. Checks each exclusion. Unknown, repeated, reasonless, or contradictory ones are rejected.
+ * 4. Lists every eligible candidate that ended up in no finding or exclusion as "unaccounted".
+ * 5. Orders the findings and numbers them F001, F002, ...
+ *
+ * Throws provider_malformed if the model returned findings but none were usable.
+ */
 export function validateConsolidation(
 	rawOutput: unknown,
 	eligibleCandidates: ValidatedCandidate[],
 	preferences: Record<string, unknown> | null
 ): ValidatedConsolidation {
-	const parsed = ModelStage2ResponseSchema.safeParse(rawOutput);
+	const parsed = ModelConsolidationResponseSchema.safeParse(rawOutput);
 	if (!parsed.success) {
 		throw new Stage1Error(
 			'provider_malformed',
 			502,
-			'The provider response did not match the internal Stage 2 schema.',
+			'The provider response did not match the internal consolidation schema.',
 			{ cause: parsed.error }
 		);
 	}
@@ -168,7 +197,7 @@ export function validateConsolidation(
 	}
 
 	const eligible = new Map(eligibleCandidates.map((candidate) => [candidate.id, candidate]));
-	const preferenceKeys = preferences ? Object.keys(preferences) : [];
+	const preferenceKeys = activePreferenceKeys(preferences);
 	const rejectedOutput: RejectedOutput[] = [];
 	const kept: Omit<ConsolidatedFinding, 'id'>[] = [];
 
