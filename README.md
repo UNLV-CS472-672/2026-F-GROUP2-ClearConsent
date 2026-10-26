@@ -126,11 +126,11 @@ npx supabase db lint --local --level warning --fail-on warning
 The server reads two variables. Set them in a local `.env` file (git-ignored;
 copy `.env.example`) or as Cloudflare secrets for deployment.
 
-- `SUPABASE_URL`: the API URL. For local development, use
+- `PUBLIC_SUPABASE_URL`: the API URL. For local development, use
   `http://127.0.0.1:54321`, which `npx supabase start` serves. For the hosted
   project, copy the Project URL from Project Settings → Data API. It looks like
   `https://<project-ref>.supabase.co`.
-- `SUPABASE_PUBLISHABLE_KEY`: the anon (publishable) key from the same page.
+- `PUBLIC_SUPABASE_PUBLISHABLE_KEY`: the anon (publishable) key from the same page.
   Never use the service-role key; it bypasses row-level security.
 
 The server fails requests that need the database when either variable is missing.
