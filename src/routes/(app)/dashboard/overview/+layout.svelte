@@ -4,7 +4,10 @@
 	import { page } from '$app/state';
 	import { detailLevel } from '$lib/study/sample';
 	const studyQuery = $derived('?detail=' + detailLevel(page.url.searchParams.get('detail')));
-	const showingResult = $derived(page.url.pathname === '/dashboard/overview/result');
+	const showingResult = $derived(
+		page.url.pathname === '/dashboard/overview/result' ||
+			page.url.pathname.startsWith('/dashboard/overview/analyze/')
+	);
 	let { children }: LayoutProps = $props();
 
 	const INPUT_METHODS = [

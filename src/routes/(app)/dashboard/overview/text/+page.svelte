@@ -45,7 +45,11 @@
 		const body = (await res.json()) as any;
 		if (res.ok) {
 			console.log('Saved source:', body);
-			await goto(resolve(`/analyze/${body.id}`));
+			await goto(
+				resolve(
+					`/dashboard/overview/analyze/${body.id}?detail=${detailLevel(page.url.searchParams.get('detail'))}`
+				)
+			);
 		} else {
 			error = body.message;
 		}
