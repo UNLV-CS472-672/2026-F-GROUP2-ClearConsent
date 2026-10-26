@@ -1,6 +1,5 @@
 import OpenAI from 'openai';
 import { describe, expect, it, vi } from 'vitest';
-import type { OpenAIClientFactory } from '../openai-provider';
 import {
 	OPENAI_MAX_OUTPUT_TOKENS,
 	OPENAI_MAX_RETRIES,
@@ -8,21 +7,40 @@ import {
 } from '../openai-provider';
 import { ConsolidationError } from './errors';
 import { createOpenAIConsolidationProvider } from './openai-provider';
+import type { ConsolidationClientFactory } from './openai-provider';
 import { CONSOLIDATION_INSTRUCTIONS } from './prompt';
 import { fitnessCandidates, extractionResult, SUMMARY } from './test-fixtures';
 
 type Capture = { options?: unknown; body?: unknown; requestOptions?: unknown; calls: number };
 
-function factoryReturning(responseOrError: unknown, capture: Capture): OpenAIClientFactory {
+function factoryReturning(responseOrError: unknown, capture: Capture): ConsolidationClientFactory {
 	return (options) => {
 		capture.options = options;
 		return {
 			responses: {
-				parse: vi.fn(async (body, requestOptions) => {
+				create: vi.fn(async (body, requestOptions) => {
 					capture.calls += 1;
 					capture.body = body;
 					capture.requestOptions = requestOptions;
 					if (responseOrError instanceof Error) throw responseOrError;
+					if (
+						responseOrError &&
+						typeof responseOrError === 'object' &&
+						'output_parsed' in responseOrError &&
+						responseOrError.output_parsed
+					) {
+						return {
+							...responseOrError,
+							output: [
+								{
+									type: 'message',
+									content: [
+										{ type: 'output_text', text: JSON.stringify(responseOrError.output_parsed) }
+									]
+								}
+							]
+						};
+					}
 					return responseOrError;
 				})
 			}
