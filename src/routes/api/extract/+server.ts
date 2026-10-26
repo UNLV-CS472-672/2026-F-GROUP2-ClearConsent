@@ -20,19 +20,21 @@ export async function POST({ request, locals }: { request: Request; locals: App.
 
 	const extraction = await extractFromUrl(req.url);
 
-	const { error: insertError } = await getSupabaseForUser(session.access_token)
+	const { data: source, error: insertError } = await getSupabaseForUser(session.access_token)
 		.from('sources')
 		.insert({
 			owner_id: user.id,
 			title: extraction.title ?? null,
 			text: extraction.text,
 			url: extraction.url
-		});
+		})
+		.select()
+		.single();
 
 	if (insertError) {
 		console.error('Failed to save source:', insertError.message);
 		error(500, 'Unable to save the extracted source.');
 	}
 
-	return json(extraction);
+	return json(source);
 }

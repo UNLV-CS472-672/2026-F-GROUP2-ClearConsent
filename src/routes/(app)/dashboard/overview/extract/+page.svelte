@@ -6,7 +6,6 @@
 
 	let url = $state('');
 	let loading = $state(false);
-	let result: any = $state(null);
 	let error = $state('');
 
 	async function submit(event: Event) {
@@ -20,7 +19,6 @@
 			return;
 		}
 		loading = true;
-		result = null;
 		error = '';
 
 		const res = await fetch('/api/extract', {
@@ -29,8 +27,12 @@
 			body: JSON.stringify({ url })
 		});
 		const body = (await res.json()) as any;
-		if (res.ok) result = body;
-		else error = body.message;
+		if (res.ok) {
+			console.log('Saved source:', body);
+			await goto(resolve(`/analyze/${body.id}`));
+		} else {
+			error = body.message;
+		}
 
 		loading = false;
 	}
@@ -68,12 +70,5 @@
 
 	{#if error}
 		<p class="mt-4 bg-red-50 p-3 text-red-700">{error}</p>
-	{/if}
-
-	{#if result}
-		<h2 class="mt-8 text-lg font-semibold">{result.title}</h2>
-		<p class="mt-1 font-mono text-sm text-gray-500">{result.url}</p>
-		<pre
-			class="whitespce-pre-wrap mt-4 h-250 w-full overflow-scroll border border-gray-200 bg-gray-50 p-4 text-sm whitespace-pre-wrap">{result.text}</pre>
 	{/if}
 </div>

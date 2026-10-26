@@ -30,9 +30,25 @@
 			const res = page.form;
 			if (res.success) {
 				result = res;
+				await saveSource(res.data);
 			} else error = res.error;
 			loading = false;
 		};
+	};
+
+	const saveSource = async (content: string) => {
+		const res = await fetch('/source', {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ content })
+		});
+		const body = (await res.json()) as any;
+		if (res.ok) {
+			console.log('Saved source:', body);
+			await goto(resolve(`/analyze/${body.id}`));
+		} else {
+			error = body.message;
+		}
 	};
 
 	const keydown = (e: KeyboardEvent) => {
