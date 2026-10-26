@@ -1,5 +1,6 @@
 import { error, json } from '@sveltejs/kit';
 import { getSupabaseForUser } from '$lib/server/db/supabase';
+import { findOrCreateSource } from '$lib/server/db/sources';
 
 type RequestBody = {
 	content: string;
@@ -17,11 +18,10 @@ export async function POST({ request, locals }: { request: Request; locals: App.
 		error(400, 'Body must be JSON like { "content": "..." }');
 	}
 
-	const { data: source, error: insertError } = await getSupabaseForUser(session.access_token)
-		.from('sources')
-		.insert({ owner_id: user.id, title: null, text: req.content.trim(), url: null })
-		.select()
-		.single();
+	const { data: source, error: insertError } = await findOrCreateSource(
+		getSupabaseForUser(session.access_token),
+		{ ownerId: user.id, title: null, text: req.content.trim(), url: null }
+	);
 
 	if (insertError) {
 		console.error('Failed to save source:', insertError.message);

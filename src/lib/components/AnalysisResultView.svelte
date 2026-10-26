@@ -18,6 +18,7 @@
 	<div class="result-state" role="status">
 		<h2>We couldn't analyze this policy</h2>
 		<p>Please try again.</p>
+		<p>Error code: <code>{result.errorCode}</code></p>
 	</div>
 {:else if result.status === 'insufficient'}
 	<div class="result-state" role="status">
