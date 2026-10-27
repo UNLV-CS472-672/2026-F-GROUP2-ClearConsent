@@ -121,7 +121,18 @@ async function loadResult(
 			body: JSON.stringify({ sourceId })
 		});
 		if (!res.ok) {
-			throw new Error('Unable to analyze this source.');
+			// Pipeline errors look like { error: { code, message } }; SvelteKit errors like { message }.
+			const body = (await res.json().catch(() => null)) as {
+				error?: { code?: string; message?: string };
+				message?: string;
+			} | null;
+			return {
+				status: 'failed',
+				analysisId: sourceId,
+				schemaVersion: 1,
+				errorCode: body?.error?.code ?? `http_${res.status}`,
+				message: body?.error?.message ?? body?.message ?? 'Unable to analyze this source.'
+			};
 		}
 		analysis = await findAnalysis(supabase, sourceId);
 		if (!analysis) {

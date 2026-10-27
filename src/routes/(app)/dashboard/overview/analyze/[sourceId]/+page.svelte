@@ -47,11 +47,17 @@
 			<div class="skeleton skeleton-card"></div>
 		</div>
 	{:then result}
-		<p class="study-note" role="note">
-			ClearConsent analyzed this policy and saved the result to your account.
-		</p>
+		{#if result.status === 'failed'}
+			<div class="failed-state">
+				<AnalysisResultView {result} {detail} />
+			</div>
+		{:else}
+			<p class="study-note" role="note">
+				ClearConsent analyzed this policy and saved the result to your account.
+			</p>
 
-		<AnalysisResultView {result} {detail} />
+			<AnalysisResultView {result} {detail} />
+		{/if}
 	{:catch}
 		<div class="failed-state">
 			<AnalysisResultView
