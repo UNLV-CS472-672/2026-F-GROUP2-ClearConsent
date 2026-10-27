@@ -43,7 +43,7 @@
 					<p class="eyebrow">02 / KEY POINTS</p>
 					<h2 id="takeaways-title">Key takeaways</h2>
 				</div>
-				<p>Each point links back to wording in the sample policy.</p>
+				<p>Each point links back to wording in the policy.</p>
 			</div>
 
 			<div class="takeaway-list">
