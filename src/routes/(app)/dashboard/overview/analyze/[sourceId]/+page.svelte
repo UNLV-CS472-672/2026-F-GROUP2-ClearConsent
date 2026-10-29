@@ -1,9 +1,14 @@
 <script lang="ts">
 	import AnalysisResultView from '$lib/components/AnalysisResultView.svelte';
+	import { SvelteSet } from 'svelte/reactivity';
+	import { invalidate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
+	import { ANALYSIS_DEPENDENCY } from '$lib/analysis-run';
 	import { detailLevel } from '$lib/study/sample';
 	import type { PageData } from './$types';
+
+	const POLL_MS = 3000;
 
 	let { data }: { data: PageData } = $props();
 
@@ -11,6 +16,57 @@
 	const detailName = $derived(
 		detail === 'quick' ? 'Quick scan' : detail === 'detailed' ? 'Detailed' : 'Balanced'
 	);
+
+	// Sources this page has already asked to analyze on its own. The load re-runs on auth events
+	// and while polling, so without this a new source could be requested more than once.
+	const requested = new SvelteSet<string>();
+	// The source with a run request in flight from this page.
+	let pending = $state<string | null>(null);
+	// A source whose request ended without starting a run (for example, a network error).
+	let unstarted = $state<string | null>(null);
+
+	const loading = $derived(
+		pending === data.source.id ||
+			data.analysis.status === 'running' ||
+			(data.analysis.status === 'not_started' && unstarted !== data.source.id)
+	);
+
+	// The server allows one run per source, so a request while another tab is running, or for a
+	// failed source without retry, starts nothing. The stored state is re-read either way.
+	async function start(sourceId: string, retry: boolean) {
+		pending = sourceId;
+		try {
+			await fetch('/api/analyze', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ sourceId, retry })
+			});
+		} catch {
+			// The reloaded state below shows what happened.
+		} finally {
+			await invalidate(ANALYSIS_DEPENDENCY);
+			pending = null;
+			if (data.source.id === sourceId && data.analysis.status === 'not_started') {
+				unstarted = sourceId;
+			}
+		}
+	}
+
+	// Only a source that has never been run starts automatically. A failed one waits for Try again.
+	$effect(() => {
+		const sourceId = data.source.id;
+		if (data.analysis.status === 'not_started' && !requested.has(sourceId)) {
+			requested.add(sourceId);
+			start(sourceId, false);
+		}
+	});
+
+	// Another tab or an earlier visit started this run, so check back until it finishes.
+	$effect(() => {
+		if (data.analysis.status !== 'running') return;
+		const timer = setInterval(() => invalidate(ANALYSIS_DEPENDENCY), POLL_MS);
+		return () => clearInterval(timer);
+	});
 </script>
 
 <svelte:head><title>Analysis results | ClearConsent</title></svelte:head>
@@ -30,7 +86,7 @@
 		<span class="detail-tag">{detailName}</span>
 	</div>
 
-	{#await data.result}
+	{#if loading}
 		<div class="loading" role="status" aria-live="polite">
 			<div class="loading-header">
 				<span class="spinner" aria-hidden="true"></span>
@@ -46,32 +102,31 @@
 			<div class="skeleton skeleton-card"></div>
 			<div class="skeleton skeleton-card"></div>
 		</div>
-	{:then result}
-		{#if result.status === 'failed'}
-			<div class="failed-state">
-				<AnalysisResultView {result} {detail} />
-			</div>
-		{:else}
-			<p class="study-note" role="note">
-				ClearConsent analyzed this policy and saved the result to your account.
-			</p>
+	{:else if data.analysis.status === 'complete'}
+		<p class="study-note" role="note">
+			ClearConsent analyzed this policy and saved the result to your account.
+		</p>
 
-			<AnalysisResultView {result} {detail} />
-		{/if}
-	{:catch}
+		<AnalysisResultView result={data.analysis.result} {detail} />
+	{:else}
 		<div class="failed-state">
 			<AnalysisResultView
-				result={{
-					status: 'failed',
-					analysisId: data.source.id,
-					schemaVersion: 1,
-					errorCode: 'analysis_failed',
-					message: 'Unable to analyze this source.'
-				}}
+				result={data.analysis.status === 'failed'
+					? data.analysis.result
+					: {
+							status: 'failed',
+							analysisId: data.source.id,
+							schemaVersion: 1,
+							errorCode: 'analysis_not_started',
+							message: 'The analysis did not start.'
+						}}
 				{detail}
 			/>
+			<button type="button" class="retry" onclick={() => start(data.source.id, true)}>
+				Try again
+			</button>
 		</div>
-	{/await}
+	{/if}
 
 	<nav aria-label="Result navigation" class="result-actions">
 		<a href={resolve(`/dashboard/overview/extract?detail=${detail}`)}>Try URL input</a>
@@ -148,6 +203,25 @@
 	}
 	.failed-state {
 		margin: 24px 0 0;
+	}
+	.retry {
+		margin-top: 16px;
+		padding: 9px 14px;
+		border: 0;
+		border-radius: 5px;
+		background: #0e6871;
+		color: #fff;
+		font: inherit;
+		font-size: 13px;
+		font-weight: 750;
+		cursor: pointer;
+	}
+	.retry:hover {
+		background: #0b5960;
+	}
+	.retry:focus-visible {
+		outline: 2px solid #168a92;
+		outline-offset: 2px;
 	}
 	.loading {
 		display: grid;

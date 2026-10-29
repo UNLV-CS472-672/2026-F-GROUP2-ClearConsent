@@ -1,5 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { ANALYSIS_DEPENDENCY, type AnalysisState } from '$lib/analysis-run';
 import type { AnalysisResult, AttentionLabel, FindingCategory } from '$lib/contracts/analysis';
 import { getSupabaseForUser } from '$lib/server/db/supabase';
 import type { PageServerLoad } from './$types';
@@ -17,6 +18,13 @@ const TOPICS: Record<FindingCategory, string> = {
 };
 
 type Analysis = { id: string; summary: string };
+
+type RunRow = {
+	status: 'running' | 'failed';
+	error_code: string | null;
+	error_message: string | null;
+	expires_at: string;
+};
 
 type FindingRow = {
 	id: string;
@@ -98,46 +106,53 @@ async function findAnalysis(supabase: SupabaseClient, sourceId: string) {
 		.order('analyzed_at', { ascending: false })
 		.limit(1)
 		.maybeSingle();
-	// Only a successful empty lookup should start a new (paid) analysis.
 	if (findError) {
 		console.error('Failed to load analysis:', findError.message);
-		throw new Error('Unable to load the analysis.');
+		error(500, 'Unable to load the analysis.');
 	}
 	return data as Analysis | null;
 }
 
-// Runs the analysis if none is stored yet, then loads its findings. Returned as a promise so the
-// page can render the source and a loading state while this is in progress.
-async function loadResult(
-	supabase: SupabaseClient,
-	sourceId: string,
-	fetch: typeof globalThis.fetch
-): Promise<AnalysisResult> {
-	let analysis = await findAnalysis(supabase, sourceId);
+async function findRun(supabase: SupabaseClient, sourceId: string) {
+	const { data, error: runError } = await supabase
+		.from('analysis_runs')
+		.select('status, error_code, error_message, expires_at')
+		.eq('source_id', sourceId)
+		.maybeSingle();
+	// A failed read must not look like "never analyzed", which would start a paid run.
+	if (runError) {
+		console.error('Failed to load analysis run:', runError.message);
+		error(500, 'Unable to load the analysis.');
+	}
+	return data as RunRow | null;
+}
+
+function failed(sourceId: string, errorCode: string, message: string): AnalysisState {
+	return {
+		status: 'failed',
+		result: { status: 'failed', analysisId: sourceId, schemaVersion: 1, errorCode, message }
+	};
+}
+
+// Reads the saved analysis, or else the state of its run. Never starts a run: this load re-runs
+// on invalidation and hover preloading, so it must not have paid side effects.
+async function loadState(supabase: SupabaseClient, sourceId: string): Promise<AnalysisState> {
+	const analysis = await findAnalysis(supabase, sourceId);
 	if (!analysis) {
-		const res = await fetch('/api/analyze', {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ sourceId })
-		});
-		if (!res.ok) {
-			// Pipeline errors look like { error: { code, message } }; SvelteKit errors like { message }.
-			const body = (await res.json().catch(() => null)) as {
-				error?: { code?: string; message?: string };
-				message?: string;
-			} | null;
-			return {
-				status: 'failed',
-				analysisId: sourceId,
-				schemaVersion: 1,
-				errorCode: body?.error?.code ?? `http_${res.status}`,
-				message: body?.error?.message ?? body?.message ?? 'Unable to analyze this source.'
-			};
+		const run = await findRun(supabase, sourceId);
+		if (!run) return { status: 'not_started' };
+		if (run.status === 'failed') {
+			return failed(
+				sourceId,
+				run.error_code ?? 'analysis_failed',
+				run.error_message ?? 'Unable to analyze this source.'
+			);
 		}
-		analysis = await findAnalysis(supabase, sourceId);
-		if (!analysis) {
-			throw new Error('The analysis did not complete.');
+		// The server stopped before finishing (for example, the worker was cancelled).
+		if (new Date(run.expires_at) <= new Date()) {
+			return failed(sourceId, 'analysis_interrupted', 'The analysis stopped before it finished.');
 		}
+		return { status: 'running' };
 	}
 
 	const { data: findings, error: findingsError } = await supabase
@@ -151,13 +166,15 @@ async function loadResult(
 	// A failed read must not be shown as "no findings".
 	if (findingsError) {
 		console.error('Failed to load findings:', findingsError.message);
-		throw new Error('Unable to load the findings.');
+		error(500, 'Unable to load the findings.');
 	}
 
-	return toAnalysisResult(analysis, findings as FindingRow[]);
+	return { status: 'complete', result: toAnalysisResult(analysis, findings as FindingRow[]) };
 }
 
-export const load: PageServerLoad = async ({ params, locals, fetch }) => {
+export const load: PageServerLoad = async ({ params, locals, depends }) => {
+	depends(ANALYSIS_DEPENDENCY);
+
 	const { session } = await locals.safeGetSession();
 	if (!session || !UUID.test(params.sourceId)) {
 		redirect(303, INPUT_PAGE);
@@ -181,6 +198,6 @@ export const load: PageServerLoad = async ({ params, locals, fetch }) => {
 
 	return {
 		source,
-		result: loadResult(supabase, source.id, fetch)
+		analysis: await loadState(supabase, source.id)
 	};
 };
