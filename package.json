@@ -21,6 +21,7 @@
 		"gen": "node scripts/worker-types.js",
 		"gen:check": "node scripts/worker-types.js --check",
 		"test:offline": "node --test tests/eval/issue-11/regression.test.mjs",
+		"test:stage1:offline": "node --import jiti/register --test tests/eval/stage1/offline.test.ts",
 		"test:db": "node scripts/test-database.mjs"
 	},
 	"devDependencies": {

@@ -47,9 +47,11 @@ node --import jiti/register tests/eval/stage1/run-stage1-eval.ts --estimate
 # Offline: run every case through the real pipeline with a fake provider, then score it.
 node --import jiti/register tests/eval/stage1/run-stage1-eval.ts --mock
 
-# Offline checks for the loader, estimator, mock provider, and scorer.
-node --import jiti/register --test tests/eval/stage1/offline.test.ts
+# Offline checks for the loader, estimator, mock provider, scorer, and review.
+npm run test:stage1:offline
 ```
+
+The CI `validate` job also runs these six offline tests automatically on pull requests.
 
 A paid run requires `--run`, `RUN_MODEL_EVALS=1`, `OPENAI_API_KEY`, and `EVAL_APPROVED_MAX_USD` at
 least as large as the current `--estimate` maximum. It refuses any model other than `gpt-6-luna`,
