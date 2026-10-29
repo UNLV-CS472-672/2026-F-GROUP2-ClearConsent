@@ -151,9 +151,13 @@ developing:
 ```sh
 npm test
 npm run test:watch
+npm run test:stage1:offline
 npx playwright install chromium
 npm run test:e2e
 ```
+
+The Stage 1 offline command runs six fixture and mock-provider tests without
+paid model calls. The pull-request CI workflow runs it automatically.
 
 The end-to-end suite starts the local Vite development server automatically.
 CI installs Chromium with `npx playwright install --with-deps chromium` before
