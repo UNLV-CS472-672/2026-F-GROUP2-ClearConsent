@@ -1,14 +1,18 @@
 <script lang="ts">
 	import AnalysisResultView from '$lib/components/AnalysisResultView.svelte';
-	import { SvelteSet } from 'svelte/reactivity';
+	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import { invalidate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { ANALYSIS_DEPENDENCY } from '$lib/analysis-run';
+	import type { AnalysisResult } from '$lib/contracts/analysis';
 	import { detailLevel } from '$lib/study/sample';
 	import type { PageData } from './$types';
 
 	const POLL_MS = 3000;
+
+	type FailedResult = Extract<AnalysisResult, { status: 'failed' }>;
+	type ErrorBody = { error?: { code?: string; message?: string }; message?: string };
 
 	let { data }: { data: PageData } = $props();
 
@@ -18,36 +22,61 @@
 	);
 
 	// Sources this page has already asked to analyze on its own. The load re-runs on auth events
-	// and while polling, so without this a new source could be requested more than once.
+	// and after each run, so without this a new source could be requested more than once.
 	const requested = new SvelteSet<string>();
-	// The source with a run request in flight from this page.
-	let pending = $state<string | null>(null);
-	// A source whose request ended without starting a run (for example, a network error).
-	let unstarted = $state<string | null>(null);
+	// Sources with a run request in flight from this page.
+	const pending = new SvelteSet<string>();
+	// Errors from this page's requests that the stored state may not show: the request failed
+	// before a run started, or the server could not record the failure.
+	const requestErrors = new SvelteMap<string, FailedResult>();
 
+	const failure = $derived.by((): FailedResult | null => {
+		const sourceId = data.source.id;
+		if (data.analysis.status === 'failed') return data.analysis.result;
+		if (data.analysis.status === 'running') return requestErrors.get(sourceId) ?? null;
+		if (data.analysis.status === 'not_started' && requested.has(sourceId)) {
+			return requestErrors.get(sourceId) ?? failedResult(sourceId, null);
+		}
+		return null;
+	});
 	const loading = $derived(
-		pending === data.source.id ||
-			data.analysis.status === 'running' ||
-			(data.analysis.status === 'not_started' && unstarted !== data.source.id)
+		pending.has(data.source.id) || (data.analysis.status !== 'complete' && failure === null)
 	);
 
+	function failedResult(sourceId: string, body: ErrorBody | null, status?: number): FailedResult {
+		return {
+			status: 'failed',
+			analysisId: sourceId,
+			schemaVersion: 1,
+			errorCode:
+				body?.error?.code ?? (status === undefined ? 'analysis_not_started' : `http_${status}`),
+			message: body?.error?.message ?? body?.message ?? 'The analysis did not start.'
+		};
+	}
+
 	// The server allows one run per source, so a request while another tab is running, or for a
-	// failed source without retry, starts nothing. The stored state is re-read either way.
+	// failed source without retry, starts nothing (409). The stored state is re-read either way.
 	async function start(sourceId: string, retry: boolean) {
-		pending = sourceId;
+		pending.add(sourceId);
+		requestErrors.delete(sourceId);
 		try {
-			await fetch('/api/analyze', {
+			const res = await fetch('/api/analyze', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify({ sourceId, retry })
 			});
+			if (!res.ok && res.status !== 409) {
+				// Pipeline errors look like { error: { code, message } }; SvelteKit errors like { message }.
+				const body = (await res.json().catch(() => null)) as ErrorBody | null;
+				requestErrors.set(sourceId, failedResult(sourceId, body, res.status));
+			}
 		} catch {
-			// The reloaded state below shows what happened.
+			requestErrors.set(sourceId, failedResult(sourceId, { error: { code: 'network_error' } }));
 		} finally {
-			await invalidate(ANALYSIS_DEPENDENCY);
-			pending = null;
-			if (data.source.id === sourceId && data.analysis.status === 'not_started') {
-				unstarted = sourceId;
+			try {
+				await invalidate(ANALYSIS_DEPENDENCY);
+			} finally {
+				pending.delete(sourceId);
 			}
 		}
 	}
@@ -61,10 +90,22 @@
 		}
 	});
 
-	// Another tab or an earlier visit started this run, so check back until it finishes.
+	// Another tab or an earlier visit started this run, so check back until it finishes. The check
+	// reads only the status, and a failed check is skipped, so a passing error does not replace the
+	// page.
 	$effect(() => {
-		if (data.analysis.status !== 'running') return;
-		const timer = setInterval(() => invalidate(ANALYSIS_DEPENDENCY), POLL_MS);
+		const sourceId = data.source.id;
+		if (data.analysis.status !== 'running' || pending.has(sourceId)) return;
+		const timer = setInterval(async () => {
+			try {
+				const res = await fetch(`/api/analyze?sourceId=${sourceId}`);
+				if (!res.ok) return;
+				const { status } = (await res.json()) as { status: string };
+				if (status !== 'running') await invalidate(ANALYSIS_DEPENDENCY);
+			} catch {
+				// Try again on the next tick.
+			}
+		}, POLL_MS);
 		return () => clearInterval(timer);
 	});
 </script>
@@ -108,20 +149,9 @@
 		</p>
 
 		<AnalysisResultView result={data.analysis.result} {detail} />
-	{:else}
+	{:else if failure}
 		<div class="failed-state">
-			<AnalysisResultView
-				result={data.analysis.status === 'failed'
-					? data.analysis.result
-					: {
-							status: 'failed',
-							analysisId: data.source.id,
-							schemaVersion: 1,
-							errorCode: 'analysis_not_started',
-							message: 'The analysis did not start.'
-						}}
-				{detail}
-			/>
+			<AnalysisResultView result={failure} {detail} />
 			<button type="button" class="retry" onclick={() => start(data.source.id, true)}>
 				Try again
 			</button>
