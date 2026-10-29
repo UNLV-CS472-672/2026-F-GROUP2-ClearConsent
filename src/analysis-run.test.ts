@@ -64,6 +64,14 @@ const signedIn = {
 	safeGetSession: async () => ({ session: { access_token: 'token' }, user: { id: 'user' } })
 };
 
+async function getStatus(sourceId: string) {
+	const { GET } = await import('./routes/api/analyze/+server');
+	return GET({
+		url: new URL(`https://example.test/api/analyze?sourceId=${sourceId}`),
+		locals: signedIn
+	} as unknown as Parameters<typeof GET>[0]);
+}
+
 async function post(body: unknown) {
 	const { POST } = await import('./routes/api/analyze/+server');
 	return POST({
@@ -93,7 +101,7 @@ beforeEach(() => {
 });
 
 describe('POST /api/analyze', () => {
-	it('runs the provider once for a newly claimed run and clears the run after saving', async () => {
+	it('runs the provider once for a newly claimed run and releases the run after saving', async () => {
 		const client = fakeSupabase({ sources: SOURCE }, startsWith('started', RUN_ID));
 		mocks.provider.mockResolvedValue(Response.json(await completeResult()));
 
@@ -104,13 +112,13 @@ describe('POST /api/analyze', () => {
 		expect(rpcCalls(client).map(([name]) => name)).toEqual([
 			'start_analysis_run',
 			'save_analysis',
-			'complete_analysis_run'
+			'release_analysis_run'
 		]);
 		expect(client.rpc).toHaveBeenCalledWith('start_analysis_run', {
 			p_source_id: SOURCE_ID,
 			p_retry: false
 		});
-		expect(client.rpc).toHaveBeenCalledWith('complete_analysis_run', {
+		expect(client.rpc).toHaveBeenCalledWith('release_analysis_run', {
 			p_source_id: SOURCE_ID,
 			p_run_id: RUN_ID
 		});
@@ -137,6 +145,24 @@ describe('POST /api/analyze', () => {
 
 		expect(client.rpc.mock.calls.map(([, args]) => args.p_retry)).toEqual([true, false]);
 	});
+
+	it.each(['analysis_disabled', 'configuration_error', 'unauthorized'])(
+		'releases the run instead of failing the source on %s',
+		async (code) => {
+			const client = fakeSupabase({ sources: SOURCE }, startsWith('started', RUN_ID));
+			mocks.provider.mockResolvedValue(
+				Response.json({ error: { code, message: 'Not available.' } }, { status: 503 })
+			);
+
+			const response = await post({ sourceId: SOURCE_ID });
+
+			expect(response.status).toBe(503);
+			expect(rpcCalls(client).map(([name]) => name)).toEqual([
+				'start_analysis_run',
+				'release_analysis_run'
+			]);
+		}
+	);
 
 	it('records a provider failure with its code and message', async () => {
 		const client = fakeSupabase({ sources: SOURCE }, startsWith('started', RUN_ID));
@@ -202,6 +228,32 @@ describe('POST /api/analyze', () => {
 			'fail_analysis_run',
 			expect.objectContaining({ p_error_code: 'internal_error' })
 		);
+	});
+});
+
+describe('GET /api/analyze', () => {
+	it('reports the status without starting anything', async () => {
+		const client = fakeSupabase({
+			analysis_runs: { status: 'running', expires_at: new Date(Date.now() + 60_000).toISOString() }
+		});
+
+		const response = await getStatus(SOURCE_ID);
+
+		expect(await response.json()).toEqual({ status: 'running' });
+		expect(client.rpc).not.toHaveBeenCalled();
+		expect(mocks.provider).not.toHaveBeenCalled();
+	});
+
+	it('fails instead of reporting not started when the state cannot be read', async () => {
+		fakeSupabase({ analysis_runs: new Error('read failed') });
+
+		await expect(getStatus(SOURCE_ID)).rejects.toMatchObject({ status: 500 });
+	});
+
+	it('rejects a malformed source id', async () => {
+		fakeSupabase({});
+
+		await expect(getStatus('not-a-uuid')).rejects.toMatchObject({ status: 400 });
 	});
 });
 

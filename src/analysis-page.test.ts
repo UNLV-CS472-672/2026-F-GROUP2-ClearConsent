@@ -13,19 +13,30 @@ const SOURCE = { id: '71000000-0000-4000-8000-000000000001', title: 'Synthetic',
 const failed = { status: 'failed', result: FailureFixture } as AnalysisState;
 
 let fetch: ReturnType<typeof vi.fn>;
+// What POST /api/analyze and the status check (GET) answer.
+let analyze: () => Promise<Response>;
+let status: () => Promise<Response>;
 
-function data(analysis: AnalysisState) {
-	return { data: { source: SOURCE, analysis } } as unknown as Parameters<typeof render>[1];
+function data(analysis: AnalysisState, source = SOURCE) {
+	return { data: { source, analysis } } as unknown as Parameters<typeof render>[1];
 }
 
 function analyzeRequests() {
 	return fetch.mock.calls
-		.filter(([url]) => url === '/api/analyze')
+		.filter(([, init]) => init?.method === 'POST')
 		.map(([, init]) => JSON.parse(init.body));
 }
 
+function statusChecks() {
+	return fetch.mock.calls.filter(([, init]) => init?.method !== 'POST').length;
+}
+
 beforeEach(() => {
-	fetch = vi.fn(async () => Response.json({ status: 'running' }, { status: 409 }));
+	analyze = async () => Response.json({ status: 'running' }, { status: 409 });
+	status = async () => Response.json({ status: 'running' });
+	fetch = vi.fn((_url: string, init?: RequestInit) =>
+		init?.method === 'POST' ? analyze() : status()
+	);
 	vi.stubGlobal('fetch', fetch);
 	mocks.invalidate.mockReset().mockResolvedValue(undefined);
 });
@@ -55,7 +66,27 @@ describe('analysis result page', () => {
 		await vi.advanceTimersByTimeAsync(9_000);
 
 		expect(analyzeRequests()).toEqual([]);
-		expect(mocks.invalidate).toHaveBeenCalledTimes(3);
+		expect(statusChecks()).toBe(3);
+		// The full page reloads only once the run has finished.
+		expect(mocks.invalidate).not.toHaveBeenCalled();
+		status = async () => Response.json({ status: 'failed' });
+		await vi.advanceTimersByTimeAsync(3_000);
+		expect(mocks.invalidate).toHaveBeenCalledTimes(1);
+	});
+
+	it('keeps waiting when a status check fails', async () => {
+		vi.useFakeTimers();
+		render(Page, data({ status: 'running' }));
+		status = async () => {
+			throw new TypeError('Failed to fetch');
+		};
+		await vi.advanceTimersByTimeAsync(3_000);
+		status = async () => new Response(null, { status: 500 });
+		await vi.advanceTimersByTimeAsync(3_000);
+
+		expect(statusChecks()).toBe(2);
+		expect(mocks.invalidate).not.toHaveBeenCalled();
+		expect(screen.getByText('Analyzing this policy')).toBeTruthy();
 	});
 
 	it('shows a stored failure without re-running it', async () => {
@@ -72,6 +103,39 @@ describe('analysis result page', () => {
 		await vi.waitFor(() => expect(mocks.invalidate).toHaveBeenCalled());
 
 		expect(analyzeRequests()).toEqual([{ sourceId: SOURCE.id, retry: true }]);
+	});
+
+	it('shows an error the stored state does not, instead of waiting for the run to expire', async () => {
+		analyze = async () =>
+			Response.json(
+				{ error: { code: 'provider_unavailable', message: 'The provider is unavailable.' } },
+				{ status: 503 }
+			);
+		const { rerender } = render(Page, data(failed));
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+		// The server could not record the failure, so the stored run still says running.
+		await rerender(data({ status: 'running' }));
+		await vi.waitFor(() => expect(screen.getByText('provider_unavailable')).toBeTruthy());
+
+		expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy();
+	});
+
+	it('offers Try again when a new source fails to start while another source is open', async () => {
+		let finish!: (response: Response) => void;
+		analyze = () => new Promise((resolve) => (finish = resolve));
+		const { rerender } = render(Page, data({ status: 'not_started' }));
+		await vi.waitFor(() => expect(analyzeRequests()).toHaveLength(1));
+
+		// Move to another source while the first request is still in flight, then let it fail.
+		await rerender(data(failed, { ...SOURCE, id: '71000000-0000-4000-8000-000000000002' }));
+		finish(Response.json({ message: 'Unable to start the analysis.' }, { status: 500 }));
+		await vi.waitFor(() => expect(mocks.invalidate).toHaveBeenCalled());
+		await rerender(data({ status: 'not_started' }));
+
+		await vi.waitFor(() => expect(screen.getByText('http_500')).toBeTruthy());
+		expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy();
+		expect(analyzeRequests()).toHaveLength(1);
 	});
 
 	it('shows a saved analysis without requesting a run', () => {
