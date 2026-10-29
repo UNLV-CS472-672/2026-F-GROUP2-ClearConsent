@@ -135,7 +135,7 @@ select is(
 
 -- A late result from the first run cannot touch the retry.
 select is(
-  public.complete_analysis_run(
+  public.release_analysis_run(
     '71000000-0000-4000-8000-000000000001',
     (select run_id from pg_temp.runs where name = 'first')
   ),
@@ -144,7 +144,7 @@ select is(
 );
 
 select is(
-  public.complete_analysis_run(
+  public.release_analysis_run(
     '71000000-0000-4000-8000-000000000001',
     (select run_id from pg_temp.runs where name = 'retry')
   ),

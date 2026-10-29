@@ -75,7 +75,7 @@ comment on table public.analysis_runs is
   'In-progress or failed analysis run per source; written only by the run functions.';
 
 -- Returns {"status": ..., "runId": ...}. status is one of:
---   started:  this caller holds a new run (runId) and must finish it with complete_analysis_run
+--   started:  this caller holds a new run (runId) and must end it with release_analysis_run
 --             or fail_analysis_run. runId is null for every other status.
 --   running:  another run for this source is still in progress.
 --   failed:   the last run failed (or expired); pass p_retry = true to start a new one.
@@ -184,8 +184,9 @@ begin
 end;
 $$;
 
--- Clears the caller's run after its analysis was saved.
-create function public.complete_analysis_run(
+-- Clears the caller's run, after its analysis was saved or when it never reached the provider
+-- (analysis disabled or misconfigured), so the source is not left looking failed.
+create function public.release_analysis_run(
   p_source_id uuid,
   p_run_id uuid
 )
@@ -215,9 +216,9 @@ revoke all on function public.start_analysis_run(uuid, boolean)
   from public, anon, authenticated;
 revoke all on function public.fail_analysis_run(uuid, uuid, text, text)
   from public, anon, authenticated;
-revoke all on function public.complete_analysis_run(uuid, uuid)
+revoke all on function public.release_analysis_run(uuid, uuid)
   from public, anon, authenticated;
 
 grant execute on function public.start_analysis_run(uuid, boolean) to authenticated;
 grant execute on function public.fail_analysis_run(uuid, uuid, text, text) to authenticated;
-grant execute on function public.complete_analysis_run(uuid, uuid) to authenticated;
+grant execute on function public.release_analysis_run(uuid, uuid) to authenticated;
