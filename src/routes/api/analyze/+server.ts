@@ -11,7 +11,15 @@ import type { RequestHandler } from './$types';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+type RunStart = { status: 'started' | 'running' | 'failed' | 'complete'; runId: string | null };
+
+// Stored on the run so revisiting a failed source shows why it failed.
+type RunFailure = { code: string; message: string };
+
 // Runs Stage 1 and Stage 2 on a saved source, then stores the analysis and its findings against it.
+// At most one run per source happens at a time: a source that is already running, already
+// analyzed, or failed (without { "retry": true }) returns 409 with its status and makes no
+// provider call. A failed run is recorded so a later visit shows it instead of re-running.
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const { session, user } = await locals.safeGetSession();
 	if (!session || !user) {
@@ -20,6 +28,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	const body = (await request.json().catch(() => error(400, 'Body must be JSON'))) as {
 		sourceId?: unknown;
+		retry?: unknown;
 	};
 	if (typeof body.sourceId !== 'string' || !UUID.test(body.sourceId)) {
 		error(400, 'Body must be JSON like { "sourceId": "..." }');
@@ -40,53 +49,115 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		error(404, 'Source not found.');
 	}
 
-	// The consolidation handler still requires the server's analysis token, which the browser never sees.
-	const pipelineRequest = new Request(request.url, {
-		method: 'POST',
-		headers: {
-			'content-type': 'application/json',
-			authorization: `Bearer ${env.ANALYSIS_ACCESS_TOKEN}`
-		},
-		body: JSON.stringify({
-			text: source.text,
-			title: source.title ?? undefined,
-			url: source.url ?? undefined
-		})
+	const { data: run, error: startError } = await supabase.rpc('start_analysis_run', {
+		p_source_id: source.id,
+		p_retry: body.retry === true
 	});
-
-	const response = await handleConsolidatedAnalysisHttpRequest(pipelineRequest, env);
-	if (!response.ok) return response;
-
-	const result = (await response.json()) as ConsolidationResult;
-	if (result.analysisStatus !== 'complete') return Response.json(result);
-
-	const fields = toAnalysisResultFields(result);
-	const analysisId = crypto.randomUUID();
-	const { rows } = toFindingRows(result, analysisId);
-
-	// save_analysis writes the analysis and its findings in one transaction, so a failure leaves
-	// neither behind and a concurrent read never sees an analysis without its findings.
-	const { error: saveError } = await supabase.rpc('save_analysis', {
-		p_analysis: {
-			id: analysisId,
-			source_id: source.id,
-			source_type: source.url ? 'url' : 'pasted_text',
-			submitted_url: source.url,
-			// The RPC requires this to match the stored source exactly.
-			source_text: source.text,
-			summary: fields.summary,
-			outcome: fields.outcome,
-			analysis_status: 'complete'
-		},
-		p_findings: rows,
-		// No personalization runs on this route yet.
-		p_evaluations: []
-	});
-
-	if (saveError) {
-		console.error('Failed to save analysis:', saveError.message);
-		error(500, 'Unable to save the analysis.');
+	if (startError) {
+		console.error('Failed to start analysis run:', startError.message);
+		error(500, 'Unable to start the analysis.');
+	}
+	const { status, runId } = run as RunStart;
+	if (status !== 'started' || runId === null) {
+		return Response.json({ status }, { status: 409 });
 	}
 
-	return Response.json({ ...result, analysisId });
+	// Any path below that does not save the analysis records the run as failed.
+	let failure: RunFailure | null = {
+		code: 'internal_error',
+		message: 'The analysis stopped unexpectedly.'
+	};
+	try {
+		// The consolidation handler still requires the server's analysis token, which the browser
+		// never sees.
+		const pipelineRequest = new Request(request.url, {
+			method: 'POST',
+			headers: {
+				'content-type': 'application/json',
+				authorization: `Bearer ${env.ANALYSIS_ACCESS_TOKEN}`
+			},
+			body: JSON.stringify({
+				text: source.text,
+				title: source.title ?? undefined,
+				url: source.url ?? undefined
+			})
+		});
+
+		const response = await handleConsolidatedAnalysisHttpRequest(pipelineRequest, env);
+		if (!response.ok) {
+			// Pipeline errors look like { error: { code, message } }.
+			const failed = (await response
+				.clone()
+				.json()
+				.catch(() => null)) as { error?: Partial<RunFailure> } | null;
+			failure = {
+				code: failed?.error?.code ?? `http_${response.status}`,
+				message: failed?.error?.message ?? 'Unable to analyze this source.'
+			};
+			return response;
+		}
+
+		const result = (await response.json()) as ConsolidationResult;
+		if (result.analysisStatus !== 'complete') {
+			failure = {
+				code: 'analysis_incomplete',
+				message: 'The analysis could not account for every part of the policy.'
+			};
+			return Response.json(result);
+		}
+
+		const fields = toAnalysisResultFields(result);
+		const analysisId = crypto.randomUUID();
+		const { rows } = toFindingRows(result, analysisId);
+
+		// save_analysis writes the analysis and its findings in one transaction, so a failure leaves
+		// neither behind and a concurrent read never sees an analysis without its findings.
+		const { error: saveError } = await supabase.rpc('save_analysis', {
+			p_analysis: {
+				id: analysisId,
+				source_id: source.id,
+				source_type: source.url ? 'url' : 'pasted_text',
+				submitted_url: source.url,
+				// The RPC requires this to match the stored source exactly.
+				source_text: source.text,
+				summary: fields.summary,
+				outcome: fields.outcome,
+				analysis_status: 'complete'
+			},
+			p_findings: rows,
+			// No personalization runs on this route yet.
+			p_evaluations: []
+		});
+
+		if (saveError) {
+			console.error('Failed to save analysis:', saveError.message);
+			failure = { code: 'save_failed', message: 'Unable to save the analysis.' };
+			error(500, 'Unable to save the analysis.');
+		}
+
+		failure = null;
+		const { error: completeError } = await supabase.rpc('complete_analysis_run', {
+			p_source_id: source.id,
+			p_run_id: runId
+		});
+		// The saved analysis already takes precedence over the run, so this is only logged.
+		if (completeError) {
+			console.error('Failed to clear analysis run:', completeError.message);
+		}
+
+		return Response.json({ ...result, analysisId });
+	} finally {
+		if (failure) {
+			const { error: failError } = await supabase.rpc('fail_analysis_run', {
+				p_source_id: source.id,
+				p_run_id: runId,
+				p_error_code: failure.code,
+				p_error_message: failure.message
+			});
+			// The run then expires and is shown as failed once its time limit passes.
+			if (failError) {
+				console.error('Failed to record analysis failure:', failError.message);
+			}
+		}
+	}
 };
