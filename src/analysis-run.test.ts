@@ -219,6 +219,53 @@ describe('POST /api/analyze', () => {
 		);
 	});
 
+	it('retries ending the run once after a passing error', async () => {
+		let releases = 0;
+		const client = fakeSupabase({ sources: SOURCE }, (name) =>
+			name === 'start_analysis_run'
+				? { data: { status: 'started', runId: RUN_ID } }
+				: name === 'release_analysis_run' && releases++ === 0
+					? { error: { message: 'connection reset' } }
+					: { data: true }
+		);
+		mocks.provider.mockResolvedValue(Response.json(await completeResult()));
+
+		const response = await post({ sourceId: SOURCE_ID });
+
+		expect(response.status).toBe(200);
+		expect(rpcCalls(client).map(([name]) => name)).toEqual([
+			'start_analysis_run',
+			'save_analysis',
+			'release_analysis_run',
+			'release_analysis_run'
+		]);
+	});
+
+	it('gives up after one retry and still returns the response', async () => {
+		const client = fakeSupabase({ sources: SOURCE }, (name) =>
+			name === 'start_analysis_run'
+				? { data: { status: 'started', runId: RUN_ID } }
+				: name === 'fail_analysis_run'
+					? { error: { message: 'connection reset' } }
+					: { data: true }
+		);
+		mocks.provider.mockResolvedValue(
+			Response.json(
+				{ error: { code: 'provider_unavailable', message: 'The provider is unavailable.' } },
+				{ status: 503 }
+			)
+		);
+
+		const response = await post({ sourceId: SOURCE_ID });
+
+		expect(response.status).toBe(503);
+		expect(rpcCalls(client).map(([name]) => name)).toEqual([
+			'start_analysis_run',
+			'fail_analysis_run',
+			'fail_analysis_run'
+		]);
+	});
+
 	it('records an unexpected error', async () => {
 		const client = fakeSupabase({ sources: SOURCE }, startsWith('started', RUN_ID));
 		mocks.provider.mockRejectedValue(new Error('boom'));

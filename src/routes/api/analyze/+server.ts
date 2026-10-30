@@ -21,6 +21,9 @@ type RunFailure = { code: string; message: string };
 // released instead of failed, and the source starts normally once analysis is enabled.
 const NOT_STARTED_CODES = new Set(['analysis_disabled', 'configuration_error', 'unauthorized']);
 
+// Pause before retrying a failed call that ends a run.
+const END_RETRY_MS = 500;
+
 // Reports a source's status without starting anything, for the result page to poll.
 export const GET: RequestHandler = async ({ url, locals }) => {
 	const { session } = await locals.safeGetSession();
@@ -164,14 +167,23 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		failure = null;
 		return Response.json({ ...result, analysisId });
 	} finally {
-		const { error: endError } = failure
-			? await supabase.rpc('fail_analysis_run', {
-					p_source_id: source.id,
-					p_run_id: runId,
-					p_error_code: failure.code,
-					p_error_message: failure.message
-				})
-			: await supabase.rpc('release_analysis_run', { p_source_id: source.id, p_run_id: runId });
+		const end = () =>
+			failure
+				? supabase.rpc('fail_analysis_run', {
+						p_source_id: source.id,
+						p_run_id: runId,
+						p_error_code: failure.code,
+						p_error_message: failure.message
+					})
+				: supabase.rpc('release_analysis_run', { p_source_id: source.id, p_run_id: runId });
+		// Until the run ends, the source stays running and blocks Try again, so a passing error gets
+		// one retry. Both calls only act on this run id, so repeating one that did succeed is harmless.
+		let { error: endError } = await end();
+		if (endError) {
+			console.error('Failed to end analysis run, retrying:', endError.message);
+			await new Promise((resolve) => setTimeout(resolve, END_RETRY_MS));
+			({ error: endError } = await end());
+		}
 		// A saved analysis already takes precedence over its run. Otherwise the run expires and is
 		// shown as failed once its time limit passes, and the page shows this response's error.
 		if (endError) {
