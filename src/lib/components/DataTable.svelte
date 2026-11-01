@@ -2,6 +2,14 @@
 	import { createTable, FlexRender, type ColumnDef, type RowData } from '@tanstack/svelte-table';
 	import { features } from '$lib/components/DataTable';
 	import { type RecentSource } from '$lib/components/DataTable';
+	import type { AnalysisResult } from '$lib/contracts/analysis';
+	import AnalysisResultView from './AnalysisResultView.svelte';
+	import { tick } from 'svelte';
+
+	type sourceAndResult = {
+		source: RecentSource;
+		result: AnalysisResult;
+	};
 
 	type Props = {
 		data: TData[];
@@ -10,7 +18,10 @@
 	let { data, columns }: Props = $props();
 	// initial pageSize (amount of rows per page)
 	let pageSize = $state('10');
-	const pageSizeSteps = ['10', '25', '50'];
+	// const pageSizeSteps = ['10', '25', '50'];
+
+	let isModalOpen = $state(false);
+	let dialogRef: HTMLDialogElement | undefined = $state();
 
 	const table = createTable({
 		features,
@@ -49,6 +60,7 @@
 			}}
 			class="flex field-sizing-content w-50 flex-col items-center justify-center border border-gray-400 pr-2 pl-2"
 		/>
+		<!-- Sorting dropdown -->
 	</div>
 
 	<div class="table-headers whitespace-nowrap">
@@ -69,24 +81,81 @@
 		{#each table.getRowModel().rows as row (row.id)}
 			<!-- _table-row to avoid tailwindcss table-row applying flex-col -->
 			<div
-				class="_table-row flex w-full cursor-pointer justify-between rounded-lg border border-gray-600
+				class="_table-row flex w-full justify-between rounded-lg border border-gray-600
 					bg-gray-100 hover:border-amber-500 hover:shadow-lg"
 			>
 				{#each row.getAllCells() as cell (cell.id)}
-					{#if cell.column.id === 'url'}
-						<div class="hidden"><FlexRender {cell} /></div>
-					{:else}
-						<div class={cell.column.id === 'name' ? 'text-left' : 'text-right'}>
-							<div
-								class="m-3 flex flex-col {cell.column.id === 'created_at' ? 'pt-3 text-sm' : ''}"
-							>
-								<FlexRender {cell} />
+					<button
+						onclick={async () => {
+							isModalOpen = true;
+							await tick();
+							dialogRef?.showModal();
+						}}
+					>
+						<div class="history-item {cell.column.id === 'name' ? 'text-left' : 'text-right'}">
+							<div class="m-3 flex flex-col {cell.column.id === 'created_at' ? 'text-sm' : ''}">
+								<span class="history-text">
+									<strong
+										class={cell.column.id === 'name'
+											? 'text-[14px] font-[750]'
+											: 'text-[12px] text-[#137b80]'}
+									>
+										<FlexRender {cell} />
+									</strong>
+								</span>
 								{#if cell.column.id === 'name'}
-									{@const url = (cell.row.original as RecentSource).url}
-									<span class="source-url text-sm text-gray-400">{url}</span>
+									{@const url = (cell.row.original as sourceAndResult).source.url}
+									<span class="source-url text-[10px] text-black/40">
+										<small class="text-[11px]">{url}</small>
+									</span>
 								{/if}
 							</div>
 						</div>
+					</button>
+					{#if isModalOpen}
+						<dialog
+							bind:this={dialogRef}
+							onclose={() => {
+								isModalOpen = false;
+							}}
+							onclick={(event) => {
+								if (event.target === dialogRef) {
+									isModalOpen = false;
+									dialogRef?.close();
+								}
+							}}
+							class="m-auto flex w-3/4 flex-col rounded-lg"
+						>
+							<div class="dialog-content flex h-full w-full flex-col p-5">
+								<!-- div so clicking/tapping the dialog "margins" doesn't close it -->
+								<div class="dialog-header inline-flex items-center justify-between">
+									<h1 class="flex-1 text-center text-lg font-bold">{cell.row.getValue('name')}</h1>
+									<button
+										class="cursor-pointer pr-5"
+										onclick={() => dialogRef?.close()}
+										aria-label="close"
+									>
+										<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M6 18L18 6M6 6l12 12"
+											/>
+										</svg>
+									</button>
+								</div>
+								<!-- Analysis Result -->
+								<div
+									class="w-full items-center justify-center gap-2 p-5 transition-all duration-300 ease-out"
+								>
+									<AnalysisResultView
+										result={(cell.row.original as sourceAndResult).result}
+										detail="quick"
+									></AnalysisResultView>
+								</div>
+							</div>
+						</dialog>
 					{/if}
 				{/each}
 			</div>
