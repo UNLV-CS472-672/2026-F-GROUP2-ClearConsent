@@ -1,133 +1,48 @@
 <script lang="ts">
 	import DataTable from '$lib/components/DataTable.svelte';
-	import type { features } from '$lib/components/datatableFeatures';
+	import type { features } from '$lib/components/DataTable';
 	import { createColumnHelper } from '@tanstack/svelte-table';
 	import type { ColumnDef } from '@tanstack/svelte-table';
+	import type { RecentSource } from '$lib/components/DataTable';
+	let { data } = $props();
 	// Temporary for display purposes
-	interface temporary_data {
-		name: string;
-		hash: string;
-		salt?: string;
-		timestamp: number | string | Date;
-		url: string | any;
-	}
 
-	const companies = [
-		'Apple',
-		'Microsoft',
-		'Amazon',
-		'Alphabet',
-		'Meta',
-		'NVIDIA',
-		'Tesla',
-		'Netflix',
-		'Adobe',
-		'Salesforce',
-		'IBM',
-		'Intel',
-		'Cisco',
-		'Oracle',
-		'Qualcomm',
-		'AMD',
-		'Shopify',
-		'Spotify',
-		'Uber',
-		'Airbnb',
-		'PayPal',
-		'Visa',
-		'Mastercard',
-		'JPMorgan Chase',
-		'Goldman Sachs',
-		'Bank of America',
-		'Walmart',
-		'Target',
-		'Costco',
-		'Coca-Cola',
-		'PepsiCo',
-		'Nike',
-		'Adidas',
-		'Toyota',
-		'Honda',
-		'Ford',
-		'General Motors',
-		'BMW',
-		'Mercedes-Benz',
-		'Samsung',
-		'Sony',
-		'LG',
-		'Nintendo',
-		'IKEA',
-		'Unilever',
-		'Procter & Gamble',
-		'Johnson & Johnson',
-		'Pfizer',
-		'DHL',
-		'FedEx'
-	];
-	async function getHash(data: string, salt: string = '') {
-		const bytes = new TextEncoder().encode(data + salt);
-		const digest = await crypto.subtle.digest('SHA-256', bytes);
-		return Array.from(new Uint8Array(digest))
-			.map((byte) => byte.toString(16).padStart(2, '0'))
-			.join('');
-	}
-	function randomTimestamp(): string {
-		let s = new Date('2016-01-01').getTime();
-		// Return as ISOString and format as necessary
-		return new Date(Math.random() * (Date.now() - s) + s).toISOString();
-	}
-	async function genRandomTempData(): Promise<temporary_data[]> {
-		let data: temporary_data[] = [];
-		for (let i = 0; i < companies.length; i++)
-			data.push({
-				name: companies[i],
-				hash: await getHash(companies[i]),
-				timestamp: randomTimestamp(),
-				get url() {
-					return '#' + this.hash;
-				}
-			});
-		return data;
-	}
+	const getRecentSources = () => data.recentSources;
 
-	let data: temporary_data[] = $state([]);
-	genRandomTempData().then((res) => (data = res));
 	// ---
-	const columnHelper = createColumnHelper<typeof features, temporary_data>();
+	const columnHelper = createColumnHelper<typeof features, RecentSource>();
 
-	const columns: ColumnDef<typeof features, temporary_data>[] = columnHelper.columns([
-		columnHelper.accessor('name', {
+	const columns: ColumnDef<typeof features, RecentSource>[] = columnHelper.columns([
+		columnHelper.accessor('title', {
+			id: 'name',
 			header: 'Name',
-			size: 40
+			size: 40,
+			enableSorting: true
 		}),
 
-		columnHelper.accessor('hash', {
-			header: 'Hash',
+		columnHelper.accessor('created_at', {
+			id: 'created_at',
+			header: 'Date Created',
+			cell: (info: any) =>
+				new Date(info.getValue()).toLocaleDateString(undefined, {
+					month: 'short',
+					day: 'numeric',
+					year: 'numeric',
+				}),
 			minSize: 50,
-			maxSize: 300
+			maxSize: 75,
+			enableSorting: false
 		}),
-		columnHelper.accessor('timestamp', {
-			id: 'timestamp',
-			header: 'Timestamp',
-			cell: (info: any) => new Date(info.getValue()).toLocaleString(),
-			minSize: 50,
-			maxSize: 75
-		}),
+
 		columnHelper.accessor('url', {
 			id: 'url',
 			header: ' ',
-			minSize: 0,
-			maxSize: 35,
 			enableSorting: false
 		})
 	]);
 </script>
 
 <div class="flex w-full flex-col items-center justify-center pb-5">
-	<!-- <div
-		class="flex h-7/8 w-7/8 flex-col items-center justify-center overflow-scroll border border-black/40 inset-shadow-xs inset-shadow-black"
-	> -->
 	<h1 class="font-lg mb-5 font-bold">Nothing substantial here yet.</h1>
-	<DataTable {data} {columns}></DataTable>
-	<!-- </div> -->
+	<DataTable data={getRecentSources()} {columns}></DataTable>
 </div>

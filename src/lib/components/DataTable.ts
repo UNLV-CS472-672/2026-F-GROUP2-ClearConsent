@@ -30,3 +30,5 @@ export const features = tableFeatures({
 		includesString: filterFn_includesString
 	}
 });
+
+export type RecentSource = { id: string; title: string | null; url: string | null; created_at: string };

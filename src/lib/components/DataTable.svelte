@@ -1,6 +1,7 @@
 <script lang="ts" generics="TData extends RowData">
 	import { createTable, FlexRender, type ColumnDef, type RowData } from '@tanstack/svelte-table';
-	import { features } from '$lib/components/datatableFeatures';
+	import { features } from '$lib/components/DataTable';
+	import { type RecentSource } from '$lib/components/DataTable';
 
 	type Props = {
 		data: TData[];
@@ -8,21 +9,23 @@
 	};
 	let { data, columns }: Props = $props();
 	// initial pageSize (amount of rows per page)
-	let pageSize = $state('5');
-	const pageSizeSteps = ['5', '10', '25', '50', '100'];
+	let pageSize = $state('10');
+	const pageSizeSteps = ['10', '25', '50'];
 
 	const table = createTable({
 		features,
 		get columns() {
 			return columns;
 		},
+
 		get data() {
-			return data;
+			return data ?? [];
 		},
+
 		initialState: {
 			sorting: [
 				{
-					id: 'timestamp',
+					id: 'created_at',
 					desc: true
 				}
 			],
@@ -36,12 +39,67 @@
 	});
 </script>
 
-<div class="flex w-19/20 flex-col justify-center">
+<div class="mt-2 flex w-19/20 flex-col gap-2">
+	<div class="inline-flex self-start text-sm font-semibold">
+		<input
+			type="search"
+			placeholder="Search by name..."
+			oninput={(event) => {
+				table.getColumn('name')?.setFilterValue(event.currentTarget.value);
+			}}
+			class="flex field-sizing-content w-50 flex-col items-center justify-center border border-gray-400 pr-2 pl-2"
+		/>
+	</div>
+
+	<div class="table-headers whitespace-nowrap">
+		{#each table.getHeaderGroups() as hGroups (hGroups.id)}
+			<div class="table-header-row flex">
+				{#each hGroups.headers as header (header.id)}
+					{#if header.id !== 'url'}
+						<div class="w-full {header.id === 'name' ? 'text-left' : 'text-right'}">
+							<FlexRender {header} />
+						</div>
+					{/if}
+				{/each}
+			</div>
+		{/each}
+	</div>
+
+	<div class="table-body flex justify-between">
+		{#each table.getRowModel().rows as row (row.id)}
+			<!-- _table-row to avoid tailwindcss table-row applying flex-col -->
+			<div
+				class="_table-row flex w-full cursor-pointer justify-between rounded-lg border border-gray-600
+					bg-gray-100 hover:border-amber-500 hover:shadow-lg"
+			>
+				{#each row.getAllCells() as cell (cell.id)}
+					{#if cell.column.id === 'url'}
+						<div class="hidden"><FlexRender {cell} /></div>
+					{:else}
+						<div class={cell.column.id === 'name' ? 'text-left' : 'text-right'}>
+							<div
+								class="m-3 flex flex-col {cell.column.id === 'created_at' ? 'pt-3 text-sm' : ''}"
+							>
+								<FlexRender {cell} />
+								{#if cell.column.id === 'name'}
+									{@const url = (cell.row.original as RecentSource).url}
+									<span class="source-url text-sm text-gray-400">{url}</span>
+								{/if}
+							</div>
+						</div>
+					{/if}
+				{/each}
+			</div>
+		{/each}
+	</div>
+</div>
+
+<!-- <div class="flex w-19/20 flex-col justify-center">
 	<div
 		class="flex max-h-125 w-full flex-col truncate overflow-scroll rounded-md border-r border-l border-dark/40 shadow-md"
 	>
 		<table class="w-full table-fixed">
-			<!-- Headers -->
+			<!- - Headers - ->
 			<thead
 				class=" sticky top-0 z-10 table-header-group bg-dark text-lg font-bold text-floral-white"
 			>
@@ -59,7 +117,7 @@
 							>
 								<span class="inline-flex items-center">
 									<FlexRender {header} />
-									<!-- Sort Buttons... Tentative-->
+									<!- - Sort Buttons... Tentative- ->
 									{#if header.column.getCanSort()}
 										<svg
 											width="100%"
@@ -96,20 +154,21 @@
 					</tr>
 				{/each}
 			</thead>
-			<!-- Body and Data Cells -->
+			<!- - Body and Data Cells - ->
 			<tbody>
-				<!-- Display only 10 elements if page is overview -->
+				<!- - Display only 10 elements if page is overview - ->
 				{#each table.getRowModel().rows as row (row.id)}
 					<tr class="table-row h-10 text-floral-white">
 						{#each row.getAllCells() as cell (cell.id)}
-							<!-- If column is 'url' render a button... -->
+
+							<!- - If column is 'url' render a button... - ->
 							{#if cell.column.id === 'url'}
 								<td
 									class="min-w-20 border-b pt-0.5 pr-2 pb-1 pl-3 text-justify odd:bg-dark even:bg-dark-fg"
 									style:width="{cell.column.getSize()}px"
 									title={cell.getValue() as string}
 								>
-									<!-- Note: Likely need to change to button for fetching AnalysisResults-->
+									<!- -  Note: Likely need to change to button for fetching AnalysisResults- ->
 									<a
 										href={cell.getValue() as string}
 										rel="external"
@@ -128,60 +187,63 @@
 									</div>
 								</td>
 							{/if}
+
+
 						{/each}
 					</tr>
 				{/each}
 			</tbody>
 		</table>
 	</div>
-	<!-- Controls -->
-	<div class="mt-2 grid w-full grid-cols-3 items-center gap-5 text-sm">
-		<div class="col-start-1 inline-flex justify-start font-semibold">
-			<input
-				type="search"
-				placeholder="Search for policy by name..."
-				oninput={(event) => {
-					table.getColumn('name')?.setFilterValue(event.currentTarget.value);
-				}}
-				class="flex field-sizing-content max-w-xl flex-col items-center justify-center border border-gray-400 pr-2 pl-2"
-			/>
-		</div>
-		<div class="col-start-2 inline-flex justify-center gap-5">
-			<button
-				class="cursor-pointer rounded-xl border bg-floral-white pr-2 pl-2 font-semibold hover:bg-gray-300
-			    disabled:cursor-default disabled:bg-gray-500 disabled:hover:bg-gray-500"
-				onclick={() => table.previousPage()}
-				disabled={!table.getCanPreviousPage()}
-				>Previous
-			</button>
-			<span class="text-sm text-dark-fg">
-				Page {table.atoms.pagination.get().pageIndex + 1} of
-				{table.getPageCount()}
-			</span>
-			<button
-				class="cursor-pointer rounded-xl border bg-floral-white pr-2 pl-2 font-semibold hover:bg-gray-300
-			    disabled:cursor-default disabled:bg-gray-500 disabled:hover:bg-gray-500"
-				onclick={() => table.nextPage()}
-				disabled={!table.getCanNextPage()}
-				>Next
-			</button>
-		</div>
-		<div class="col-start-3 flex items-center justify-end">
-			<span class="inline-flex text-sm text-dark-fg">
-				<span class="me-1.5">Results per page:</span>
-				<select
-					bind:value={pageSize}
-					name="pageSizeSelector"
-					id="pageSizeSelector"
-					title="Results per Page"
-					class="rounded-md border border-gray-300 pr-1 pl-1 shadow-xs hover:bg-gray-100 focus:border-gray-400"
-					onchange={() => table.setPageSize(Number(pageSize))}
-				>
-					{#each pageSizeSteps as opt (opt)}
-						<option value={opt}>{opt}</option>
-					{/each}
-				</select>
-			</span>
-		</div>
+-->
+<!--  Controls -->
+<!-- <div class="mt-2 grid w-full grid-cols-3 items-center gap-5 text-sm">
+	<div class="col-start-1 inline-flex justify-start font-semibold">
+		<input
+			type="search"
+			placeholder="Search for policy by name..."
+			oninput={(event) => {
+				table.getColumn('name')?.setFilterValue(event.currentTarget.value);
+			}}
+			class="flex field-sizing-content max-w-xl flex-col items-center justify-center border border-gray-400 pr-2 pl-2"
+		/>
 	</div>
-</div>
+	<div class="col-start-2 inline-flex justify-center gap-5">
+		<button
+			class="cursor-pointer rounded-xl border bg-floral-white pr-2 pl-2 font-semibold hover:bg-gray-300
+			    disabled:cursor-default disabled:bg-gray-500 disabled:hover:bg-gray-500"
+			onclick={() => table.previousPage()}
+			disabled={!table.getCanPreviousPage()}
+			>Previous
+		</button>
+		<span class="text-sm text-dark-fg">
+			Page {table.atoms.pagination.get().pageIndex + 1} of
+			{table.getPageCount()}
+		</span>
+		<button
+			class="cursor-pointer rounded-xl border bg-floral-white pr-2 pl-2 font-semibold hover:bg-gray-300
+			    disabled:cursor-default disabled:bg-gray-500 disabled:hover:bg-gray-500"
+			onclick={() => table.nextPage()}
+			disabled={!table.getCanNextPage()}
+			>Next
+		</button>
+	</div>
+	<div class="col-start-3 flex items-center justify-end">
+		<span class="inline-flex text-sm text-dark-fg">
+			<span class="me-1.5">Results per page:</span>
+			<select
+				bind:value={pageSize}
+				name="pageSizeSelector"
+				id="pageSizeSelector"
+				title="Results per Page"
+				class="rounded-md border border-gray-300 pr-1 pl-1 shadow-xs hover:bg-gray-100 focus:border-gray-400"
+				onchange={() => table.setPageSize(Number(pageSize))}
+			>
+				{#each pageSizeSteps as opt (opt)}
+					<option value={opt}>{opt}</option>
+				{/each}
+			</select>
+		</span>
+	</div>
+</div> -->
+<!-- </div> -->
