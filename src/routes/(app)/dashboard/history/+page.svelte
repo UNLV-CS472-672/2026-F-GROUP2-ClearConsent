@@ -9,7 +9,6 @@
 	let { data }: { data: PageData } = $props();
 	// Temporary page for display purposes
 
-
 	const getRecentSources = () => data.recentSources;
 
 	function getSourcesAndResults(): SourceAndResult[] {
@@ -43,15 +42,15 @@
 	]);
 	const sourcesFromData = getSourcesAndResults();
 	const syntheticSourcesandResults = (num: number) => {
-		return Array.from({length: num}, (_,i) => {
+		return Array.from({ length: num }, (_, i) => {
 			const source = {
 				id: String(i),
-				title: `Company-${i+1}`,
-				url: `https://www.company${i+1}.url`,
+				title: `Company-${i + 1}`,
+				url: `https://www.company${i + 1}.url`,
 				created_at: new Date(Date.now() - i * 86400000).toISOString()
-			}
+			};
 			return { source: source, result: successFixture };
-		})
+		});
 	};
 	let genNum = $state('10');
 	const opts = ['0', '1', '10', '20', '30'];

@@ -1,10 +1,5 @@
 <script lang="ts" generics="TData extends RowData">
-	import {
-		createTable,
-		FlexRender,
-		type ColumnDef,
-		type RowData
-	} from '@tanstack/svelte-table';
+	import { createTable, FlexRender, type ColumnDef, type RowData } from '@tanstack/svelte-table';
 	import { features, type SourceAndResult } from '$lib/components/DataTable';
 	import { detailLevel } from '$lib/study/sample';
 	import { tick } from 'svelte';
