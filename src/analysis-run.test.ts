@@ -291,6 +291,25 @@ describe('GET /api/analyze', () => {
 		expect(mocks.provider).not.toHaveBeenCalled();
 	});
 
+	it('reports a run that finishes between its reads as complete', async () => {
+		// The first read sees the run in progress. The second sees it saved and its run row removed.
+		let reads = 0;
+		fakeSupabase({
+			get analyses() {
+				return reads++ === 0 ? null : { id: 'analysis', summary: 'Summary.' };
+			},
+			get analysis_runs() {
+				return reads++ === 0
+					? { status: 'running', expires_at: new Date(Date.now() + 60_000).toISOString() }
+					: null;
+			}
+		});
+
+		const response = await getStatus(SOURCE_ID);
+
+		expect(await response.json()).toEqual({ status: 'complete' });
+	});
+
 	it('fails instead of reporting not started when the state cannot be read', async () => {
 		fakeSupabase({ analysis_runs: new Error('read failed') });
 

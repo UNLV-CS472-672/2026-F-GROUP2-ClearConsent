@@ -20,8 +20,18 @@ type RunRow = {
  * Reads what has happened to a source without starting anything, so it is safe to call from a
  * load or a poll. Throws when a read fails: a failed read must not look like "never analyzed",
  * which would start a paid run.
+ *
+ * A run saves its analysis before removing its row, so the row is read first: a run that finishes
+ * between these reads is seen by the analysis read. In the other order, both reads could miss it.
  */
 export async function readRunState(supabase: SupabaseClient, sourceId: string): Promise<RunState> {
+	const { data, error: runError } = await supabase
+		.from('analysis_runs')
+		.select('status, error_code, error_message, expires_at')
+		.eq('source_id', sourceId)
+		.maybeSingle();
+	if (runError) throw new Error(`Failed to load analysis run: ${runError.message}`);
+
 	const { data: analysis, error: analysisError } = await supabase
 		.from('analyses')
 		.select('id, summary')
@@ -31,13 +41,6 @@ export async function readRunState(supabase: SupabaseClient, sourceId: string): 
 		.maybeSingle();
 	if (analysisError) throw new Error(`Failed to load analysis: ${analysisError.message}`);
 	if (analysis) return { status: 'complete', analysis: analysis as SavedAnalysis };
-
-	const { data, error: runError } = await supabase
-		.from('analysis_runs')
-		.select('status, error_code, error_message, expires_at')
-		.eq('source_id', sourceId)
-		.maybeSingle();
-	if (runError) throw new Error(`Failed to load analysis run: ${runError.message}`);
 
 	const run = data as RunRow | null;
 	if (!run) return { status: 'not_started' };
