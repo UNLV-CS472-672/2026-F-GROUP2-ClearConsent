@@ -35,6 +35,8 @@ jobs:
         run: npm test
       - name: Run synthetic offline evaluation regressions
         run: npm run test:offline
+      - name: Run Stage 1 offline tests
+        run: npm run test:stage1:offline
       - name: Run disposable database checks
         run: npm run test:db
       - name: Build production application

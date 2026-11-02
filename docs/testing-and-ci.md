@@ -91,6 +91,7 @@ app checks above, run:
 
 ```sh
 npm run test:offline
+npm run test:stage1:offline
 npm run test:db
 ```
 
@@ -99,6 +100,12 @@ npm run test:db
 imports paid runners. Historical fixture/prompt checks remain an explicit local
 command: `node --test tests/eval/issue-11/offline.test.mjs`. Paid evaluations remain
 opt-in manual work under #11, outside CI and the default Vitest/Playwright suites.
+
+`test:stage1:offline` runs the six Stage 1 loader, estimator, mock provider,
+scoring, and review tests in `tests/eval/stage1/offline.test.ts`. It uses local
+fixtures and a mock provider, with no paid model calls. CI runs this command
+automatically in the `validate` job on pull requests and pushes covered by the
+workflow; failures fail the job.
 
 `test:db` requires Docker Desktop (Linux containers on Windows) or Docker Engine
 on Linux, with the daemon running. The Supabase CLI comes from the committed npm
@@ -130,7 +137,7 @@ fields remain permitted. It does not settle #22's passage IDs, offsets, taxonomy
 confidence or ambiguity contract. Those schema tests remain pending #22's agreed
 implementation; reuse its tests once it reaches main.
 
-CI runs the synthetic offline and disposable database commands alongside the
+CI runs both offline commands and the disposable database command alongside the
 existing app checks in the `validate` job. Database failure therefore fails CI and
 prevents the separate production workflow from passing its successful-CI gate.
 No deployment command, paid model request, production secret or production
