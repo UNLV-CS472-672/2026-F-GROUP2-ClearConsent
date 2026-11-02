@@ -12,6 +12,7 @@ import {
 	sortFn_text,
 	sortFn_datetime
 } from '@tanstack/svelte-table';
+import type { AnalysisResult } from '$lib/contracts/analysis';
 
 export const features = tableFeatures({
 	rowPaginationFeature,
@@ -31,4 +32,14 @@ export const features = tableFeatures({
 	}
 });
 
-export type RecentSource = { id: string; title: string | null; url: string | null; created_at: string };
+export type RecentSource = {
+	id: string;
+	title: string | null;
+	url: string | null;
+	created_at: string;
+};
+
+export type SourceAndResult = {
+	source: RecentSource;
+	result: AnalysisResult;
+};
