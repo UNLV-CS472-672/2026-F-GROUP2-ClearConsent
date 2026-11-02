@@ -55,6 +55,35 @@ set local role authenticated;
 -- Change claims as well as role to represent the independent second user.
 set local request.jwt.claims = '{"sub":"22222222-2222-4222-8222-222222222222","role":"authenticated"}';
 select is((select count(*) from public.privacy_preferences)::bigint, 0::bigint, 'second user isolated for privacy_preferences');
+
+-- Another user's preferences must remain inaccessible to writes.
+with changed as (
+  update public.privacy_preferences
+  set preferences = '{"focusAreas":["tracking"],"detail":"quick","style":"bullets"}'::jsonb
+  where user_id = '11111111-1111-4111-8111-111111111111'
+  returning user_id
+)
+select is(
+  count(*)::bigint,
+  0::bigint,
+  'second user cannot update owner preferences'
+) from changed;
+
+select throws_ok(
+  $test$
+    insert into public.privacy_preferences (user_id, preferences)
+    values (
+      '11111111-1111-4111-8111-111111111111',
+      '{"focusAreas":[],"detail":"detailed","style":"paragraph"}'::jsonb
+    )
+    on conflict (user_id)
+    do update set preferences = excluded.preferences
+  $test$,
+  '42501',
+  null,
+  'second user cannot upsert owner preferences'
+);
+
 select is((select count(*) from public.analyses)::bigint, 1::bigint, 'second user isolated for analyses');
 select is((select count(*) from public.findings)::bigint, 0::bigint, 'second user isolated for findings');
 select is((select count(*) from public.preference_evaluations)::bigint, 0::bigint, 'second user isolated for preference_evaluations');

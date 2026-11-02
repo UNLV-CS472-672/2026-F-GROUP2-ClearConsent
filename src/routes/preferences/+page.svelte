@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import type { PageProps } from './$types';;
-	
+	import type { PageProps } from './$types';
+
 	let { data, form }: PageProps = $props();
 
 	type Detail = 'quick' | 'balanced' | 'detailed';
