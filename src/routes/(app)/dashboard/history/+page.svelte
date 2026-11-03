@@ -7,7 +7,6 @@
 	import type { PageData } from './$types';
 	import { successFixture } from '$lib/contracts/fixtures';
 	let { data }: { data: PageData } = $props();
-	// Temporary page for display purposes
 
 	const getRecentSources = () => data.recentSources;
 

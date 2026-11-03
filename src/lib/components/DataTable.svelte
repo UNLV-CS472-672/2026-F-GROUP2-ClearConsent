@@ -16,14 +16,18 @@
 
 	let pageSize = $state('10');
 
+	type SortOption = {
+		id: string;
+		label: string;
+	};
 	// id-sortOrder
-	const sortOptions = [
+	const sortOptions = $state<SortOption[]>([
 		{ id: 'name-asc', label: 'Name (A-Z)' },
 		{ id: 'name-desc', label: 'Name (Z-A)' },
 		{ id: 'created_at-asc', label: 'Date (oldest)' },
 		{ id: 'created_at-desc', label: 'Date (newest)' }
-	];
-	let sort = $state(sortOptions[3].id);
+	]);
+	let sort = $state<SortOption['id']>('created_at-desc');
 	let sortingState = $derived.by(() => {
 		const [sortID, sortOrder] = sort.split('-');
 		return [{ id: sortID, desc: sortOrder === 'desc' }];
@@ -104,7 +108,7 @@
 		<div class="table-body flex flex-col gap-2">
 			{#each table.getRowModel().rows as row (row.id)}
 				<div
-					class="_table-row flex w-full justify-between rounded-lg border border-[#cad8e3]
+					class="table-line flex w-full justify-between rounded-lg border border-[#cad8e3]
 						bg-[#f8fafc] hover:border-[#2ca6af] hover:shadow-lg hover:shadow-[#11788322]"
 				>
 					{#each row.getAllCells() as cell (cell.id)}
