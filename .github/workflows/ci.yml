@@ -11,6 +11,8 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    env:
+      ENABLE_PAID_ANALYSIS: '0'
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
@@ -35,6 +37,8 @@ jobs:
         run: npm test
       - name: Run synthetic offline evaluation regressions
         run: npm run test:offline
+      - name: Run Stage 1 offline tests
+        run: npm run test:stage1:offline
       - name: Run disposable database checks
         run: npm run test:db
       - name: Build production application
@@ -42,9 +46,25 @@ jobs:
         env:
           PUBLIC_SUPABASE_URL: 'https://eccdgjwsllkkdvsqtlzq.supabase.co'
           PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_KXwbXRolrFfu8y2gsWgsfA_DykUtsV8'
-      - name: Run end-to-end tests
-        run: npm run test:e2e
+      - name: Run anonymous end-to-end tests
+        run: npm run test:e2e -- --grep-invert @authenticated
         env:
+          CI_E2E_EXPECTED: '4'
           PUBLIC_SUPABASE_URL: 'https://eccdgjwsllkkdvsqtlzq.supabase.co'
           PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_KXwbXRolrFfu8y2gsWgsfA_DykUtsV8'
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      # Only validated code on main can read the dedicated, non-admin test account.
+      # Pull requests run the anonymous cases above without credentials.
+      - name: Run authenticated end-to-end tests
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          CI_E2E_EXPECTED: '5'
+          PUBLIC_SUPABASE_URL: 'https://eccdgjwsllkkdvsqtlzq.supabase.co'
+          PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_KXwbXRolrFfu8y2gsWgsfA_DykUtsV8'
+          STUDY_TEST_EMAIL: ${{ secrets.STUDY_TEST_EMAIL }}
+          STUDY_TEST_PASSWORD: ${{ secrets.STUDY_TEST_PASSWORD }}
+        run: |
+          if [ -z "$STUDY_TEST_EMAIL" ] || [ -z "$STUDY_TEST_PASSWORD" ]; then
+            echo '::error::Dedicated test account secrets are missing.'
+            exit 1
+          fi
+          npm run test:e2e -- --grep @authenticated

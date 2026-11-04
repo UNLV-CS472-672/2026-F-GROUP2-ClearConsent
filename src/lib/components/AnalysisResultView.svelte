@@ -18,6 +18,7 @@
 	<div class="result-state" role="status">
 		<h2>We couldn't analyze this policy</h2>
 		<p>Please try again.</p>
+		<p>Error code: <code>{result.errorCode}</code></p>
 	</div>
 {:else if result.status === 'insufficient'}
 	<div class="result-state" role="status">
@@ -43,7 +44,7 @@
 					<p class="eyebrow">02 / KEY POINTS</p>
 					<h2 id="takeaways-title">Key takeaways</h2>
 				</div>
-				<p>Each point links back to wording in the sample policy.</p>
+				<p>Each point links back to wording in the policy.</p>
 			</div>
 
 			<div class="takeaway-list">
