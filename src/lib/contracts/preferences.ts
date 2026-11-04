@@ -31,6 +31,20 @@ export const ConcernLevelsSchema = z.record(FindingCategoryEnum, LevelEnum);
 
 export type ConcernLevels = z.infer<typeof ConcernLevelsSchema>;
 
+// Display preferences from the Preferences page (#71): how results are shown
+export const DetailLevelEnum = z.enum(['quick', 'balanced', 'detailed']);
+
+export type DetailLevel = z.infer<typeof DetailLevelEnum>;
+
+export const AnswerStyleEnum = z.enum(['bullets', 'paragraph']);
+
+export type AnswerStyle = z.infer<typeof AnswerStyleEnum>;
+
+// Privacy interests for relevance and ordering on the results page
+export const FocusAreaEnum = z.enum(['sharing', 'tracking', 'retention']);
+
+export type FocusArea = z.infer<typeof FocusAreaEnum>;
+
 // Profile table replicated from scoring-model.md Sect. 5
 export const BUILT_IN_PROFILES: Record<ProfileId, ConcernLevels> = {
 	balanced: {
@@ -59,12 +73,27 @@ export const BUILT_IN_PROFILES: Record<ProfileId, ConcernLevels> = {
 	}
 };
 
-// Profile saved in privacy_preferences.preferences, detail level in follow-up
+// Preferences saved in privacy_preferences.preferences (schema_version 1)
+// Profile is what the scorer flags; focusAreas, detail, and style are how results are shown
+// Missing fields get defaults, so older { profile } objects and three-field test objects
+// still load. Fields that are present must be valid, and unknown fields are rejected.
 export const StoredPreferencesSchema = z.strictObject({
-	profile: ProfileIdEnum
+	profile: ProfileIdEnum.default('balanced'),
+	focusAreas: z
+		.array(FocusAreaEnum)
+		.max(3, 'Choose at most three privacy interests.')
+		.refine((values) => new Set(values).size === values.length, {
+			message: 'Privacy interests must not contain duplicates.'
+		})
+		.default(() => []),
+	detail: DetailLevelEnum.default('balanced'),
+	style: AnswerStyleEnum.default('bullets')
 });
 
 export type StoredPreferences = z.infer<typeof StoredPreferencesSchema>;
+
+// For users with no saved preferences
+export const DEFAULT_STORED_PREFERENCES: StoredPreferences = StoredPreferencesSchema.parse({});
 
 // Snapshot saved in analyses.preference_snapshot
 export const PreferenceSnapshotSchema = z.strictObject({

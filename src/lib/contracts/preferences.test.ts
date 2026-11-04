@@ -8,6 +8,7 @@ import {
 	PreferenceSnapshotSchema,
 	StoredPreferencesSchema,
 	createPreferenceSnapshot,
+	DEFAULT_STORED_PREFERENCES,
 	type PreferenceEvaluation
 } from './preferences';
 import { fitnessFindings, fitnessBalancedEvaluation } from './scoring-fixtures';
@@ -49,17 +50,72 @@ function withConflict(): PreferenceEvaluation {
 
 // Test block for the created profiles
 describe('stored preferences', () => {
-	it('accepts a built-in profile', () => {
-		expect(StoredPreferencesSchema.safeParse({ profile: 'balanced' }).success).toBe(true);
+	// additional tests for updated StoredPreferenceSchema
+	const full = {
+		profile: 'strict',
+		focusAreas: ['sharing', 'tracking'],
+		detail: 'quick',
+		style: 'paragraph'
+	};
+
+	it('accepts the combined object unchanged', () => {
+		expect(StoredPreferencesSchema.parse(full)).toEqual(full);
+	});
+
+	it('fills every default for an empty object', () => {
+		expect(StoredPreferencesSchema.parse({})).toEqual({
+			profile: 'balanced',
+			focusAreas: [],
+			detail: 'balanced',
+			style: 'bullets'
+		});
+		expect(DEFAULT_STORED_PREFERENCES).toEqual(StoredPreferencesSchema.parse({}));
+	});
+
+	it('keeps an older profile-only object and fills the display defaults', () => {
+		expect(StoredPreferencesSchema.parse({ profile: 'relaxed' })).toEqual({
+			profile: 'relaxed',
+			focusAreas: [],
+			detail: 'balanced',
+			style: 'bullets'
+		});
+	});
+
+	it('accepts an earlier three-field object and defaults the profile to balanced', () => {
+		const earlier = { focusAreas: ['retention'], detail: 'detailed', style: 'bullets' };
+		expect(StoredPreferencesSchema.parse(earlier)).toEqual({ profile: 'balanced', ...earlier });
 	});
 
 	it('rejects a detail level used as a profile', () => {
 		expect(StoredPreferencesSchema.safeParse({ profile: 'quick' }).success).toBe(false);
 	});
 
-	it('rejects extra field (detail level) as a built-in component for a profile', () => {
-		const result = StoredPreferencesSchema.safeParse({ profile: 'balanced', detail: 'quick' });
+	it('rejects invalid display values', () => {
+		expect(StoredPreferencesSchema.safeParse({ detail: 'short' }).success).toBe(false);
+		expect(StoredPreferencesSchema.safeParse({ style: 'table' }).success).toBe(false);
+		expect(StoredPreferencesSchema.safeParse({ focusAreas: ['ads'] }).success).toBe(false);
+	});
+
+	it('rejects duplicate focus areas', () => {
+		const result = StoredPreferencesSchema.safeParse({ focusAreas: ['sharing', 'sharing'] });
 		expect(result.success).toBe(false);
+	});
+
+	it('rejects more than three focus areas', () => {
+		const result = StoredPreferencesSchema.safeParse({
+			focusAreas: ['sharing', 'tracking', 'retention', 'sharing']
+		});
+		expect(result.success).toBe(false);
+	});
+
+	it('rejects unknown fields', () => {
+		expect(StoredPreferencesSchema.safeParse({ ...full, theme: 'dark' }).success).toBe(false);
+	});
+
+	it('gives each result its own focusAreas array', () => {
+		const first = StoredPreferencesSchema.parse({});
+		first.focusAreas.push('sharing');
+		expect(StoredPreferencesSchema.parse({}).focusAreas).toEqual([]);
 	});
 });
 
