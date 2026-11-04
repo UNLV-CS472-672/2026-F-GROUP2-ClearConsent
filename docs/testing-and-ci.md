@@ -63,8 +63,10 @@ npm run build
   does not call an external policy site or assert that analysis or history work.
 - `tests/e2e/preferences-preview.spec.ts` uses that test account to check that
   the temporary format preview responds to choices, resets on reload, and links
-  back to the dashboard. Without those credentials, the two signed-in browser
-  tests are skipped.
+  back to the dashboard. The five authenticated cases are tagged
+  `@authenticated`; anonymous cases do not need credentials.
+- `tests/e2e/count-reporter.ts` prints selected, passed, failed, skipped, and
+  not-run counts. CI requires every selected case to pass without a skip.
 - `.github/workflows/ci.yml` installs dependencies and Chromium, then runs
   lint, Svelte checks, unit tests, the production build, and end-to-end tests.
 - `.gitignore` excludes Playwright's generated `test-results` directory.
@@ -75,7 +77,53 @@ The `CI` workflow runs on pull requests and on pushes to `main` and
 `fix/windows-setup`. It uses the Node version in `.nvmrc`, installs from the
 committed lockfile with `npm ci`, installs Chromium, and runs the same checks
 listed above. Playwright retains traces on the first retry to help diagnose a
-browser failure.
+browser failure for anonymous cases. Authenticated runs disable traces so the
+test password cannot enter a trace snapshot. Authenticated cases use one worker
+because the sign-out case can revoke the shared account's other sessions. Pull
+requests and other untrusted contexts run four anonymous browser cases with no
+test credentials. A push to `main` also runs the five
+authenticated cases. Missing account secrets, a skip, or a failed case fails that
+run; a green anonymous pull request does not claim authenticated coverage.
+
+## Dedicated authenticated browser account
+
+Create one confirmed, non-admin test user in the ClearConsent Supabase Auth
+project, with an inbox the team controls. Do not use a teammate's personal
+account, the Supabase service role, or the project admin account. Keep this
+identity for synthetic browser checks only. The current five cases read UI and
+use a fixed study sample; they make no paid analysis call and need no seeded
+history. The dashboard navigation test works with either empty or populated
+history. If later tests write data, add explicit test-only setup and cleanup
+before relying on an empty account; never reset the shared project.
+
+The repository owner stores the confirmed account's login as GitHub Actions
+repository secrets named `STUDY_TEST_EMAIL` and `STUDY_TEST_PASSWORD`. Do not
+put their values in Git, an issue, a PR, a terminal transcript, screenshots, or
+Playwright artifacts. The workflow passes them only to the authenticated step
+on a push to `main`; pull request code does not receive them. The browser step
+does not receive `SUPABASE_SERVICE_ROLE_KEY`.
+
+For a local credentialed run, load these values into the current shell from a
+private source: `STUDY_TEST_EMAIL=<dedicated test email>`,
+`STUDY_TEST_PASSWORD=<password from private vault>`, and
+`ENABLE_PAID_ANALYSIS=0`. The angle-bracketed text is a placeholder, not a
+literal value or a file to create. Use a secure prompt or secret manager rather
+than putting credentials in shell history or a file in the repository. Then run:
+
+```sh
+npm run test:e2e -- --grep @authenticated
+```
+
+For the anonymous lane, run:
+
+```sh
+npm run test:e2e -- --grep-invert @authenticated
+```
+
+Record the tested commit, CI run URL, and the reporter's selected/passed/skipped
+counts. The current expected counts are five authenticated and four anonymous
+cases. First-time signup and email verification, ordinary paste/URL analysis,
+and save/reopen coverage remain separate work in issue #10.
 
 ## Updating the suite
 
