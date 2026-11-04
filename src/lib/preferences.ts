@@ -1,20 +1,6 @@
-import { z } from 'zod';
+export {
+	StoredPreferencesSchema as preferencesSchema,
+	DEFAULT_STORED_PREFERENCES as defaultPreferences
+} from '$lib/contracts/preferences';
 
-export const preferencesSchema = z.object({
-	focusAreas: z
-		.array(z.enum(['sharing', 'tracking', 'retention']))
-		.max(3)
-		.refine((values) => new Set(values).size === values.length, {
-			message: 'Privacy interests must not contain duplicates.'
-		}),
-	detail: z.enum(['quick', 'balanced', 'detailed']),
-	style: z.enum(['bullets', 'paragraph'])
-});
-
-export type Preferences = z.infer<typeof preferencesSchema>;
-
-export const defaultPreferences: Preferences = {
-	focusAreas: [],
-	detail: 'balanced',
-	style: 'bullets'
-};
+export type { StoredPreferences as Preferences } from '$lib/contracts/preferences';

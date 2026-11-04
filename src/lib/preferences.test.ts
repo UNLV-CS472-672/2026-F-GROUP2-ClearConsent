@@ -32,7 +32,34 @@ describe('preference validation', () => {
 		expect(result.success).toBe(false);
 	});
 
-	it('rejects missing preference fields', () => {
-		expect(preferencesSchema.safeParse({}).success).toBe(false);
+	it('fills missing fields with the shared defaults', () => {
+		expect(preferencesSchema.parse({})).toEqual(defaultPreferences);
+	});
+
+	it('fills defaults for older profile-only preferences', () => {
+		expect(preferencesSchema.parse({ profile: 'strict' })).toEqual({
+			...defaultPreferences,
+			profile: 'strict'
+		});
+	});
+
+	it('adds a default profile to older presentation preferences', () => {
+		expect(
+			preferencesSchema.parse({
+				focusAreas: ['tracking'],
+				detail: 'quick',
+				style: 'paragraph'
+			})
+		).toEqual({
+			profile: 'balanced',
+			focusAreas: ['tracking'],
+			detail: 'quick',
+			style: 'paragraph'
+		});
+	});
+
+	it('rejects invalid profiles and unknown fields', () => {
+		expect(preferencesSchema.safeParse({ profile: 'unknown' }).success).toBe(false);
+		expect(preferencesSchema.safeParse({ unexpected: true }).success).toBe(false);
 	});
 });

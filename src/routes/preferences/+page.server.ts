@@ -1,6 +1,13 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import { defaultPreferences, preferencesSchema } from '$lib/preferences';
+import { DEFAULT_STORED_PREFERENCES, StoredPreferencesSchema } from '$lib/contracts/preferences';
 import type { Actions, PageServerLoad } from './$types';
+
+// The form edits presentation choices; profile comes from the saved row.
+const formSchema = StoredPreferencesSchema.pick({
+	focusAreas: true,
+	detail: true,
+	style: true
+});
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const { user } = await locals.safeGetSession();
@@ -20,10 +27,10 @@ export const load: PageServerLoad = async ({ locals }) => {
 	}
 
 	if (!data) {
-		return { preferences: defaultPreferences };
+		return { preferences: DEFAULT_STORED_PREFERENCES };
 	}
 
-	const parsed = preferencesSchema.safeParse(data.preferences);
+	const parsed = StoredPreferencesSchema.safeParse(data.preferences);
 
 	if (data.schema_version !== 1 || !parsed.success) {
 		error(500, 'Your saved preferences have an unsupported format.');
@@ -41,7 +48,7 @@ export const actions: Actions = {
 		}
 
 		const formData = await request.formData();
-		const parsed = preferencesSchema.safeParse({
+		const parsed = formSchema.safeParse({
 			focusAreas: formData.getAll('focusAreas'),
 			detail: formData.get('detail'),
 			style: formData.get('style')
@@ -54,12 +61,44 @@ export const actions: Actions = {
 			});
 		}
 
+		// Read the current profile instead of accepting one from the form.
+		const { data: existing, error: loadError } = await locals.supabase
+			.from('privacy_preferences')
+			.select('preferences, schema_version')
+			.eq('user_id', user.id)
+			.maybeSingle();
+
+		if (loadError) {
+			return fail(503, {
+				success: false,
+				message: 'Unable to load your current preferences. Please try again.',
+				preferences: parsed.data
+			});
+		}
+
+		const current = StoredPreferencesSchema.safeParse(
+			existing ? existing.preferences : DEFAULT_STORED_PREFERENCES
+		);
+
+		if ((existing && existing.schema_version !== 1) || !current.success) {
+			return fail(500, {
+				success: false,
+				message: 'Your saved preferences have an unsupported format.',
+				preferences: parsed.data
+			});
+		}
+
+		const preferences = {
+			...current.data,
+			...parsed.data
+		};
+
 		const { data, error: saveError } = await locals.supabase
 			.from('privacy_preferences')
 			.upsert(
 				{
 					user_id: user.id,
-					preferences: parsed.data,
+					preferences,
 					schema_version: 1
 				},
 				{ onConflict: 'user_id' }
@@ -71,14 +110,14 @@ export const actions: Actions = {
 			return fail(503, {
 				success: false,
 				message: 'Unable to save your preferences. Please try again.',
-				preferences: parsed.data
+				preferences
 			});
 		}
 
 		return {
 			success: true,
 			message: 'Your preferences have been saved.',
-			preferences: parsed.data
+			preferences
 		};
 	}
 };

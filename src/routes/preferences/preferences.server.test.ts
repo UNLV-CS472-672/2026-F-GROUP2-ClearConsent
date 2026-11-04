@@ -3,6 +3,7 @@ import { actions, load } from './+page.server';
 import { defaultPreferences } from '$lib/preferences';
 
 const savedPreferences = {
+	profile: 'balanced',
 	focusAreas: ['tracking'],
 	detail: 'quick',
 	style: 'paragraph'
@@ -128,5 +129,81 @@ describe('preferences server', () => {
 				preferences: savedPreferences
 			}
 		});
+	});
+	it.each(['strict', 'relaxed'])(
+		'preserves the saved %s profile when updating presentation choices',
+		async (profile) => {
+			const test = setup();
+			test.query.maybeSingle.mockResolvedValue({
+				data: {
+					preferences: { profile },
+					schema_version: 1
+				},
+				error: null
+			});
+
+			// A submitted profile must not override the saved one.
+			test.form.set('profile', 'balanced');
+
+			expect(await test.savePreferences()).toMatchObject({
+				success: true,
+				preferences: { ...savedPreferences, profile }
+			});
+			expect(test.query.eq).toHaveBeenCalledWith('user_id', 'user-a');
+			expect(test.query.upsert).toHaveBeenCalledWith(
+				{
+					user_id: 'user-a',
+					preferences: { ...savedPreferences, profile },
+					schema_version: 1
+				},
+				{ onConflict: 'user_id' }
+			);
+		}
+	);
+
+	it('loads older profile-only preferences with presentation defaults', async () => {
+		const test = setup();
+		test.query.maybeSingle.mockResolvedValue({
+			data: {
+				preferences: { profile: 'strict' },
+				schema_version: 1
+			},
+			error: null
+		});
+
+		expect(await test.loadPreferences()).toEqual({
+			preferences: { ...defaultPreferences, profile: 'strict' }
+		});
+	});
+
+	it('does not save when reading the current profile fails', async () => {
+		const test = setup();
+		test.query.maybeSingle.mockResolvedValue({
+			data: null,
+			error: { message: 'Database unavailable' }
+		});
+
+		expect(await test.savePreferences()).toMatchObject({
+			status: 503,
+			data: { success: false }
+		});
+		expect(test.query.upsert).not.toHaveBeenCalled();
+	});
+
+	it('does not overwrite invalid stored preferences', async () => {
+		const test = setup();
+		test.query.maybeSingle.mockResolvedValue({
+			data: {
+				preferences: { profile: 'invalid' },
+				schema_version: 1
+			},
+			error: null
+		});
+
+		expect(await test.savePreferences()).toMatchObject({
+			status: 500,
+			data: { success: false }
+		});
+		expect(test.query.upsert).not.toHaveBeenCalled();
 	});
 });
