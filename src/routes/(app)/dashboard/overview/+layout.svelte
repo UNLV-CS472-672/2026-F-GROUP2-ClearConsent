@@ -39,6 +39,7 @@
 				<span><strong>ClearConsent</strong><small>Policy workspace</small></span>
 			</div>
 			<nav aria-label="Dashboard links" class="dashboard-links">
+				<a href={resolve('/dashboard/history')}>History</a>
 				<a href={resolve('/preferences')}>Preferences</a>
 				<form action={resolve('/logout')} method="POST">
 					<button type="submit">Sign out</button>
@@ -164,6 +165,11 @@
 							</div>
 						</div>
 					{/if}
+					<div class="history-redirect"> 
+						<a class="sample-submit"href={resolve('/dashboard/history')}>
+							View All 
+						</a>
+					</div>
 				</section>
 			{/if}
 		</div>
@@ -560,6 +566,9 @@
 	.history-item:hover {
 		border-color: #2ca6af;
 		box-shadow: 0 6px 16px #11788322;
+	}
+	.history-redirect {
+		padding: 10px 0px;
 	}
 	.history-text {
 		display: grid;
