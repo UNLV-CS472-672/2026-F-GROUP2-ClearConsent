@@ -62,7 +62,8 @@ npm run build
   also follows the dashboard links to the current forms in a real browser. It
   does not call an external policy site or assert that analysis or history work.
 - `tests/e2e/preferences-preview.spec.ts` uses that test account to check that
-  the temporary format preview responds to choices, resets on reload, and links
+  the format preview responds to choices, saves and restores them on reload,
+  discards unsaved edits, and links
   back to the dashboard. The five authenticated cases are tagged
   `@authenticated`; anonymous cases do not need credentials.
 - `tests/e2e/count-reporter.ts` prints selected, passed, failed, skipped, and
@@ -93,7 +94,11 @@ account, the Supabase service role, or the project admin account. Keep this
 identity for synthetic browser checks only. The current five cases read UI and
 use a fixed study sample; they make no paid analysis call and need no seeded
 history. The dashboard navigation test works with either empty or populated
-history. If later tests write data, add explicit test-only setup and cleanup
+history. The preferences case saves changed presentation choices and restores
+the original choices in a finally block, without submitting or changing the
+scoring profile. If the account had no preferences row, cleanup leaves an
+equivalent default row; it never deletes account data. If additional tests write
+data, add explicit test-only setup and cleanup
 before relying on an empty account; never reset the shared project.
 
 The repository owner stores the confirmed account's login as GitHub Actions
