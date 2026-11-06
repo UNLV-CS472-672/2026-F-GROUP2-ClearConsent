@@ -84,17 +84,13 @@
 							</p>
 						</div>
 						<div class="study-actions">
-							<a
-								class="sample-link"
-								href={resolve(
-									`/study-sample?detail=${detailLevel(page.url.searchParams.get('detail'))}`
-								)}>Read sample policy</a
+							<a class="sample-link" href={resolve(`/study-sample?${studyQuery.slice(1)}`)}
+								>Read sample policy</a
 							>
 							<a
 								class="sample-submit"
-								href={resolve(
-									`/dashboard/overview/result?detail=${detailLevel(page.url.searchParams.get('detail'))}`
-								)}>Submit study sample <span aria-hidden="true">→</span></a
+								href={resolve(`/dashboard/overview/result?${studyQuery.slice(1)}`)}
+								>Submit study sample <span aria-hidden="true">→</span></a
 							>
 						</div>
 					</div>
@@ -165,10 +161,8 @@
 							</div>
 						</div>
 					{/if}
-					<div class="history-redirect"> 
-						<a class="sample-submit"href={resolve('/dashboard/history')}>
-							View All 
-						</a>
+					<div class="history-redirect">
+						<a class="sample-submit" href={resolve('/dashboard/history')}> View All </a>
 					</div>
 				</section>
 			{/if}

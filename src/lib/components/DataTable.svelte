@@ -121,9 +121,7 @@
 							}}
 							class="show-modal-button w-full"
 						>
-							<div
-								class="history-item p-3.25 {cell.column.id === 'name' ? 'text-left' : 'text-right'}"
-							>
+							<div class="history-item {cell.column.id === 'name' ? 'text-left' : 'text-right'}">
 								<span class="history-text">
 									<strong
 										class={cell.column.id === 'name'
@@ -155,8 +153,8 @@
 				>
 					<div class="modal-content flex h-full w-full flex-col p-5">
 						<!-- div so clicking/tapping the dialog "margins" doesn't close it -->
-						<div class="modal-header grid pb-10">
-							<div class="flex inline-flex items-center justify-between">
+						<div class="modal-header grid items-center pb-10">
+							<div class="inline-flex items-center justify-between">
 								<h1 class="flex-1 text-center text-lg font-bold">
 									{currentSourceAndResult?.source.title}
 								</h1>
@@ -175,7 +173,7 @@
 									</svg>
 								</button>
 							</div>
-							<small>
+							<small class="justify-self-center">
 								{currentSourceAndResult?.source.url}
 							</small>
 						</div>
@@ -227,9 +225,7 @@
 			sans-serif;
 	}
 	.history-item {
-		justify-content: space-between;
-		gap: 18px;
-		/* padding: 14px 16px; */
+		padding: 14px 16px;
 		border-radius: 7px;
 		background: #f8fafc;
 		color: #243b4d;
@@ -239,5 +235,37 @@
 		display: grid;
 		gap: 2px;
 		min-width: 0;
+	}
+	.history-empty {
+		display: flex;
+		align-items: flex-start;
+		gap: 18px;
+		padding: 27px;
+		border: 1px dashed #b9d0dd;
+		border-radius: 7px;
+		background: #f5fafb;
+	}
+	.history-empty-mark {
+		display: grid;
+		flex: 0 0 42px;
+		place-items: center;
+		width: 42px;
+		height: 42px;
+		border-radius: 8px;
+		background: #e1f3f0;
+		color: #167f88;
+		font-size: 24px;
+	}
+	.history-empty h3 {
+		margin: 0 0 6px;
+		color: #243b4d;
+		font-size: 16px;
+	}
+	.history-empty p {
+		max-width: 540px;
+		margin: 0 0 13px;
+		color: #5a6b80;
+		font-size: 13px;
+		line-height: 1.55;
 	}
 </style>

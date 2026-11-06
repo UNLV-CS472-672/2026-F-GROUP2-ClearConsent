@@ -1,16 +1,17 @@
 <script lang="ts">
 	import DataTable from '$lib/components/DataTable.svelte';
-	import type { features } from '$lib/components/DataTable';
-	import { createColumnHelper } from '@tanstack/svelte-table';
-	import type { ColumnDef } from '@tanstack/svelte-table';
-	import type { SourceAndResult } from '$lib/components/DataTable';
+	import type { SourceAndResult, features } from '$lib/components/DataTable';
+	import { createColumnHelper, type ColumnDef } from '@tanstack/svelte-table';
 	import type { PageData } from './$types';
 	import { successFixture } from '$lib/contracts/fixtures';
-	let { data }: { data: PageData } = $props();
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
+	import { detailLevel } from '$lib/study/sample';
 
+	let { data }: { data: PageData } = $props();
+	let displaySnytheticData = $state(false);
 	const getRecentSources = () => data.recentSources;
-	const displaySnytheticData = false;
+	const detail = $derived(detailLevel(page.url.searchParams.get('detail')));
 
 	function getSourcesAndResults(): SourceAndResult[] {
 		const res: SourceAndResult[] = (getRecentSources() ?? []).map((src, index) => {
@@ -57,7 +58,7 @@
 	const opts = ['0', '1', '10', '20', '30'];
 </script>
 
-<div class="dashboard-frame">
+<div class="page-frame">
 	<div class="workspace">
 		<header class="masthead">
 			<div class="identity">
@@ -66,9 +67,10 @@
 			</div>
 			<nav aria-label="Dashboard links" class="dashboard-links">
 				<a href={resolve('/preferences')}>Preferences</a>
-				<form action={resolve('/logout')} method="POST">
-					<button type="submit">Sign out</button>
-				</form>
+				<a class="back-link" href={resolve(`/dashboard/overview/extract?detail=${detail}`)}
+					>← Back to dashboard</a
+				>
+				<br />
 			</nav>
 		</header>
 
@@ -76,7 +78,7 @@
 			<section class="history-panel" aria-labelledby="history-title">
 				<div class="section-heading history-heading">
 					<div>
-						<p class="section-label">02 / HISTORY</p>
+						<p class="section-label">HISTORY</p>
 						<h2 id="history-title">Analyses</h2>
 					</div>
 				</div>
@@ -84,6 +86,16 @@
 					<!-- <h1 class="font-lg mb-5 font-bold">User Data</h1> -->
 					<DataTable data={sourcesFromData} {columns}></DataTable>
 				</div>
+
+				{#if sourcesFromData.length === 0}
+					<button
+						class="default-button text-white"
+						onclick={() => (displaySnytheticData = !displaySnytheticData)}
+						aria-label="Display synthetic analyses"
+					>
+						Display synthetic analyses
+					</button>
+				{/if}
 
 				{#if displaySnytheticData}
 					<div class="flex w-full flex-col items-center justify-center pb-5">
@@ -101,14 +113,25 @@
 				{/if}
 			</section>
 		</div>
-	</div>
 	<footer>
 		<strong>ClearConsent</strong><span>Privacy policy workspace</span>
 	</footer>
+	</div>
 </div>
 
 <style>
-	.dashboard-frame {
+	.default-button {
+		background: #147f88;
+		border-radius: 7px;
+		padding: 0.5rem 1.5rem;
+		font-size: 13px;
+		font-weight: 700;
+		cursor: pointer;
+	}
+	.default-button:hover {
+		background: #0d6570;
+	}
+	.page-frame {
 		width: 100%;
 		min-height: 100vh;
 		padding: 0 28px;
@@ -128,6 +151,7 @@
 		margin: 0 auto;
 		background: #f3f6fa;
 		box-shadow: 0 24px 70px #0005;
+		flex: 1;
 	}
 	.masthead {
 		display: flex;
@@ -185,26 +209,6 @@
 	.dashboard-links a:hover {
 		color: #70ebe0;
 	}
-	.dashboard-links form {
-		margin: 0;
-	}
-	.dashboard-links button {
-		padding: 8px 12px;
-		border: 1px solid #5a8095;
-		border-radius: 5px;
-		background: transparent;
-		color: #d9e8f1;
-		font: inherit;
-		cursor: pointer;
-	}
-	.dashboard-links button:hover {
-		border-color: #70ebe0;
-		color: #70ebe0;
-	}
-	.dashboard-links button:focus-visible {
-		outline: 3px solid #42cabc;
-		outline-offset: 3px;
-	}
 	.section-label {
 		margin: 0 0 12px;
 		color: #137b80;
@@ -259,7 +263,7 @@
 		outline-offset: 3px;
 	}
 	@media (max-width: 720px) {
-		.dashboard-frame {
+		.page-frame {
 			padding: 0;
 		}
 		.masthead,
