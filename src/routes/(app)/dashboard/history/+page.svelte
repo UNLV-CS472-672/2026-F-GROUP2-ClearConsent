@@ -113,9 +113,9 @@
 				{/if}
 			</section>
 		</div>
-	<footer>
-		<strong>ClearConsent</strong><span>Privacy policy workspace</span>
-	</footer>
+		<footer>
+			<strong>ClearConsent</strong><span>Privacy policy workspace</span>
+		</footer>
 	</div>
 </div>
 
