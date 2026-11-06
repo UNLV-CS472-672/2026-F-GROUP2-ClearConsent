@@ -69,7 +69,7 @@
 	}
 </script>
 
-<div class="mt-2 flex w-19/20 flex-col gap-5">
+<div class="mt-2 flex w-full flex-col gap-5">
 	<div class="table-controls inline-flex w-full justify-between self-start text-sm font-semibold">
 		<input
 			type="search"
@@ -122,23 +122,21 @@
 							class="show-modal-button w-full"
 						>
 							<div class="history-item {cell.column.id === 'name' ? 'text-left' : 'text-right'}">
-								<div class="m-3 flex flex-col {cell.column.id === 'created_at' ? 'text-sm' : ''}">
-									<span class="history-text">
-										<strong
-											class={cell.column.id === 'name'
-												? 'truncate text-[14px] font-[750]'
-												: 'text-[12px] text-[#137b80]'}
-										>
-											<FlexRender {cell} />
-										</strong>
+								<span class="history-text">
+									<strong
+										class={cell.column.id === 'name'
+											? 'text-[14px] font-[750] whitespace-nowrap'
+											: 'text-[11px] text-[#137b80]'}
+									>
+										<FlexRender {cell} />
+									</strong>
+								</span>
+								{#if cell.column.id === 'name'}
+									{@const url = (cell.row.original as SourceAndResult).source.url}
+									<span class="source-url">
+										<small class="text-[11px] text-[#5a6b80]">{url}</small>
 									</span>
-									{#if cell.column.id === 'name'}
-										{@const url = (cell.row.original as SourceAndResult).source.url}
-										<span class="source-url text-[10px]">
-											<small class="text-[11px] text-[#5a6b80]">{url}</small>
-										</span>
-									{/if}
-								</div>
+								{/if}
 							</div>
 						</button>
 					{/each}
@@ -155,24 +153,29 @@
 				>
 					<div class="modal-content flex h-full w-full flex-col p-5">
 						<!-- div so clicking/tapping the dialog "margins" doesn't close it -->
-						<div class="modal-header inline-flex items-center justify-between">
-							<h1 class="flex-1 text-center text-lg font-bold">
-								{currentSourceAndResult?.source.title}
-							</h1>
-							<button
-								class="cursor-pointer pr-5"
-								onclick={() => dialogRef?.close()}
-								aria-label="close"
-							>
-								<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M6 18L18 6M6 6l12 12"
-									/>
-								</svg>
-							</button>
+						<div class="modal-header grid items-center pb-10">
+							<div class="inline-flex items-center justify-between">
+								<h1 class="flex-1 text-center text-lg font-bold">
+									{currentSourceAndResult?.source.title}
+								</h1>
+								<button
+									class="cursor-pointer p-2"
+									onclick={() => dialogRef?.close()}
+									aria-label="close"
+								>
+									<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M6 18L18 6M6 6l12 12"
+										/>
+									</svg>
+								</button>
+							</div>
+							<small class="justify-self-center">
+								{currentSourceAndResult?.source.url}
+							</small>
 						</div>
 						<div>
 							<!-- Analysis Result -->
@@ -183,7 +186,8 @@
 									></AnalysisResultView>
 									<a
 										href={resolve(`/dashboard/overview/analyze/${sourceID}${detail}`)}
-										class="rounded-lg border border-gray-300 p-2 text-center text-sm"
+										class="hover rounded-lg border border-gray-300 p-2 text-center text-sm
+										 hover:border-[#2ca6af] hover:shadow-lg hover:shadow-[#11788322]"
 									>
 										View more details
 									</a>
@@ -211,5 +215,57 @@
 </div>
 
 <style>
-	/* Replace with style and class selectors from overview if necessary in future. */
+	* {
+		font-family:
+			Inter,
+			ui-sans-serif,
+			system-ui,
+			-apple-system,
+			'Segoe UI',
+			sans-serif;
+	}
+	.history-item {
+		padding: 14px 16px;
+		border-radius: 7px;
+		background: #f8fafc;
+		color: #243b4d;
+		text-decoration: none;
+	}
+	.history-text {
+		display: grid;
+		gap: 2px;
+		min-width: 0;
+	}
+	.history-empty {
+		display: flex;
+		align-items: flex-start;
+		gap: 18px;
+		padding: 27px;
+		border: 1px dashed #b9d0dd;
+		border-radius: 7px;
+		background: #f5fafb;
+	}
+	.history-empty-mark {
+		display: grid;
+		flex: 0 0 42px;
+		place-items: center;
+		width: 42px;
+		height: 42px;
+		border-radius: 8px;
+		background: #e1f3f0;
+		color: #167f88;
+		font-size: 24px;
+	}
+	.history-empty h3 {
+		margin: 0 0 6px;
+		color: #243b4d;
+		font-size: 16px;
+	}
+	.history-empty p {
+		max-width: 540px;
+		margin: 0 0 13px;
+		color: #5a6b80;
+		font-size: 13px;
+		line-height: 1.55;
+	}
 </style>

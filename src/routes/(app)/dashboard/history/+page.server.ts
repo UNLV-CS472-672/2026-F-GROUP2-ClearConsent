@@ -2,9 +2,8 @@
 import { getSupabaseForUser } from '$lib/server/db/supabase';
 import type { AnalysisResult, AttentionLabel, FindingCategory } from '$lib/contracts/analysis';
 import { SupabaseClient } from '@supabase/supabase-js';
-
-type RecentSource = { id: string; title: string | null; url: string | null; created_at: string };
-type Analysis = { id: string; summary: string };
+import { type RecentSource } from '$lib/components/DataTable.js';
+import { type SavedAnalysis } from '$lib/server/db/analysis-runs.js';
 
 const TOPICS: Record<FindingCategory, string> = {
 	collection: 'Information collection',
@@ -33,7 +32,7 @@ function plural(count: number, word: string) {
 
 // The AI returns findings but no takeaways, so each category becomes one takeaway. Its label and
 // reason come only from the stored findings: ambiguity, and whether each one exposes or protects.
-function toAnalysisResult(analysis: Analysis, rows: FindingRow[]): AnalysisResult {
+function toAnalysisResult(analysis: SavedAnalysis, rows: FindingRow[]): AnalysisResult {
 	if (rows.length === 0) {
 		return {
 			status: 'insufficient',
@@ -100,7 +99,7 @@ async function findAnalysis(supabase: SupabaseClient, sourceId: string) {
 		console.error('Failed to load analysis:', findError.message);
 		throw new Error('Unable to load the analysis.');
 	}
-	return data as Analysis | null;
+	return data as SavedAnalysis | null;
 }
 
 // Do not run the analysis if none is stored yet, just grab findings and format.
