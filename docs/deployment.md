@@ -97,6 +97,77 @@ alone do not verify every account setting.
 
 ## Release failure and recovery
 
+### Required hosted schema gate (#77)
+
+Local migration tests prove that the committed SQL works on a disposable database;
+they do not prove that a hosted project has received it. The deployment job now runs
+`npm run check:schema-readiness` after the current-main check and before Wrangler.
+Build and probe share the same `PUBLIC_SUPABASE_URL` and
+`PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Only a successful HTTP 200 containing the JSON
+boolean `true` permits deployment. Missing configuration, redirects, HTTP errors
+(including 401/403), timeouts, invalid JSON, and any other result block release.
+Failure output omits keys, URLs, response bodies, and upstream exception details.
+
+The probe calls `GET /rest/v1/rpc/analysis_schema_ready_v1` with the existing public
+publishable key. The reviewed migration
+`20261106172644_analysis_schema_readiness.sql` adds a stable, security-invoker
+function that reads catalog metadata only. It exposes one boolean and has no input
+parameters, user-row access, elevated privileges, or calls to analysis functions.
+It checks the real `public.analysis_runs` table, RLS enabled, required column types,
+and these exact named RPC signatures and return types:
+
+- `start_analysis_run(p_source_id uuid, p_retry boolean) -> jsonb`
+- `fail_analysis_run(p_source_id uuid, p_run_id uuid, p_error_code text, p_error_message text) -> boolean`
+- `release_analysis_run(p_source_id uuid, p_run_id uuid) -> boolean`
+
+It also requires authenticated execute and anonymous denial on those three RPCs.
+Existing grants, ownership policies and duplicate-run protections are unchanged.
+The new boolean function alone is callable anonymously. No service-role credential,
+test login, new identity, paid analysis, or automatic migration is used by the gate.
+
+Direct anonymous probes of the protected RPCs cannot reliably establish their full
+contract: OpenAPI is role-filtered and a 401/403 can have multiple causes. Those
+responses must never count as readiness. See
+[PostgREST OpenAPI permissions](https://docs.postgrest.org/en/stable/references/api/openapi.html)
+and [read-only HTTP transactions](https://docs.postgrest.org/en/stable/references/transactions.html).
+
+#### Release and remediation checklist
+
+1. Review pending migrations against the exact validated main SHA and intended
+   hosted project. In particular, the analysis-run migration from #69 and the new
+   readiness migration must both be applied before this gate can pass. Missing the
+   readiness function itself blocks release; there is no bootstrap bypass.
+2. The database owner separately authorizes and applies reviewed migrations using
+   the team's existing migration process. Verify migration history and SQL results;
+   do not reset the hosted database or grant anonymous access to protected tables or
+   RPCs to make the probe pass. Use the lockfile's CLI version and inspect `--help`
+   before operational commands. This workflow never applies migrations.
+3. Ensure the Data API exposes `public` and reload its schema cache after schema
+   changes if needed. With the deployment's public configuration in the environment,
+   run `npm run check:schema-readiness`; investigate any failure before retrying.
+   Check the URL/key pairing, migration history and catalog objects, permissions,
+   Data API availability and cache. Do not print private configuration or raw logs.
+4. Rerun release only for a still-current main SHA with successful CI. Record that
+   SHA, CI/release run URLs, migration verification and readiness outcome.
+5. After an authorized deployment, separately verify an existing saved result and
+   record a sanitized outcome. Keep paid analysis disabled in test environments.
+   Opening a new-submission result can start a paid run and needs separate scope.
+
+This is a point-in-time prerequisite, not a complete schema-diff or recovery test.
+It does not verify every constraint, index, policy, function body, migration-history
+entry, per-RPC PostgREST cache entry, Worker runtime configuration, or saved-result
+rendering. It does not prevent schema changes after the check. Retain database
+regressions and post-release smoke checks; version and extend the contract when
+new runtime schema requirements are introduced. A wrong project with the same
+contract cannot be distinguished by the boolean: review the shared deployment URL
+and Worker configuration. The script accepts hosted HTTPS Supabase origins and
+`sb_publishable_` keys only; local HTTP and legacy JWT keys are intentionally rejected.
+
+Issue #77 records a missing application of the committed analysis-run migration:
+result pages failed while a saved result still existed. The release workflow had no
+hosted-schema check. Production remediation and saved-result recovery verification
+are separate operational work; local tests and this PR do not establish recovery.
+
 A failed CI run prevents this release workflow from deploying. Build or deployment
 failure fails the release job; check its logs without copying credentials. After
 correcting configuration, rerun the release workflow for a still-current validated

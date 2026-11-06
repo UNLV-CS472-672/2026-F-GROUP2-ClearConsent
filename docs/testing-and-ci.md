@@ -127,6 +127,28 @@ and save/reopen coverage remain separate work in issue #10.
 
 ## Updating the suite
 
+### Schema readiness regressions
+
+`npm run test:schema-readiness` runs deterministic Node tests with synthetic public
+configuration and mocked HTTP responses. CI retains all existing checks and runs
+this command on every pull request and supported push. It covers the successful
+boolean contract, malformed configuration, privileged keys, false or malformed
+responses, redirects, HTTP failures (including 401/403), network errors and timeouts,
+sanitized failures, and placement of the release gate before Wrangler.
+
+`supabase/tests/database/schema-readiness.test.sql` runs through `npm run test:db`
+in a rolled-back disposable transaction. It checks anonymous catalog-only access,
+stable/security-invoker behavior, missing table/column/functions, disabled RLS,
+wrong argument types/names and return type, and execute permission drift. It never
+calls a state-changing analysis RPC or reads production data.
+
+The live `npm run check:schema-readiness` command is a separate release check, not
+part of offline PR validation. It requires the reviewed readiness migration on the
+hosted target. See [the release checklist and coverage boundaries](deployment.md#required-hosted-schema-gate-77).
+Neither mocked HTTP tests nor local pgTAP establishes production recovery or
+authenticated browser coverage. Broader end-to-end work remains tracked by #10
+and #66.
+
 Keep tests deterministic and local. Do not call external APIs, require secrets,
 or exercise the LLM in CI. Add route or component behavior to Vitest when a
 browser is unnecessary; use Playwright for behavior that depends on the
