@@ -35,6 +35,8 @@ jobs:
 
       - name: Run unit tests with coverage thresholds
         run: npm run test:coverage
+      - name: Test the schema readiness release gate offline
+        run: npm run test:schema-readiness
       - name: Run synthetic offline evaluation regressions
         run: npm run test:offline
       - name: Run Stage 1 offline tests
