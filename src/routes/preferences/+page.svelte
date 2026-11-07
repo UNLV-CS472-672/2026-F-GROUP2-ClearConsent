@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import type { PageProps } from './$types';
+
+	let { data, form }: PageProps = $props();
 
 	type Detail = 'quick' | 'balanced' | 'detailed';
 	type Style = 'bullets' | 'paragraph';
@@ -22,9 +25,15 @@
 		}
 	] as const;
 
-	let focusAreas = $state<string[]>([]);
-	let detail = $state<Detail>('balanced');
-	let style = $state<Style>('bullets');
+	//let focusAreas = $state<string[]>([]);
+	//let detail = $state<Detail>('balanced');
+	//let style = $state<Style>('bullets');
+	// changed with
+	const preferences = $derived(form?.preferences ?? data.preferences);
+
+	let focusAreas = $derived<string[]>([...preferences.focusAreas]);
+	let detail = $derived<Detail>(preferences.detail);
+	let style = $derived<Style>(preferences.style);
 
 	const coreSentences = [
 		'If usage reporting is on, this example service shares usage data with an analytics provider.',
@@ -69,8 +78,10 @@
 			<div class="notice" role="note">
 				<strong>Study preview</strong>
 				<span>
-					The level of detail carries into the study example when you continue below. Choices are
-					not saved. Answer style and privacy interests apply only to this preview.
+					Use Save preferences to keep your choices for future visits. The level of detail carries
+					into the study example when you continue below. Saving these choices does not yet change
+					live AI analyses. Answer style applies only to this preview, and privacy interests do not
+					change this example.
 				</span>
 			</div>
 
@@ -80,7 +91,7 @@
 				>
 			</p>
 			<div class="columns">
-				<div class="controls">
+				<form method="POST" class="controls">
 					<section class="panel" aria-labelledby="topics-title">
 						<p class="section-label">01 / PRIVACY INTERESTS</p>
 						<h2 id="topics-title">What would you notice first?</h2>
@@ -88,7 +99,12 @@
 						<div class="choices">
 							{#each topics as topic (topic.value)}
 								<label class="choice">
-									<input type="checkbox" value={topic.value} bind:group={focusAreas} />
+									<input
+										type="checkbox"
+										name="focusAreas"
+										value={topic.value}
+										bind:group={focusAreas}
+									/>
 									<span><strong>{topic.title}</strong><small>{topic.description}</small></span>
 								</label>
 							{/each}
@@ -102,14 +118,13 @@
 							<legend>Level of detail</legend>
 							<div class="option-row">
 								<label
-									><input type="radio" name="detail-level" value="quick" bind:group={detail} /> Quick
-									scan</label
+									><input type="radio" name="detail" value="quick" bind:group={detail} /> Quick scan</label
 								>
 								<label
-									><input type="radio" name="detail-level" value="balanced" bind:group={detail} /> Balanced</label
+									><input type="radio" name="detail" value="balanced" bind:group={detail} /> Balanced</label
 								>
 								<label
-									><input type="radio" name="detail-level" value="detailed" bind:group={detail} /> Detailed</label
+									><input type="radio" name="detail" value="detailed" bind:group={detail} /> Detailed</label
 								>
 							</div>
 						</fieldset>
@@ -117,17 +132,25 @@
 							<legend>Answer style</legend>
 							<div class="option-row">
 								<label
-									><input type="radio" name="answer-style" value="bullets" bind:group={style} /> Bullet
-									points</label
+									><input type="radio" name="style" value="bullets" bind:group={style} /> Bullet points</label
 								>
 								<label
-									><input type="radio" name="answer-style" value="paragraph" bind:group={style} /> Short
-									paragraph</label
+									><input type="radio" name="style" value="paragraph" bind:group={style} /> Short paragraph</label
 								>
 							</div>
 						</fieldset>
 					</section>
-				</div>
+					<button
+						type="submit"
+						class="rounded-md bg-teal-700 px-5 py-3 font-semibold text-white hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
+					>
+						Save preferences
+					</button>
+
+					{#if form?.message}
+						<p role="status">{form.message}</p>
+					{/if}
+				</form>
 
 				<section class="panel preview" aria-labelledby="preview-title">
 					<p class="section-label">ILLUSTRATIVE PREVIEW</p>
