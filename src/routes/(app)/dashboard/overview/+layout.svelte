@@ -39,6 +39,7 @@
 				<span><strong>ClearConsent</strong><small>Policy workspace</small></span>
 			</div>
 			<nav aria-label="Dashboard links" class="dashboard-links">
+				<a href={resolve('/dashboard/history')}>History</a>
 				<a href={resolve('/preferences')}>Preferences</a>
 				<form action={resolve('/logout')} method="POST">
 					<button type="submit">Sign out</button>
@@ -83,17 +84,13 @@
 							</p>
 						</div>
 						<div class="study-actions">
-							<a
-								class="sample-link"
-								href={resolve(
-									`/study-sample?detail=${detailLevel(page.url.searchParams.get('detail'))}`
-								)}>Read sample policy</a
+							<a class="sample-link" href={resolve(`/study-sample?${studyQuery.slice(1)}`)}
+								>Read sample policy</a
 							>
 							<a
 								class="sample-submit"
-								href={resolve(
-									`/dashboard/overview/result?detail=${detailLevel(page.url.searchParams.get('detail'))}`
-								)}>Submit study sample <span aria-hidden="true">→</span></a
+								href={resolve(`/dashboard/overview/result?${studyQuery.slice(1)}`)}
+								>Submit study sample <span aria-hidden="true">→</span></a
 							>
 						</div>
 					</div>
@@ -164,6 +161,9 @@
 							</div>
 						</div>
 					{/if}
+					<div class="history-redirect">
+						<a class="sample-submit" href={resolve('/dashboard/history')}> View All </a>
+					</div>
 				</section>
 			{/if}
 		</div>
@@ -560,6 +560,9 @@
 	.history-item:hover {
 		border-color: #2ca6af;
 		box-shadow: 0 6px 16px #11788322;
+	}
+	.history-redirect {
+		padding: 10px 0px;
 	}
 	.history-text {
 		display: grid;
