@@ -6,8 +6,8 @@ security (RLS). Anonymous URL and pasted-text analyses remain temporary and do
 not use these tables.
 
 The schema supports saved privacy preferences, completed agreement analyses,
-source-supported findings, personalized preference alignment, and analysis
-history. It does not store document-specific question-and-answer history.
+source-supported findings, personalized preference alignment, analysis history,
+and chats for saved analyses.
 
 ## Technology choice
 
@@ -33,6 +33,8 @@ erDiagram
     ANALYSES ||--o{ FINDINGS : contains
     ANALYSES ||--o{ PREFERENCE_EVALUATIONS : contains
     FINDINGS o|--o{ PREFERENCE_EVALUATIONS : supports
+    ANALYSES ||--o| CHATS : has
+    CHATS ||--o{ CHAT_MESSAGES : contains
 
     AUTH_USERS {
         uuid id PK
@@ -87,6 +89,21 @@ erDiagram
         preference_alignment_indicator indicator
         text explanation
         integer display_order
+        timestamptz created_at
+    }
+
+    CHATS {
+        uuid id PK
+        uuid analysis_id FK, UK
+        timestamptz created_at
+    }
+
+    CHAT_MESSAGES {
+        uuid id PK
+        uuid chat_id FK
+        text role
+        text content
+        jsonb supporting_excerpts
         timestamptz created_at
     }
 ```
@@ -157,6 +174,21 @@ Alignment and conflict rows must reference a supporting finding.
 finding that addresses the preference. A composite foreign key ensures that a
 referenced finding belongs to the same analysis.
 
+### `chats` and `chat_messages`
+
+A saved analysis can have at most one chat. Each chat inherits ownership from
+its analysis and can contain multiple messages.
+
+Each message has a `user` or `assistant` role and nonblank content. The
+`supporting_excerpts` column stores a JSON array and defaults to an empty
+array. User messages always have an empty array. Load a chat's messages by
+`chat_id`, ordered by `created_at, id`.
+
+Signed-in users can create chats and save questions for their own analyses.
+The server can use its service-role credential to save assistant replies. The
+chat API must verify ownership with the user's session before using that
+credential because the service role bypasses RLS.
+
 ## Ownership and access control
 
 RLS is enabled on every public table. Anonymous users have no privileges on
@@ -171,11 +203,13 @@ Authenticated access is limited as follows:
 | `analyses`               | Own rows               | Own rows               | No      | Own rows         |
 | `findings`               | Through owned analysis | Through owned analysis | No      | No direct delete |
 | `preference_evaluations` | Through owned analysis | Through owned analysis | No      | No direct delete |
+| `chats`                  | Through owned analysis | Through owned analysis | No      | No direct delete |
+| `chat_messages`          | Through owned chat     | Own questions          | No      | No direct delete |
 
-Saved analyses, findings, and evaluations are immutable. Deleting an analysis
-cascades to its findings and preference evaluations. Deleting a Supabase Auth
-user cascades to that user's preferences and analyses, followed by their child
-records.
+Saved analyses, findings, evaluations, chats, and messages are immutable to
+signed-in users. Deleting an analysis cascades to its findings, preference
+evaluations, chat, and messages. Deleting a Supabase Auth user cascades to that
+user's preferences and analyses, followed by their child records.
 
 When an authenticated analysis becomes complete, the application assigns one
 stable analysis UUID before the first persistence attempt and reuses that UUID
@@ -190,16 +224,18 @@ transaction remains an implementation decision.
 
 ## Retention and deletion
 
-The MVP has no automatic expiration period for saved analyses. Records remain
-until the user deletes an analysis or deletes their account. This behavior
-must be communicated in the interface.
+The MVP has no automatic expiration period for saved analyses or their chats.
+These records remain until the user deletes their linked source, the analysis,
+or their account. This behavior must be communicated in the interface.
 
 Deletion behavior is:
 
-1. Deleting an analysis removes its findings and preference evaluations.
-2. Deleting an account removes its preferences and analyses.
-3. Anonymous source text and question context are not persisted.
-4. Document-specific questions and answers are not stored in the MVP.
+1. Deleting a source removes its linked saved analyses and their child records.
+2. Deleting an analysis removes its findings, preference evaluations, chat,
+   and messages.
+3. Deleting an account removes its preferences, sources, and analyses, including their
+   child records.
+4. Anonymous source text and question context remain temporary.
 
 A time-based retention policy, export workflow, and scheduled purge process
 are deferred until the team establishes product requirements for them.
@@ -351,10 +387,9 @@ AI data contracts:
 - Whether future versions support result export or account-level bulk deletion.
 - When generated TypeScript database types become part of the build process.
 
-Separate profile, uploaded-document, Data Footprint, and conversation-history
-tables are intentionally omitted from the MVP. Authentication identity remains
-in Supabase Auth, each analysis contains one source, the Data Footprint is
-derived from findings, and document-specific questions are temporary.
+Separate profile, uploaded-document, and Data Footprint tables are outside
+the MVP. Authentication identity remains in Supabase Auth, each analysis
+preserves a source snapshot, and the Data Footprint is derived from findings.
 
 ## Evidence validation follow-up
 
@@ -388,11 +423,10 @@ authenticated user, rather than trusting an owner ID supplied in the request.
 
 ### Relationship to completed analyses
 
-The existing `analyses` source fields continue to represent the source
-snapshot for a completed result. This migration adds independent extraction
-storage; it does not move existing data or add foreign keys from analyses or
-findings to sources. Those relationships are deferred to the AI persistence
-integration. Deleting a source currently has no effect on saved analyses.
+The `analyses` source fields preserve the source snapshot for a completed
+result. `analyses.source_id` links the analysis to its owner's extracted source.
+Historical analyses may have a null source link. Deleting a source cascades
+to its linked saved analyses and removes their chats and messages.
 
 ### Verification
 
@@ -402,4 +436,7 @@ schema, and run the database tests in a disposable local database.
 `sources.test.sql` checks successful insertion and exact text retrieval,
 optional metadata, invalid text and URL rejection, ownership isolation,
 anonymous access denial, update denial, owner deletion, and account deletion.
+`chat-history.test.sql` checks one chat per analysis, ownership isolation,
+anonymous access denial, server-only assistant writes, and deletion of chats
+and messages when a source or analysis is removed.
 All test changes are rolled back.

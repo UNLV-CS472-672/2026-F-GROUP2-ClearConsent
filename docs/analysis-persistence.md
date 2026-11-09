@@ -9,9 +9,10 @@ The source and analysis must belong to the same authenticated user.
 Historical analyses may retain a null source reference; the save function
 requires a source.
 
-Delete linked analyses before deleting their source. Account deletion
-removes both analyses and sources. Each analysis preserves its source
-text snapshot, and findings link to the source through their analysis.
+Deleting a source removes its linked analyses and their findings, preference
+evaluations, and chat history. Account deletion removes both analyses and
+sources. Each saved analysis preserves its source text snapshot, and findings
+link to the source through their analysis.
 
 ## Function inputs
 
