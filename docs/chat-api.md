@@ -111,16 +111,22 @@ Other failures use the same error shape as analysis:
 }
 ```
 
-| Status  | Code                          | Meaning                                                            |
-| ------- | ----------------------------- | ------------------------------------------------------------------ |
-| 400     | `input_empty`                 | The question is empty or only whitespace. Nothing was saved.       |
-| 400     | `invalid_request`             | `question` is missing or not a string. Nothing was saved.          |
-| 413     | `input_too_large`             | The question is over 2,000 characters. Nothing was saved.          |
-| 503     | `analysis_disabled`           | Paid calls are off (`ENABLE_PAID_ANALYSIS`). Nothing was saved.    |
-| 502     | `reference_validation_failed` | The answer's excerpts were not in the policy, so it was not shown. |
-| 4xx/5xx | `provider_*`                  | The AI provider failed, timed out, or refused.                     |
+| Status  | Code                          | Meaning                                                                 |
+| ------- | ----------------------------- | ----------------------------------------------------------------------- |
+| 400     | `input_empty`                 | The question is empty or only whitespace. Nothing was saved.            |
+| 400     | `invalid_request`             | `question` is missing or not a string. Nothing was saved.               |
+| 413     | `input_too_large`             | The question is over 2,000 characters. Nothing was saved.               |
+| 503     | `analysis_disabled`           | Paid calls are off (`ENABLE_PAID_ANALYSIS`). Nothing was saved.         |
+| 503     | `configuration_error`         | The server is missing its OpenAI key. Nothing was saved.                |
+| 502     | `reference_validation_failed` | The reply cited quotes that are not in the policy, so it was not shown. |
+| 4xx/5xx | `provider_*`                  | The AI provider failed, timed out, refused, or replied malformed.       |
+| 500     | `internal_error`              | Something unexpected failed while answering.                            |
 
 After a failure that happened once the question was saved, the question stays in
 the chat and `GET` reports it as `pending` with `status: 'failed'`, so Try again
-sends `{ "analysisId": "...", "retry": true }`. Plain `400`, `401`, `404`, and
-`500` errors without an `error` object come from request checks or the database.
+sends `{ "analysisId": "...", "retry": true }`.
+
+Plain `400`, `401`, `404`, and `500` errors without an `error` object come from
+request checks or the database. One of them is a `500` when the answer could not
+be saved: the response has no code, and `GET` afterwards reports the question as
+failed with the code `save_failed`.

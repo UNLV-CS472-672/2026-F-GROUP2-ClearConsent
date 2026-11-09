@@ -26,9 +26,11 @@ create table public.chat_answer_runs (
     on delete cascade,
 
   status text not null,
-  -- New on every start and returned only to the server that started the answer. Saving or failing
-  -- an answer requires it, so a late finish from an expired answer cannot overwrite a newer one.
-  -- Not readable through the table grants.
+  -- New on every start and returned to whoever called start_chat_answer, which is normally the
+  -- chat API. Saving or failing an answer requires it, so a late finish from an expired answer
+  -- cannot overwrite a newer one. It is not readable through the table grants. It does not stop
+  -- an owner who calls these functions directly from saving their own answer to their own chat;
+  -- the API's quote checks only apply to answers it saves.
   run_id uuid not null,
 
   error_code text,
