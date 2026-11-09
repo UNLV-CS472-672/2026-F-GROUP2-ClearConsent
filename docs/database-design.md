@@ -225,16 +225,17 @@ transaction remains an implementation decision.
 ## Retention and deletion
 
 The MVP has no automatic expiration period for saved analyses or their chats.
-These records remain until the user deletes the analysis or their account.
-This behavior must be communicated in the interface.
+These records remain until the user deletes their linked source, the analysis,
+or their account. This behavior must be communicated in the interface.
 
 Deletion behavior is:
 
-1. Deleting an analysis removes its findings, preference evaluations, chat,
+1. Deleting a source removes its linked saved analyses and their child records.
+2. Deleting an analysis removes its findings, preference evaluations, chat,
    and messages.
-2. Deleting an account removes its preferences and analyses, including their
+3. Deleting an account removes its preferences, sources, and analyses, including their
    child records.
-3. Anonymous source text and question context remain temporary.
+4. Anonymous source text and question context remain temporary.
 
 A time-based retention policy, export workflow, and scheduled purge process
 are deferred until the team establishes product requirements for them.
@@ -424,8 +425,8 @@ authenticated user, rather than trusting an owner ID supplied in the request.
 
 The `analyses` source fields preserve the source snapshot for a completed
 result. `analyses.source_id` links the analysis to its owner's extracted source.
-Historical analyses may have a null source link. The foreign key blocks direct
-deletion of a source while saved analyses reference it.
+Historical analyses may have a null source link. Deleting a source cascades
+to its linked saved analyses and removes their chats and messages.
 
 ### Verification
 
@@ -437,5 +438,5 @@ optional metadata, invalid text and URL rejection, ownership isolation,
 anonymous access denial, update denial, owner deletion, and account deletion.
 `chat-history.test.sql` checks one chat per analysis, ownership isolation,
 anonymous access denial, server-only assistant writes, and deletion of chats
-and messages when an analysis is removed.
+and messages when a source or analysis is removed.
 All test changes are rolled back.

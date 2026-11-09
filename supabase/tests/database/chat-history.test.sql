@@ -2,10 +2,10 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
-select plan(18);
+select plan(21);
 
 -- Use the seed's historical analysis to test a chat without a source link.
--- Add a source-linked analysis to verify its chat survives deletion of the first analysis.
+-- Add a source-linked analysis to verify that deleting its source removes its chat.
 insert into public.sources (id, owner_id, text)
 values (
   '74000000-0000-4000-8000-000000000001',
@@ -124,11 +124,25 @@ set local role authenticated;
 set local request.jwt.claims =
   '{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}';
 
+delete from public.sources where id = '74000000-0000-4000-8000-000000000001';
+reset role;
+
+select is(
+  (select count(*) from public.analyses where id = '74000000-0000-4000-8000-000000000002'),
+  0::bigint, 'source deletion removes the linked analysis'
+);
+select is(
+  (select analysis_id from public.chats), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid,
+  'source deletion removes only the linked chat'
+);
+select is((select count(*) from public.chat_messages), 2::bigint, 'source deletion removes only linked messages');
+
+set local role authenticated;
 delete from public.analyses where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 reset role;
 
-select is((select count(*) from public.chats), 1::bigint, 'analysis deletion removes its chat');
-select is((select count(*) from public.chat_messages), 1::bigint, 'analysis deletion removes its messages');
+select is((select count(*) from public.chats), 0::bigint, 'analysis deletion removes its chat');
+select is((select count(*) from public.chat_messages), 0::bigint, 'analysis deletion removes its messages');
 
 select * from finish();
 rollback;

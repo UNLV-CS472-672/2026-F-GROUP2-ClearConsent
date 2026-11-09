@@ -203,11 +203,6 @@ select is(
   true, 'null finding reference is preserved'
 );
 
-select throws_ok($test$
-  delete from public.sources
-  where id = '51000000-0000-4000-8000-000000000001'
-$test$, '23503', null, 'source cannot be deleted while analyses reference it');
-
 -- A direct insert must also obey the same-owner foreign key.
 select throws_ok($test$
   insert into public.analyses (

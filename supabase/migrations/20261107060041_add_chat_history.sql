@@ -1,3 +1,11 @@
+-- Deleting a source also removes the saved analyses that reference it.
+alter table public.analyses
+  drop constraint analyses_owned_source_fk,
+  add constraint analyses_owned_source_fk
+    foreign key (owner_id, source_id)
+    references public.sources (owner_id, id)
+    on delete cascade;
+
 create table public.chats (
   id uuid primary key default gen_random_uuid(),
   analysis_id uuid not null unique references public.analyses (id) on delete cascade,
