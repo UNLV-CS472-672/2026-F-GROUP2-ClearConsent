@@ -41,8 +41,8 @@ function toExcerpt(evidence: VerifiedEvidence): ChatExcerpt {
 }
 
 // Checks the model's answer against the source. Only located excerpts are kept, each sliced from
-// the source text. An answer that claims the document addresses the question must keep at least
-// one, so an unsupported answer is never shown.
+// the source text. An answer, or any other reply that cited the document, must keep at least one,
+// so an unsupported claim about the document is never shown.
 export function resolveChatAnswer(
 	rawOutput: unknown,
 	snapshot: SourceSnapshot
@@ -83,7 +83,10 @@ export function resolveChatAnswer(
 		}
 	}
 
-	if (kind === 'answered' && excerpts.length === 0) {
+	// An answer must keep a quote. Any other kind that cited quotes was describing the document
+	// (such as a legal-advice limit that says what the policy states), so it must keep one too:
+	// otherwise a misquoted claim would be shown, and relabeling an answer would skip this check.
+	if (excerpts.length === 0 && (kind === 'answered' || references.length > 0)) {
 		throw new Stage1Error(
 			'reference_validation_failed',
 			502,

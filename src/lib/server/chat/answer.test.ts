@@ -178,6 +178,27 @@ describe('answerQuestion', () => {
 		});
 	});
 
+	it.each(['legal_advice', 'not_in_policy'])(
+		'fails a %s reply whose cited quotes are not in the document',
+		async (kind) => {
+			const { provider } = fakeProvider({
+				kind,
+				answer: 'I cannot give legal advice, but the policy says location is sold to brokers.',
+				excerpts: [{ passageId: 'P001', excerpt: 'We sell location history to data brokers.' }]
+			});
+			await expect(answerQuestion(questionInput(), provider)).rejects.toMatchObject({
+				code: 'reference_validation_failed'
+			});
+		}
+	);
+
+	it('keeps a legal-advice limit that cites nothing', async () => {
+		const answer = 'I cannot give legal advice about whether this is enforceable.';
+		const { provider } = fakeProvider({ kind: 'legal_advice', answer, excerpts: [] });
+		const result = await answerQuestion(questionInput(), provider);
+		expect(result).toMatchObject({ kind: 'legal_advice', answer, excerpts: [] });
+	});
+
 	it.each([
 		['a blank answer', { kind: 'answered', answer: '  ', excerpts: [] }],
 		['an unknown kind', { kind: 'chat', answer: 'Hello!', excerpts: [] }],
