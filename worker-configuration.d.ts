@@ -3,6 +3,7 @@
 // Runtime types generated with workerd@1.20260908.1 2026-09-09 nodejs_als
 interface __BaseEnv_Env {
 	ASSETS: Fetcher;
+	ENABLE_PAID_ANALYSIS: "1";
 	PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_KXwbXRolrFfu8y2gsWgsfA_DykUtsV8";
 	PUBLIC_SUPABASE_URL: "https://eccdgjwsllkkdvsqtlzq.supabase.co";
 }
@@ -16,7 +17,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "PUBLIC_SUPABASE_PUBLISHABLE_KEY" | "PUBLIC_SUPABASE_URL">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "ENABLE_PAID_ANALYSIS" | "PUBLIC_SUPABASE_PUBLISHABLE_KEY" | "PUBLIC_SUPABASE_URL">> {}
 }
 
 // Begin runtime types
