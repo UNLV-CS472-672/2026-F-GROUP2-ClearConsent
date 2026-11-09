@@ -9,6 +9,8 @@ export type AnalysisResultFields = {
 	source_text: string;
 	summary: string;
 	outcome: 'findings_identified' | 'no_findings';
+	model: string;
+	reasoning_effort: string;
 };
 
 // Each evidence object passes public.evidence_objects_valid (a nonblank excerpt). Offsets are
@@ -57,11 +59,16 @@ function requireComplete(
 export function toAnalysisResultFields(result: ConsolidationResult): AnalysisResultFields {
 	requireComplete(result);
 	const { source } = result.extraction;
+	// Consolidation reuses extraction's model settings, and makes no call when extraction found no
+	// candidates, so extraction's are the fallback.
+	const provider = result.provider ?? result.extraction.provider;
 	return {
 		source_title: source.title,
 		source_text: source.passages.map((passage) => passage.text).join(''),
 		summary: result.summary,
-		outcome: result.outcome
+		outcome: result.outcome,
+		model: provider.model,
+		reasoning_effort: provider.reasoningEffort
 	};
 }
 
