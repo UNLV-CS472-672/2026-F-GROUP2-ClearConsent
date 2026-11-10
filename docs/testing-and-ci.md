@@ -29,6 +29,24 @@ Run the unit test suite:
 npm test
 ```
 
+Measure unit-test line and branch coverage over production TypeScript and Svelte
+source, and enforce the CI minimums:
+
+```sh
+npm run test:coverage
+```
+
+This writes `coverage/coverage-summary.json` locally and prints file-level
+coverage. The measured baseline on `5d182f3` (2026-11-10) was **55.57% lines
+(843/1,517)** and **61.83% branches (559/904)** across `src/**/*.{ts,svelte}`.
+CI requires at least 55% lines and 60% branches, so new code cannot silently
+lower either measure below the floor. These are Vitest unit-test metrics only;
+Playwright, database, and offline evaluation tests do not contribute to them.
+The baseline leaves material gaps in dashboard input and history screens, URL
+extraction and source routes, and the saved-result loader. Record fresh totals
+and the remaining uncovered areas at the DP III release commit rather than
+presenting this baseline as final coverage.
+
 Run unit tests in watch mode:
 
 ```sh
@@ -51,8 +69,9 @@ npm run build
 
 ## File map
 
-- `package.json` defines `test`, `test:watch`, and `test:e2e`.
-- `vitest.config.ts` configures Vitest with the SvelteKit plugin and jsdom.
+- `package.json` defines `test`, `test:coverage`, `test:watch`, and `test:e2e`.
+- `vitest.config.ts` configures Vitest with the SvelteKit plugin, jsdom, production
+  source coverage, and line/branch thresholds.
 - `src/routes.test.ts` checks the signed-out auth entry.
 - `src/entry-handoff.test.ts` checks the returning-session redirect.
 - `playwright.config.ts` selects Chromium and starts Vite on port 4173.
@@ -69,7 +88,8 @@ npm run build
 - `tests/e2e/count-reporter.ts` prints selected, passed, failed, skipped, and
   not-run counts. CI requires every selected case to pass without a skip.
 - `.github/workflows/ci.yml` installs dependencies and Chromium, then runs
-  lint, Svelte checks, unit tests, the production build, and end-to-end tests.
+  lint, Svelte checks, unit tests with coverage thresholds, the production
+  build, and end-to-end tests.
 - `.gitignore` excludes Playwright's generated `test-results` directory.
 
 ## CI sequence
