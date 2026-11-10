@@ -32,6 +32,7 @@ export const features = tableFeatures({
 	}
 });
 
+
 export type RecentSource = {
 	id: string;
 	title: string | null;
@@ -43,3 +44,15 @@ export type SourceAndResult = {
 	source: RecentSource;
 	result: AnalysisResult;
 };
+
+// Helper functions
+// Some table logic described here to make testing easier.
+// These functions do not explicitly differentiate between pasted text or url submission.
+export function titleOrId(source: RecentSource) {
+	// Returns a sources title if it's not null or an id if title is null.
+	return source.title ?? source.id;
+}
+export function urlOrText(source: RecentSource) {
+	// Returns a source's url if it's not null or 'No URL Available' if it is null.
+	return source.url ?? 'No URL Available';
+}

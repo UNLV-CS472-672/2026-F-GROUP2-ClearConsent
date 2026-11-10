@@ -1,6 +1,6 @@
 <script lang="ts" generics="TData extends RowData">
 	import { createTable, FlexRender, type ColumnDef, type RowData } from '@tanstack/svelte-table';
-	import { features, type SourceAndResult } from '$lib/components/DataTable';
+	import { features, type SourceAndResult, titleOrId, urlOrText } from '$lib/components/DataTable';
 	import { detailLevel } from '$lib/study/sample';
 	import { tick } from 'svelte';
 	import { page } from '$app/state';
@@ -112,40 +112,49 @@
 						bg-[#f8fafc] hover:border-[#2ca6af] hover:shadow-lg hover:shadow-[#11788322]"
 				>
 					{#each row.getAllCells() as cell (cell.id)}
+						{@const isNameColumn = cell.column.id === 'name' ? true : false}
+						{@const original = cell.row.original as SourceAndResult}
+						{@const url = urlOrText(original.source)}
 						<button
 							onclick={async () => {
-								currentSourceAndResult = cell.row.original as SourceAndResult;
-								isModalOpen = !isModalOpen;
+								currentSourceAndResult = original;
+								isModalOpen = true;
 								await tick();
 								dialogRef?.showModal();
 							}}
 							class="show-modal-button w-full"
 						>
-							<div class="history-item {cell.column.id === 'name' ? 'text-left' : 'text-right'}">
+							<div class="history-item {isNameColumn ? 'text-left' : 'text-right'}">
 								<span class="history-text">
 									<strong
-										class={cell.column.id === 'name'
+										class={isNameColumn
 											? 'text-[14px] font-[750] whitespace-nowrap'
 											: 'text-[11px] text-[#137b80]'}
 									>
-										<FlexRender {cell} />
+										{#if isNameColumn}
+											<div class="source-title-text">
+												{titleOrId(original.source)}
+											</div>
+											<span class="source-url">
+												<small class="text-[11px] text-[#5a6b80]">{url}</small>
+											</span>
+										{:else}
+											<FlexRender {cell} />
+										{/if}
 									</strong>
 								</span>
-								{#if cell.column.id === 'name'}
-									{@const url = (cell.row.original as SourceAndResult).source.url}
-									<span class="source-url">
-										<small class="text-[11px] text-[#5a6b80]">{url}</small>
-									</span>
-								{/if}
 							</div>
 						</button>
 					{/each}
 				</div>
 			{/each}
-			{#if isModalOpen}
+			{#if isModalOpen && currentSourceAndResult}
+				{@const sourceTitle = titleOrId(currentSourceAndResult.source)}
+				{@const sourceID = currentSourceAndResult?.source.id}
+				{@const sourceURL = urlOrText(currentSourceAndResult.source)}
 				<dialog
 					bind:this={dialogRef}
-					onclose={() => (isModalOpen = !isModalOpen)}
+					onclose={() => (isModalOpen = false)}
 					onclick={(event) => {
 						if (event.target === dialogRef) dialogRef?.close();
 					}}
@@ -156,7 +165,7 @@
 						<div class="modal-header grid items-center pb-10">
 							<div class="inline-flex items-center justify-between">
 								<h1 class="flex-1 text-center text-lg font-bold">
-									{currentSourceAndResult?.source.title}
+									{sourceTitle}
 								</h1>
 								<button
 									class="cursor-pointer p-2"
@@ -174,23 +183,25 @@
 								</button>
 							</div>
 							<small class="justify-self-center">
-								{currentSourceAndResult?.source.url}
+								{sourceURL}
 							</small>
 						</div>
 						<div>
 							<!-- Analysis Result -->
 							<div class="inset-0 z-10 flex w-full flex-col gap-5">
 								{#if currentSourceAndResult}
-									{@const sourceID = currentSourceAndResult.source.id}
+									{@const isSaved = currentSourceAndResult.type === 'saved'}
 									<AnalysisResultView result={currentSourceAndResult.result} detail="quick"
 									></AnalysisResultView>
-									<a
-										href={resolve(`/dashboard/overview/analyze/${sourceID}${detail}`)}
-										class="hover rounded-lg border border-gray-300 p-2 text-center text-sm
+									{#if isSaved}
+										<a
+											href={resolve(`/dashboard/overview/analyze/${sourceID}${detail}`)}
+											class="hover rounded-lg border border-gray-300 p-2 text-center text-sm
 										 hover:border-[#2ca6af] hover:shadow-lg hover:shadow-[#11788322]"
-									>
-										View more details
-									</a>
+										>
+											View more details
+										</a>
+									{/if}
 								{:else}
 									<span>Could not find source and result.</span>
 								{/if}
