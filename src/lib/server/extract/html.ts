@@ -15,8 +15,8 @@ export function htmlToText(html: string): { title: string; text: string } {
 
 	const text = decodeEntities(
 		html
-			// Remove <script>, <style>, <head>, <header>, and <footer> blocks along with everything inside them.
-			.replace(/<(script|style|head|header|footer)[^>]*>.*?<\/\1>/gis, ' ')
+			// Keep the page title separate from the policy body.
+			.replace(/<(script|style|head|header|footer|title)[^>]*>.*?<\/\1>/gis, ' ')
 			// Remove every remaining tag, keeping the text between them.
 			.replace(/<[^>]+>/g, ' ')
 	)

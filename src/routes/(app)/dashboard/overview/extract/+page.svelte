@@ -21,24 +21,34 @@
 		loading = true;
 		error = '';
 
-		const res = await fetch('/api/extract', {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ url })
-		});
-		const body = (await res.json()) as any;
-		if (res.ok) {
-			console.log('Saved source:', body);
+		try {
+			const res = await fetch('/api/extract', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ url })
+			});
+			const body = (await res.json().catch(() => null)) as {
+				id?: unknown;
+				message?: string;
+			} | null;
+			if (!res.ok) {
+				error = body?.message ?? 'Unable to retrieve this page. Check the URL or paste the text.';
+				return;
+			}
+			if (typeof body?.id !== 'string') {
+				error = 'The source could not be saved. Please try again.';
+				return;
+			}
 			await goto(
 				resolve(
 					`/dashboard/overview/analyze/${body.id}?detail=${detailLevel(page.url.searchParams.get('detail'))}`
 				)
 			);
-		} else {
-			error = body.message;
+		} catch {
+			error = 'Unable to retrieve this page. Check the URL or paste the text.';
+		} finally {
+			loading = false;
 		}
-
-		loading = false;
 	}
 </script>
 

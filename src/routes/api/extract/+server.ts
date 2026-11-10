@@ -25,14 +25,14 @@ export async function POST({ request, locals }: { request: Request; locals: App.
 		getSupabaseForUser(session.access_token),
 		{
 			ownerId: user.id,
-			title: extraction.title ?? null,
+			title: extraction.title?.trim() || null,
 			text: extraction.text,
 			url: extraction.url
 		}
 	);
 
-	if (insertError) {
-		console.error('Failed to save source:', insertError.message);
+	if (insertError || !source) {
+		console.error('Failed to save source:', insertError?.message ?? 'No source returned');
 		error(500, 'Unable to save the extracted source.');
 	}
 
