@@ -15,7 +15,7 @@
 
 	function getSourcesAndResults(): SourceAndResult[] {
 		const res: SourceAndResult[] = (getRecentSources() ?? []).map((src, index) => {
-			return { source: src, result: data.results[index] };
+			return { source: src, result: data.results[index], type: 'saved' };
 		});
 		return res;
 	}
@@ -46,12 +46,12 @@
 	const syntheticSourcesandResults = (num: number) => {
 		return Array.from({ length: num }, (_, i) => {
 			const source = {
-				id: String(i),
+				id: crypto.randomUUID(),
 				title: `Company-${i + 1}`,
 				url: `https://www.company${i + 1}.url`,
 				created_at: new Date(Date.now() - i * 86400000).toISOString()
 			};
-			return { source: source, result: successFixture };
+			return {source: source, result: successFixture, type: 'synthetic'} as SourceAndResult;
 		});
 	};
 	let genNum = $state('10');
@@ -83,10 +83,9 @@
 					</div>
 				</div>
 				<div class="flex w-full flex-col items-center justify-center pb-5">
-					<!-- <h1 class="font-lg mb-5 font-bold">User Data</h1> -->
 					<DataTable data={sourcesFromData} {columns}></DataTable>
 				</div>
-
+			<!-- TODO: Move synthetic results to its own page or remove entirely -->
 				{#if sourcesFromData.length === 0}
 					<button
 						class="default-button text-white"
@@ -111,6 +110,7 @@
 						<DataTable data={syntheticSourcesandResults(Number(genNum))} {columns}></DataTable>
 					</div>
 				{/if}
+				<!-- ------------------ -->
 			</section>
 		</div>
 		<footer>
