@@ -80,6 +80,5 @@ export const load = async ({ locals, url }) => {
 	return {
 		recentSources,
 		results,
-		type: 'saved'
 	};
 };

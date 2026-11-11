@@ -18,7 +18,7 @@ import {
 // --- Helper Function Tests ----
 function createItem(override: Partial<RecentSource> = {}) {
 	const source: RecentSource = {
-		id: override.id ?? String(crypto.randomUUID),
+		id: override.id ?? crypto.randomUUID(),
 		title: override.title !== undefined ? override.title : 'Generic Policy',
 		url: override.url !== undefined ? override.url : 'https://genericurl.com/policy',
 		created_at: override.created_at ?? '2026-01-01T00:00:00Z'
@@ -31,7 +31,7 @@ describe('Helper functions', () => {
 		const source = createItem().source;
 		const nullsource = createItem({ title: null }).source;
 		expect(titleOrId(source)).toBe(source.title);
-		expect(titleOrId(nullsource)).toBe(source.id);
+		expect(titleOrId(nullsource)).toBe(nullsource.id);
 	});
 
 	it('returns url if url is not null and placeholder if url is null', () => {
@@ -69,7 +69,7 @@ function row(i: number, o: Partial<RecentSource> = {}): SourceAndResult {
 const rows = (n: number) => Array.from({ length: n }, (_, i) => row(i + 1));
 
 function renderTable(data: SourceAndResult[], synthetic?: boolean) {
-	return render(DataTable, { data, columns: tableColumns as any, synthetic } as any);
+	return render(DataTable, { data, columns: tableColumns, synthetic } as any);
 }
 const titles = (container: HTMLElement) =>
 	[...container.querySelectorAll('.source-title-text')].map((e) => e.textContent?.trim());
