@@ -3,13 +3,9 @@
 // Runtime types generated with workerd@1.20260908.1 2026-09-09 nodejs_als
 interface __BaseEnv_Env {
 	ASSETS: Fetcher;
+	ENABLE_PAID_ANALYSIS: "1";
 	PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_KXwbXRolrFfu8y2gsWgsfA_DykUtsV8";
 	PUBLIC_SUPABASE_URL: "https://eccdgjwsllkkdvsqtlzq.supabase.co";
-	OPENAI_API_KEY: string;
-	OPENAI_MODEL: string;
-	OPENAI_REASONING_EFFORT: string;
-	ENABLE_PAID_ANALYSIS: string;
-	ANALYSIS_ACCESS_TOKEN: string;
 }
 declare namespace Cloudflare {
 	interface GlobalProps {
@@ -21,7 +17,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "PUBLIC_SUPABASE_PUBLISHABLE_KEY" | "PUBLIC_SUPABASE_URL" | "OPENAI_API_KEY" | "OPENAI_MODEL" | "OPENAI_REASONING_EFFORT" | "ENABLE_PAID_ANALYSIS" | "ANALYSIS_ACCESS_TOKEN">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "ENABLE_PAID_ANALYSIS" | "PUBLIC_SUPABASE_PUBLISHABLE_KEY" | "PUBLIC_SUPABASE_URL">> {}
 }
 
 // Begin runtime types
