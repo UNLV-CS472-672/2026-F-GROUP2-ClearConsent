@@ -245,6 +245,16 @@ describe('POST /api/chat', () => {
 		}
 	);
 
+	it.each([null, 'hello', 42, []])(
+		'returns 400 for a body that is not an object: %j',
+		async (body) => {
+			const client = fakeSupabase(postTables(), started());
+
+			expect(await statusOf(post(body))).toBe(400);
+			expect(client.rpc).not.toHaveBeenCalled();
+		}
+	);
+
 	it.each([
 		['an empty question', '', 400, 'input_empty'],
 		['a whitespace-only question', ' \n ', 400, 'input_empty'],

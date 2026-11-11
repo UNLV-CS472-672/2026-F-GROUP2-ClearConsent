@@ -98,7 +98,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		error(401, 'Unauthorized');
 	}
 
-	const body = (await request.json().catch(() => error(400, 'Body must be JSON'))) as {
+	const parsed: unknown = await request.json().catch(() => error(400, 'Body must be JSON'));
+	// JSON null or a bare string or number parses, but has no fields; the analysisId check rejects it.
+	const body = (typeof parsed === 'object' && parsed !== null ? parsed : {}) as {
 		analysisId?: unknown;
 		question?: unknown;
 		retry?: unknown;
