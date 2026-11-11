@@ -35,6 +35,8 @@ erDiagram
     FINDINGS o|--o{ PREFERENCE_EVALUATIONS : supports
     ANALYSES ||--o| CHATS : has
     CHATS ||--o{ CHAT_MESSAGES : contains
+    CHATS ||--o| CHAT_ANSWER_RUNS : "answering"
+    CHAT_MESSAGES ||--o| CHAT_ANSWER_RUNS : "question for"
 
     AUTH_USERS {
         uuid id PK
@@ -106,7 +108,20 @@ erDiagram
         text role
         text content
         jsonb supporting_excerpts
+        text answer_kind
         timestamptz created_at
+    }
+
+    CHAT_ANSWER_RUNS {
+        uuid chat_id PK, FK
+        uuid question_id FK
+        text status
+        uuid run_id
+        text error_code
+        text error_message
+        timestamptz started_at
+        timestamptz expires_at
+        timestamptz finished_at
     }
 ```
 
@@ -196,6 +211,29 @@ The server can use its service-role credential to save assistant replies. The
 chat API must verify ownership with the user's session before using that
 credential because the service role bypasses RLS.
 
+The chat API does not use the service-role credential. It asks and answers
+through three `SECURITY DEFINER` functions, called with the user's session,
+which check ownership against `auth.uid()`:
+
+- `start_chat_answer(analysis_id, question)` creates the chat if needed, saves
+  the question, and claims the answer. Without a question, it retries the
+  chat's failed question instead of saving it again.
+- `save_chat_answer(chat_id, run_id, answer, answer_kind, excerpts)` saves the
+  assistant message and clears the run in one transaction.
+- `fail_chat_answer(chat_id, run_id, error_code, error_message)` records why
+  an answer failed.
+
+`chat_answer_runs` holds each chat's in-progress or failed answer, the same
+way `analysis_runs` does for a source. Only one answer per chat can run at a
+time, so a double click or second tab cannot start another paid call. A running
+answer past `expires_at` (two minutes) counts as failed, and a new question or a
+retry can start. A saved answer removes the row. Owners can read their runs
+except `run_id`, which only the server that started the answer receives.
+
+`answer_kind` records how the model classified the question it answered:
+`answered`, `not_in_policy`, `out_of_scope`, or `legal_advice`. It is null on
+questions and is set only through `save_chat_answer`.
+
 ## Ownership and access control
 
 RLS is enabled on every public table. Anonymous users have no privileges on
@@ -212,6 +250,7 @@ Authenticated access is limited as follows:
 | `preference_evaluations` | Through owned analysis | Through owned analysis | No      | No direct delete |
 | `chats`                  | Through owned analysis | Through owned analysis | No      | No direct delete |
 | `chat_messages`          | Through owned chat     | Own questions          | No      | No direct delete |
+| `chat_answer_runs`       | Through owned chat     | Chat functions only    | No      | No direct delete |
 
 Saved analyses, findings, evaluations, chats, and messages are immutable to
 signed-in users. Deleting an analysis cascades to its findings, preference
@@ -446,4 +485,7 @@ anonymous access denial, update denial, owner deletion, and account deletion.
 `chat-history.test.sql` checks one chat per analysis, ownership isolation,
 anonymous access denial, server-only assistant writes, and deletion of chats
 and messages when a source or analysis is removed.
+`chat-answer-runs.test.sql` checks one answer in progress per chat, saving and
+failing only with the current run ID, retries of a failed question, expiry,
+answer kinds, ownership isolation, and anonymous access denial.
 All test changes are rolled back.
