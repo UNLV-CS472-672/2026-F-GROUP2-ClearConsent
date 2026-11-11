@@ -8,6 +8,16 @@ export default defineConfig({
 	},
 	test: {
 		environment: 'jsdom',
-		include: ['src/**/*.test.ts']
+		include: ['src/**/*.test.ts'],
+		coverage: {
+			provider: 'v8',
+			include: ['src/**/*.{ts,svelte}'],
+			exclude: ['src/**/*.test.ts', 'src/**/*.d.ts'],
+			reporter: ['text', 'json-summary'],
+			thresholds: {
+				lines: 55,
+				branches: 60
+			}
+		}
 	}
 });
