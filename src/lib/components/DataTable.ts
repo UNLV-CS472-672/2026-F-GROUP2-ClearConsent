@@ -32,7 +32,6 @@ export const features = tableFeatures({
 	}
 });
 
-
 export type RecentSource = {
 	id: string;
 	title: string | null;
