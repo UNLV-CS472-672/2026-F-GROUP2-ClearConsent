@@ -119,3 +119,31 @@ Run `npm run test:db` with Docker running. Tests cover successful saves,
 ownership, retries, rollback, incomplete results, source-text mismatch,
 null finding references, source deletion, anonymous access, and account
 deletion.
+
+### Pasted source persistence (issue #82)
+
+Pasted text is trimmed with JavaScript `String.trim()` at the `/source` boundary;
+internal whitespace, case, line endings and Unicode representation stay unchanged.
+The existing limit remains 50,000 UTF-16 code units. Policy validation remains a
+separate, temporary heuristic; rejection is not an analysis failure.
+
+`find_or_create_pasted_source` receives text in a POST RPC body and derives ownership
+from `auth.uid()`. It runs with caller privileges and existing source RLS. An
+owner/digest transaction advisory lock serializes identical submissions through
+this RPC. A partial owner/MD5 index narrows the lookup, and an exact text comparison
+resolves digest collisions. MD5 is a lookup accelerator, not a security boundary.
+Existing duplicate sources are preserved to avoid breaking analysis/history links;
+the oldest matching source (then lowest ID) is reused. URL source behavior is unchanged.
+Direct inserts outside this RPC are not serialized by its lock.
+
+The paste page navigates only after persistence returns a valid source ID. Failed
+validation, saving, network requests and invalid responses display an error and
+retain editable input. A validation preview is never a saved analysis. History
+continues to include only sources with completed analyses.
+
+Apply the migration before deploying the updated helper. Verify with `npm run
+test:db` in the disposable local database; never use a production reset. Complete
+the authenticated browser check with a mocked analysis provider: submit an ordinary
+synthetic policy, confirm its source route, complete the mocked analysis and reopen
+it through History. Also submit identical text concurrently and verify both
+responses contain the same source ID. These checks require no paid provider calls.

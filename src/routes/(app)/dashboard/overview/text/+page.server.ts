@@ -32,11 +32,8 @@ export const actions: Actions = {
 			const data = await request.formData();
 			const text = data.get('text_submission');
 
-			if (!text || typeof text !== 'string')
-				return {
-					success: false,
-					error: 'Text is not a string.'
-				};
+			if (typeof text !== 'string')
+				return fail(400, { success: false, error: 'Text is not a string.' });
 
 			const tmp = text.trim();
 
@@ -77,8 +74,8 @@ export const actions: Actions = {
 				hash: hash,
 				timestamp: timestamp
 			};
-		} catch (error) {
-			console.error('Error:', error);
+		} catch {
+			console.error('Unable to validate pasted text.');
 			return {
 				success: false,
 				error: 'Error encountered on text box form.'
