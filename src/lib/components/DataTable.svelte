@@ -150,9 +150,9 @@
 				</div>
 			{/each}
 			{#if isModalOpen && currentSourceAndResult}
-				{@const sourceTitle = titleOrId(currentSourceAndResult.source)}
+				{@const sourceTitle = titleOrId(currentSourceAndResult?.source)}
 				{@const sourceID = currentSourceAndResult?.source.id}
-				{@const sourceURL = urlOrText(currentSourceAndResult.source)}
+				{@const sourceURL = urlOrText(currentSourceAndResult?.source)}
 				<dialog
 					bind:this={dialogRef}
 					onclose={() => (isModalOpen = false)}
@@ -190,20 +190,16 @@
 						<div>
 							<!-- Analysis Result -->
 							<div class="inset-0 z-10 flex w-full flex-col gap-5">
-								{#if currentSourceAndResult}
-									<AnalysisResultView result={currentSourceAndResult.result} detail="quick"
-									></AnalysisResultView>
-									{#if !synthetic}
-										<a
-											href={resolve(`/dashboard/overview/analyze/${sourceID}${detail}`)}
-											class="hover rounded-lg border border-gray-300 p-2 text-center text-sm
+								<AnalysisResultView result={currentSourceAndResult.result} detail="quick"
+								></AnalysisResultView>
+								{#if !synthetic}
+									<a
+										href={resolve(`/dashboard/overview/analyze/${sourceID}${detail}`)}
+										class="hover rounded-lg border border-gray-300 p-2 text-center text-sm
 										 hover:border-[#2ca6af] hover:shadow-lg hover:shadow-[#11788322]"
-										>
-											View more details
-										</a>
-									{/if}
-								{:else}
-									<span>Could not find source and result.</span>
+									>
+										View more details
+									</a>
 								{/if}
 							</div>
 						</div>
