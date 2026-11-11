@@ -233,6 +233,43 @@ select is(
   'another user''s own chat is independent'
 );
 
+-- A chat holds at most 100 questions. Fill this chat to 99 and let its answer expire.
+reset role;
+update public.chat_answer_runs set expires_at = pg_catalog.now() - interval '1 second';
+insert into public.chat_messages (chat_id, role, content)
+select c.id, 'user', 'Filler question ' || n
+from public.chats as c, generate_series(1, 98) as n
+where c.analysis_id = '75000000-0000-4000-8000-000000000001';
+set local role authenticated;
+
+select is(
+  (public.start_chat_answer('75000000-0000-4000-8000-000000000001', 'Question 100?'))->>'status',
+  'started',
+  'the 100th question is accepted'
+);
+
+reset role;
+update public.chat_answer_runs set expires_at = pg_catalog.now() - interval '1 second';
+set local role authenticated;
+
+select is(
+  public.start_chat_answer('75000000-0000-4000-8000-000000000001', 'Question 101?'),
+  '{"status":"question_limit","runId":null,"chatId":null,"questionId":null}'::jsonb,
+  'a question past 100 is refused'
+);
+select is(
+  (select count(*) from public.chat_messages as m
+   join public.chats as c on c.id = m.chat_id
+   where c.analysis_id = '75000000-0000-4000-8000-000000000001' and m.role = 'user'),
+  100::bigint,
+  'a refused question is not saved'
+);
+select is(
+  (public.start_chat_answer('75000000-0000-4000-8000-000000000001'))->>'status',
+  'started',
+  'a failed question can still be retried at the limit'
+);
+
 -- Clients write answers only through the functions.
 set local request.jwt.claims =
   '{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}';

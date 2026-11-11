@@ -27,7 +27,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const END_RETRY_MS = 500;
 
 type AnswerStart = {
-	status: 'started' | 'running' | 'nothing_to_retry';
+	status: 'started' | 'running' | 'nothing_to_retry' | 'question_limit';
 	runId: string | null;
 	chatId: string | null;
 	questionId: string | null;
@@ -91,7 +91,8 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 // Body: { "analysisId": "...", "question": "..." } for a new question, or
 //       { "analysisId": "...", "retry": true } to answer the chat's failed question again.
 // One answer per chat runs at a time: another request while one runs returns 409 and makes no
-// provider call. A failed answer is recorded so the page can offer Try again.
+// provider call, as does a new question once the chat has 100. A failed answer is recorded so the
+// page can offer Try again.
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const { session } = await locals.safeGetSession();
 	if (!session) {

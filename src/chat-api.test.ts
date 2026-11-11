@@ -229,7 +229,7 @@ describe('POST /api/chat', () => {
 		]);
 	});
 
-	it.each(['running', 'nothing_to_retry'])(
+	it.each(['running', 'nothing_to_retry', 'question_limit'])(
 		'returns 409 without a provider call when the chat is %s',
 		async (status) => {
 			const client = fakeSupabase(postTables(), () => ({

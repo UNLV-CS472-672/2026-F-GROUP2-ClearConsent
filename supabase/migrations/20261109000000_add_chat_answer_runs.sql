@@ -93,6 +93,8 @@ comment on table public.chat_answer_runs is
 --                     or fail_chat_answer. The ids are null for every other status.
 --   running:          another answer in this chat is still in progress.
 --   nothing_to_retry: a retry was asked for, but no answer in this chat failed.
+--   question_limit:   the chat already has 100 questions, so a new one is not saved. Retrying a
+--                     failed question still works, since it adds no question.
 -- SECURITY DEFINER because authenticated users cannot write answer runs or assistant messages;
 -- ownership is checked explicitly against auth.uid().
 create function public.start_chat_answer(
@@ -163,6 +165,18 @@ begin
     end if;
     v_question_id := v_run.question_id;
   else
+    -- Caps what one chat can spend on answers. It also keeps a whole chat (100 questions and
+    -- their answers) well under the API's 1,000-row read limit (max_rows), since the chat API
+    -- reads a chat's messages in one query.
+    if (
+      select count(*) from public.chat_messages as m
+      where m.chat_id = v_chat_id and m.role = 'user'
+    ) >= 100 then
+      return jsonb_build_object(
+        'status', 'question_limit', 'runId', null, 'chatId', null, 'questionId', null
+      );
+    end if;
+
     insert into public.chat_messages (chat_id, role, content)
     values (v_chat_id, 'user', p_question)
     returning id into v_question_id;

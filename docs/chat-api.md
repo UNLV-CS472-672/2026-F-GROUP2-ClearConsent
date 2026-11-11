@@ -99,6 +99,10 @@ as a double click or another tab, gets `409` and makes no provider call:
 
 A retry when no answer failed also gets `409`, with `{ "status": "nothing_to_retry" }`.
 
+A chat holds at most 100 questions. A new question after that gets `409` with
+`{ "status": "question_limit" }`, saves nothing, and makes no provider call.
+Retrying a failed question still works at the limit, since it adds no question.
+
 Other failures use the same error shape as analysis:
 
 ```json
