@@ -72,6 +72,32 @@ schema-constrained responses and notes that SDKs retry eligible failures unless 
 - [Responses API reference](https://developers.openai.com/api/reference/typescript/resources/responses/methods/create)
 - [Rate-limit and retry guidance](https://developers.openai.com/api/docs/guides/rate-limits)
 
+### Local setup for each developer
+
+The committed `.env.example` sets `ENABLE_PAID_ANALYSIS=0`, so paid analysis is off by default. To run
+analysis on your own machine:
+
+1. Copy `.env.example` to `.env.local` in the project root. Vite loads `.env.local` over `.env`, and
+   `.env.*` is gitignored, so your copy stays private.
+2. In `.env.local`, set:
+   - `ENABLE_PAID_ANALYSIS=1`
+   - `OPENAI_API_KEY=` with your own OpenAI key. Create one at
+     [platform.openai.com/api-keys](https://platform.openai.com/api-keys). API billing is separate from a
+     ChatGPT subscription, so add billing and set a monthly spending limit first.
+   - `ANALYSIS_ACCESS_TOKEN=` with any random string, for example the output of
+     `openssl rand -hex 32`.
+3. Restart `npm run dev`. Environment values are read at startup.
+
+Never commit `.env.local` or paste a real key into docs, issues, or chat. Each developer's key and token
+stay on that developer's machine. The deployed Worker reads its own Cloudflare variables and secrets, so
+local settings do not change the live site.
+
+If the app reports `analysis disabled`, `ENABLE_PAID_ANALYSIS` is not `1` in the environment the dev
+server loaded. Restart after editing the file. A variable already set in your shell (for example
+`ENABLE_PAID_ANALYSIS=0` from an earlier session) takes precedence over `.env.local`, so check the terminal
+you start `npm run dev` from with `echo $env:ENABLE_PAID_ANALYSIS` (PowerShell) or
+`echo %ENABLE_PAID_ANALYSIS%` (cmd) and clear it if it is set.
+
 ## Local request
 
 Start the app:
