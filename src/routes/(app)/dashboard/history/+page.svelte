@@ -15,7 +15,7 @@
 
 	function getSourcesAndResults(): SourceAndResult[] {
 		const res: SourceAndResult[] = (getRecentSources() ?? []).map((src, index) => {
-			return { source: src, result: data.results[index], type: 'saved' };
+			return { source: src, result: data.results[index] };
 		});
 		return res;
 	}
@@ -51,7 +51,7 @@
 				url: `https://www.company${i + 1}.url`,
 				created_at: new Date(Date.now() - i * 86400000).toISOString()
 			};
-			return {source: source, result: successFixture, type: 'synthetic'} as SourceAndResult;
+			return { source: source, result: successFixture } as SourceAndResult;
 		});
 	};
 	let genNum = $state('10');
@@ -85,7 +85,7 @@
 				<div class="flex w-full flex-col items-center justify-center pb-5">
 					<DataTable data={sourcesFromData} {columns}></DataTable>
 				</div>
-			<!-- TODO: Move synthetic results to its own page or remove entirely -->
+				<!-- TODO: Move synthetic results to its own page or remove entirely -->
 				{#if sourcesFromData.length === 0}
 					<button
 						class="default-button text-white"
@@ -107,7 +107,8 @@
 								{/each}
 							</select>
 						</div>
-						<DataTable data={syntheticSourcesandResults(Number(genNum))} {columns}></DataTable>
+						<DataTable data={syntheticSourcesandResults(Number(genNum))} {columns} synthetic={true}
+						></DataTable>
 					</div>
 				{/if}
 				<!-- ------------------ -->

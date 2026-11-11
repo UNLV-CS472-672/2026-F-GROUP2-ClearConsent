@@ -11,8 +11,9 @@
 	type Props = {
 		data: TData[];
 		columns: ColumnDef<typeof features, TData>[];
+		synthetic?: boolean;
 	};
-	let { data, columns }: Props = $props();
+	let { data, columns, synthetic = false }: Props = $props();
 
 	let pageSize = $state('10');
 
@@ -190,10 +191,9 @@
 							<!-- Analysis Result -->
 							<div class="inset-0 z-10 flex w-full flex-col gap-5">
 								{#if currentSourceAndResult}
-									{@const isSaved = currentSourceAndResult.type === 'saved'}
 									<AnalysisResultView result={currentSourceAndResult.result} detail="quick"
 									></AnalysisResultView>
-									{#if isSaved}
+									{#if !synthetic}
 										<a
 											href={resolve(`/dashboard/overview/analyze/${sourceID}${detail}`)}
 											class="hover rounded-lg border border-gray-300 p-2 text-center text-sm
