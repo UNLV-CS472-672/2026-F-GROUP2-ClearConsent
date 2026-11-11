@@ -63,6 +63,8 @@ erDiagram
         integer result_schema_version
         jsonb preference_snapshot
         integer preference_schema_version
+        text model
+        text reasoning_effort
         timestamptz analyzed_at
         timestamptz saved_at
     }
@@ -154,6 +156,11 @@ empty result as a processing failure.
 When personalization is performed, `preference_snapshot` and
 `preference_schema_version` preserve the exact preference context used for the
 result. Both remain null for a non-personalized result.
+
+`model` and `reasoning_effort` record which model and reasoning effort produced
+the analysis, so a result reopened later or from history can show them.
+`save_analysis` stores them from the completed result. Both are null for
+analyses saved before they were recorded, and a row has both or neither.
 
 ### `findings`
 

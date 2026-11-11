@@ -12,6 +12,13 @@
 		higher_concern: 'Closer look',
 		unclear: 'Unclear wording'
 	};
+
+	// Null for analyses saved before the model was recorded, so the line is simply left out.
+	const modelNote = $derived(
+		(result.status === 'success' || result.status === 'insufficient') && result.model
+			? `Analyzed with ${result.model.model} · ${result.model.reasoningEffort} reasoning`
+			: null
+	);
 </script>
 
 {#if result.status === 'failed'}
@@ -24,6 +31,9 @@
 	<div class="result-state" role="status">
 		<h2>There isn't enough information for a result</h2>
 		<p>{result.reason}</p>
+		{#if modelNote}
+			<p class="model-note">{modelNote}</p>
+		{/if}
 	</div>
 {:else if result.status === 'in_progress'}
 	<div class="result-state" role="status">
@@ -35,7 +45,10 @@
 		<section class="summary-card" aria-labelledby="result-summary-title">
 			<p class="eyebrow">01 / OVERVIEW</p>
 			<h2 id="result-summary-title">What this policy says</h2>
-			<p>{result.summary}</p>
+			<p class="summary-text">{result.summary}</p>
+			{#if modelNote}
+				<p class="model-note">{modelNote}</p>
+			{/if}
 		</section>
 
 		<section class="takeaways-section" aria-labelledby="takeaways-title">
@@ -148,11 +161,17 @@
 		letter-spacing: -0.035em;
 		line-height: 1.2;
 	}
-	.summary-card > p:last-child {
+	.summary-card > .summary-text {
 		max-width: 72ch;
 		margin: 14px 0 0;
 		font-size: 15px;
 		line-height: 1.7;
+	}
+	.summary-card .model-note,
+	.result-state .model-note {
+		margin: 12px 0 0;
+		color: #607488;
+		font-size: 12px;
 	}
 	.section-heading {
 		display: flex;

@@ -1,6 +1,20 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-export type SavedAnalysis = { id: string; summary: string };
+import type { AnalysisModel } from '$lib/contracts/analysis';
+
+// model and reasoning_effort are null for analyses saved before they were recorded.
+export type SavedAnalysis = {
+	id: string;
+	summary: string;
+	model: string | null;
+	reasoning_effort: string | null;
+};
+
+// The model and reasoning effort that produced a saved analysis, for the frontend to show.
+export function analysisModel(analysis: SavedAnalysis): AnalysisModel | null {
+	if (!analysis.model || !analysis.reasoning_effort) return null;
+	return { model: analysis.model, reasoningEffort: analysis.reasoning_effort };
+}
 
 // A source's saved analysis, or else the state of its latest run.
 export type RunState =
@@ -34,7 +48,7 @@ export async function readRunState(supabase: SupabaseClient, sourceId: string): 
 
 	const { data: analysis, error: analysisError } = await supabase
 		.from('analyses')
-		.select('id, summary')
+		.select('id, summary, model, reasoning_effort')
 		.eq('source_id', sourceId)
 		.order('analyzed_at', { ascending: false })
 		.limit(1)

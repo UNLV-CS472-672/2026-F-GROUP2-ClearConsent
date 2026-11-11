@@ -153,6 +153,25 @@ describe('analysis result page', () => {
 		);
 
 		expect(screen.getByText('Not enough policy text.')).toBeTruthy();
+		expect(screen.queryByText(/Analyzed with/)).toBeNull();
 		expect(analyzeRequests()).toEqual([]);
+	});
+
+	it('shows which model and reasoning effort produced a saved analysis', () => {
+		render(
+			Page,
+			data({
+				status: 'complete',
+				result: {
+					status: 'insufficient',
+					analysisId: 'analysis',
+					schemaVersion: 1,
+					reason: 'Not enough policy text.',
+					model: { model: 'gpt-6-luna', reasoningEffort: 'medium' }
+				}
+			})
+		);
+
+		expect(screen.getByText('Analyzed with gpt-6-luna · medium reasoning')).toBeTruthy();
 	});
 });

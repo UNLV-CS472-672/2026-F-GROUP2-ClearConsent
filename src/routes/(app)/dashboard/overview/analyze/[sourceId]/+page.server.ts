@@ -2,7 +2,12 @@ import { error, redirect } from '@sveltejs/kit';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { ANALYSIS_DEPENDENCY, type AnalysisState } from '$lib/analysis-run';
 import type { AnalysisResult, AttentionLabel, FindingCategory } from '$lib/contracts/analysis';
-import { readRunState, type RunState, type SavedAnalysis } from '$lib/server/db/analysis-runs';
+import {
+	analysisModel,
+	readRunState,
+	type RunState,
+	type SavedAnalysis
+} from '$lib/server/db/analysis-runs';
 import { getSupabaseForUser } from '$lib/server/db/supabase';
 import type { PageServerLoad } from './$types';
 
@@ -42,7 +47,8 @@ function toAnalysisResult(analysis: SavedAnalysis, rows: FindingRow[]): Analysis
 			status: 'insufficient',
 			analysisId: analysis.id,
 			schemaVersion: 1,
-			reason: analysis.summary
+			reason: analysis.summary,
+			model: analysisModel(analysis)
 		};
 	}
 
@@ -77,6 +83,7 @@ function toAnalysisResult(analysis: SavedAnalysis, rows: FindingRow[]): Analysis
 		analysisId: analysis.id,
 		schemaVersion: 1,
 		summary: analysis.summary,
+		model: analysisModel(analysis),
 		findings: rows.map((row) => ({
 			id: row.id,
 			category: row.category,
