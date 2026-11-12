@@ -1,5 +1,5 @@
 import type { AnalysisResult, AttentionLabel, FindingCategory } from '$lib/contracts/analysis';
-import { analysisModel, type SavedAnalysis } from './analysis-runs';
+import { analysisModel, type SavedAnalysis } from './db/analysis-runs';
 
 const TOPICS: Record<FindingCategory, string> = {
 	collection: 'Information collection',
