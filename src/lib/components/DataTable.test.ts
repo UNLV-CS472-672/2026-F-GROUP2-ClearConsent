@@ -31,7 +31,7 @@ describe('Helper functions', () => {
 		const source = createItem().source;
 		const nullsource = createItem({ title: null }).source;
 		expect(titleOrId(source)).toBe(source.title);
-		expect(titleOrId(nullsource)).toBe(nullsource.id);
+		expect(titleOrId(nullsource)).toBe('Untitled');
 	});
 
 	it('returns url if url is not null and placeholder if url is null', () => {
@@ -109,9 +109,9 @@ describe('DataTable rendering', () => {
 		expect(screen.queryByText('No saved analyses yet')).toBeNull();
 	});
 
-	it('falls back to the id when title is null and a placeholder when url is null', () => {
+	it('falls back to Untitled when title is null and a placeholder when url is null', () => {
 		renderTable([row(1, { title: null, url: null })]);
-		expect(screen.getByText('id-1')).toBeTruthy();
+		expect(screen.getByText('Untitled')).toBeTruthy();
 		expect(screen.getByText('No URL Available')).toBeTruthy();
 	});
 
@@ -270,11 +270,11 @@ describe('DataTable modal', () => {
 		).toBeTruthy();
 	});
 
-	it('shows the id in the modal when title is null', async () => {
+	it('shows Untitled in the modal when title is null', async () => {
 		const { container } = renderTable([row(1, { title: null })]);
 		await fireEvent.click(container.querySelector('.show-modal-button')!);
 		const dialog = await vi.waitFor(() => container.querySelector('dialog')!);
-		expect(within(dialog).getByRole('heading', { level: 1 }).textContent?.trim()).toBe('id-1');
+		expect(within(dialog).getByRole('heading', { level: 1 }).textContent?.trim()).toBe('Untitled');
 	});
 
 	it('links to the full analysis with the default detail level', async () => {
