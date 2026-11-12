@@ -39,8 +39,18 @@ npm run test:coverage
 This writes `coverage/coverage-summary.json` locally and prints file-level
 coverage. The measured baseline on `5d182f3` (2026-11-10) was **55.57% lines
 (843/1,517)** and **61.83% branches (559/904)** across `src/**/*.{ts,svelte}`.
-CI requires at least 59% lines and 65% branches after the S2 URL-boundary cases, so new code cannot silently
-lower either measure below the floor. These are Vitest unit-test metrics only;
+The S2 URL-boundary tests on `0370b68` raised measured coverage to **60.40% lines
+(949/1,571)** and **66.77% branches (639/957)**. CI requires at least **59% lines
+and 65% branches**: pragmatic regression floors below those measured values,
+leaving a small margin while preventing most of the gain from being lost. These
+are not course-mandated targets or a formula-derived margin.
+
+After updating this branch against main `3ff8417` on 2026-11-12 (UTC), the
+review-readability changes passed **478 tests**, with **66.46% lines
+(1,231/1,852)** and **70.97% branches (824/1,161)**. The 59%/65% floors are
+unchanged in this readability follow-up.
+
+These are Vitest unit-test metrics only;
 Playwright, database, and offline evaluation tests do not contribute to them.
 The baseline leaves material gaps in dashboard input and history screens, URL
 extraction and source routes, and the saved-result loader. Record fresh totals

@@ -57,6 +57,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			source_text: fields.source_text,
 			summary: fields.summary,
 			outcome: fields.outcome,
+			model: fields.model,
+			reasoning_effort: fields.reasoning_effort,
 			analysis_status: 'complete'
 		},
 		p_findings: rows,

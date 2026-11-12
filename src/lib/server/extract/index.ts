@@ -7,6 +7,7 @@ import {
 import { htmlToText } from './html';
 import { pdfToText } from './pdf';
 
+const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
 const MAX_REDIRECTS = 5;
 const MAX_RESPONSE_BYTES = 1_000_000;
 
@@ -101,7 +102,9 @@ export async function extractFromUrl(input: string) {
 			}
 			error(502, `Unable to fetch ${url.hostname}. Check the URL or try pasting the text.`);
 		}
-		if (![301, 302, 303, 307, 308].includes(res.status)) break;
+		// Follow redirects manually so every destination is validated.
+		// Otherwise, leave the loop and process the final response.
+		if (!REDIRECT_STATUSES.has(res.status)) break;
 		if (hop === MAX_REDIRECTS) error(400, 'The page redirected too many times.');
 		const location = res.headers.get('location');
 		if (!location) error(502, 'The page redirected without a destination.');
