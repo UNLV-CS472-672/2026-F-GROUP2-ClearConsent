@@ -22,6 +22,9 @@ jobs:
       github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      PUBLIC_SUPABASE_URL: 'https://eccdgjwsllkkdvsqtlzq.supabase.co'
+      PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_KXwbXRolrFfu8y2gsWgsfA_DykUtsV8'
     environment:
       name: production
       url: https://clearconsent.site
@@ -39,9 +42,6 @@ jobs:
         run: npm ci
       - name: Build the validated application
         run: npm run build
-        env:
-          PUBLIC_SUPABASE_URL: 'https://eccdgjwsllkkdvsqtlzq.supabase.co'
-          PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_KXwbXRolrFfu8y2gsWgsfA_DykUtsV8'
       - name: Skip superseded main commits
         id: revision
         shell: bash
@@ -54,6 +54,9 @@ jobs:
             echo "current=false" >> "$GITHUB_OUTPUT"
             echo "Skipping deployment: a newer main commit exists."
           fi
+      - name: Require the hosted analysis schema before release
+        if: steps.revision.outputs.current == 'true'
+        run: npm run check:schema-readiness
       - name: Deploy with the locked Wrangler version
         if: steps.revision.outputs.current == 'true'
         env:
