@@ -9,7 +9,6 @@
 	let loading: boolean = $state(false);
 	let error: string = $state('');
 	let input = $state('');
-	let result: any = $state(null);
 
 	const submit: SubmitFunction = async ({ cancel }) => {
 		if (isSamplePolicy(input)) {
@@ -23,16 +22,25 @@
 		}
 		loading = true;
 		error = '';
-		result = null;
 
-		return async ({ update }) => {
-			await update();
-			const res = page.form;
-			if (res.success) {
-				result = res;
-				await saveSource(res.data);
-			} else error = res.error;
-			loading = false;
+		return async ({ result }) => {
+			try {
+				if (result.type !== 'success' && result.type !== 'failure') {
+					error = 'Unable to validate the submitted text. Please try again.';
+					return;
+				}
+				const data = result.data;
+				if (data?.success && 'data' in data && typeof data.data === 'string') {
+					await saveSource(data.data);
+				} else {
+					error =
+						typeof data?.error === 'string' ? data.error : 'Unable to validate the submitted text.';
+				}
+			} catch {
+				error = 'Unable to save the submitted text. Please try again.';
+			} finally {
+				loading = false;
+			}
 		};
 	};
 
@@ -42,17 +50,26 @@
 			headers: { 'content-type': 'application/json' },
 			body: JSON.stringify({ content })
 		});
-		const body = (await res.json()) as any;
-		if (res.ok) {
-			console.log('Saved source:', body);
-			await goto(
-				resolve(
-					`/dashboard/overview/analyze/${body.id}?detail=${detailLevel(page.url.searchParams.get('detail'))}`
-				)
-			);
-		} else {
-			error = body.message;
+		const body: unknown = await res.json();
+		if (!res.ok) {
+			error = 'Unable to save the submitted text. Please try again.';
+			return;
 		}
+		if (
+			!body ||
+			typeof body !== 'object' ||
+			!('id' in body) ||
+			typeof body.id !== 'string' ||
+			!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.id)
+		) {
+			error = 'The save response was invalid. Please try again.';
+			return;
+		}
+		await goto(
+			resolve(
+				`/dashboard/overview/analyze/${body.id}?detail=${detailLevel(page.url.searchParams.get('detail'))}`
+			)
+		);
 	};
 
 	const keydown = (e: KeyboardEvent) => {
@@ -87,17 +104,12 @@
 		<button
 			type="submit"
 			class="w-fit bg-black px-3 py-1 font-bold text-floral-white"
-			disabled={loading}>{loading ? 'Validating...' : 'Submit'}</button
+			disabled={loading}>{loading ? 'Submitting...' : 'Submit'}</button
 		>
 	</form>
 	<div class="w-200 items-center justify-center">
-		{#if result}
-			<h1 class="text-lg font-bold">{result.hash}</h1>
-			<h2 class="text-gray-500">{result.timestamp}</h2>
-			<pre
-				class="mt-4 border border-gray-200 bg-gray-50 p-4 text-sm whitespace-pre-wrap">{result.data}</pre>
-		{:else if error}
-			<pre class="mt-4 bg-red-50 p-3 text-red-700">{error}</pre>
+		{#if error}
+			<p role="alert" class="mt-4 bg-red-50 p-3 text-red-700">{error}</p>
 		{/if}
 	</div>
 </div>

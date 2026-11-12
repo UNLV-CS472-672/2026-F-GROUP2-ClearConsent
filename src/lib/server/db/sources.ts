@@ -10,15 +10,20 @@ type NewSource = {
 /**
  * Returns the owner's existing source for the same URL (or, for pasted text, the same text),
  * or inserts a new one.
- * Not race-safe: two identical submissions at the same moment can still create two rows.
+ * Pasted text uses an owner-scoped RPC with a transaction lock; URL behavior is unchanged.
  */
 export async function findOrCreateSource(supabase: SupabaseClient, source: NewSource) {
-	const lookup = supabase.from('sources').select().eq('owner_id', source.ownerId);
-	const { data: existing, error: lookupError } = await (
-		source.url === null
-			? lookup.is('url', null).eq('text', source.text)
-			: lookup.eq('url', source.url)
-	)
+	if (source.url === null) {
+		return supabase
+			.rpc('find_or_create_pasted_source', { p_text: source.text, p_title: source.title })
+			.single();
+	}
+
+	const { data: existing, error: lookupError } = await supabase
+		.from('sources')
+		.select()
+		.eq('owner_id', source.ownerId)
+		.eq('url', source.url)
 		.order('created_at', { ascending: true })
 		.limit(1)
 		.maybeSingle();
