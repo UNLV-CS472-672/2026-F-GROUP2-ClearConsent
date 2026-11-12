@@ -14,9 +14,11 @@ export default defineConfig({
 			include: ['src/**/*.{ts,svelte}'],
 			exclude: ['src/**/*.test.ts', 'src/**/*.d.ts'],
 			reporter: ['text', 'json-summary'],
+			// Regression floors below the measured S2 baseline (60.40% lines / 66.77% branches).
+			// See docs/testing-and-ci.md for the baseline and current-main verification.
 			thresholds: {
-				lines: 55,
-				branches: 60
+				lines: 59,
+				branches: 65
 			}
 		}
 	}
