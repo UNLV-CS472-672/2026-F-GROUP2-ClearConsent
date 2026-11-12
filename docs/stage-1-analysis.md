@@ -95,8 +95,9 @@ local settings do not change the live site.
 If the app reports `analysis disabled`, `ENABLE_PAID_ANALYSIS` is not `1` in the environment the dev
 server loaded. Restart after editing the file. A variable already set in your shell (for example
 `ENABLE_PAID_ANALYSIS=0` from an earlier session) takes precedence over `.env.local`, so check the terminal
-you start `npm run dev` from with `echo $env:ENABLE_PAID_ANALYSIS` (PowerShell) or
-`echo %ENABLE_PAID_ANALYSIS%` (cmd) and clear it if it is set.
+you start `npm run dev` from with `echo $env:ENABLE_PAID_ANALYSIS` (PowerShell),
+`echo %ENABLE_PAID_ANALYSIS%` (cmd), or `echo $ENABLE_PAID_ANALYSIS` (Linux/macOS shells) and clear it if
+it is set.
 
 ## Local request
 
@@ -281,3 +282,19 @@ npx wrangler secret put ANALYSIS_ACCESS_TOKEN
 
 Leave `ENABLE_PAID_ANALYSIS` unset or `0` in deployed environments until per-user authorization and rate
 limiting exist. No deployed request has been made.
+
+### Turning paid analysis off in production
+
+Production reads `ENABLE_PAID_ANALYSIS` from `wrangler.jsonc`, not from the Cloudflare dashboard. The
+deploy workflow (`.github/workflows/deploy.yml`) runs `wrangler deploy` on every push to `main`, which
+applies the value in the config and overwrites any dashboard change on the next deploy.
+
+1. In `wrangler.jsonc`, change `"ENABLE_PAID_ANALYSIS": "1"` to `"0"`.
+2. Open a PR and merge it to `main`. The deploy workflow applies the new value.
+
+With the flag at `0`, the analysis route returns `analysis_disabled` (503) for all requests and makes no
+OpenAI calls. The `OPENAI_API_KEY` and `ANALYSIS_ACCESS_TOKEN` secrets stay in place, so the feature can
+be re-enabled by reversing the change.
+
+Note: `wrangler.jsonc` currently sets the flag to `"1"`, which conflicts with the guidance above. Change it
+to `"0"` before any production deploy unless paid analysis has been approved for production.

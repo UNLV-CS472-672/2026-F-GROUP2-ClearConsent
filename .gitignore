@@ -30,3 +30,5 @@ ssl/
 
 # Wrangler local secrets (contains API keys)
 .dev.vars
+.dev.vars*
+
