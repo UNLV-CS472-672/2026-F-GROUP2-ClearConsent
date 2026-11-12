@@ -27,7 +27,21 @@ describe('Stage 2 database mapping', () => {
 			source_title: null,
 			source_text: FITNESS_POLICY,
 			summary: SUMMARY,
-			outcome: 'findings_identified'
+			outcome: 'findings_identified',
+			model: 'mock-model',
+			reasoning_effort: 'medium'
+		});
+	});
+
+	it("uses extraction's model when consolidation made no call", async () => {
+		const result = await runConsolidation(
+			await extractionResult([]),
+			consolidationProviderWith({ summary: SUMMARY, findings: [], exclusions: [] })
+		);
+		expect(result.provider).toBeNull();
+		expect(toAnalysisResultFields(result)).toMatchObject({
+			model: result.extraction.provider.model,
+			reasoning_effort: result.extraction.provider.reasoningEffort
 		});
 	});
 

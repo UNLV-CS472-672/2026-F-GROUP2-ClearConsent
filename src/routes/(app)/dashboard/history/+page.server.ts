@@ -3,7 +3,7 @@ import { getSupabaseForUser } from '$lib/server/db/supabase';
 import type { AnalysisResult, AttentionLabel, FindingCategory } from '$lib/contracts/analysis';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { type RecentSource } from '$lib/components/DataTable.js';
-import { type SavedAnalysis } from '$lib/server/db/analysis-runs.js';
+import { analysisModel, type SavedAnalysis } from '$lib/server/db/analysis-runs.js';
 
 const TOPICS: Record<FindingCategory, string> = {
 	collection: 'Information collection',
@@ -38,7 +38,8 @@ function toAnalysisResult(analysis: SavedAnalysis, rows: FindingRow[]): Analysis
 			status: 'insufficient',
 			analysisId: analysis.id,
 			schemaVersion: 1,
-			reason: analysis.summary
+			reason: analysis.summary,
+			model: analysisModel(analysis)
 		};
 	}
 
@@ -73,6 +74,7 @@ function toAnalysisResult(analysis: SavedAnalysis, rows: FindingRow[]): Analysis
 		analysisId: analysis.id,
 		schemaVersion: 1,
 		summary: analysis.summary,
+		model: analysisModel(analysis),
 		findings: rows.map((row) => ({
 			id: row.id,
 			category: row.category,
@@ -89,7 +91,7 @@ function toAnalysisResult(analysis: SavedAnalysis, rows: FindingRow[]): Analysis
 async function findAnalysis(supabase: SupabaseClient, sourceId: string) {
 	const { data, error: findError } = await supabase
 		.from('analyses')
-		.select('id, summary')
+		.select('id, summary, model, reasoning_effort')
 		.eq('source_id', sourceId)
 		.order('analyzed_at', { ascending: false })
 		.limit(1)

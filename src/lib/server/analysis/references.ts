@@ -25,7 +25,8 @@ function normalizeStringList(values: string[], field: string): string[] {
 	return [...new Set(normalized)];
 }
 
-type SourceIndex = {
+// A snapshot prepared for locating quotes. Build it once and reuse it for every excerpt.
+export type SourceIndex = {
 	passages: Map<string, SourceSnapshot['passages'][number]>;
 	// The full frozen text; passages are contiguous, so this is their concatenation.
 	text: string;
@@ -138,7 +139,9 @@ function locate(source: SourceIndex, passage: Passage, excerpt: string): Located
 
 const ELLIPSIS = /\.{3}|\u2026/;
 
-function resolveEvidence(
+// Locates one provider excerpt in its cited passage. A located excerpt is sliced from the source;
+// one that cannot be placed is returned unverified with the reason.
+export function resolveEvidence(
 	source: SourceIndex,
 	passageId: string,
 	excerpt: string
@@ -220,6 +223,15 @@ function validateCandidate(
 	};
 }
 
+export function indexSource(snapshot: SourceSnapshot): SourceIndex {
+	const text = snapshot.passages.map((passage) => passage.text).join('');
+	return {
+		passages: new Map(snapshot.passages.map((passage) => [passage.id, passage])),
+		text,
+		normalized: normalize(text)
+	};
+}
+
 export type ResolvedCandidates = {
 	candidates: ValidatedCandidate[];
 	rejectedCandidates: RejectedCandidate[];
@@ -241,12 +253,7 @@ export function validateAndResolveCandidates(
 		);
 	}
 
-	const text = snapshot.passages.map((passage) => passage.text).join('');
-	const source: SourceIndex = {
-		passages: new Map(snapshot.passages.map((passage) => [passage.id, passage])),
-		text,
-		normalized: normalize(text)
-	};
+	const source = indexSource(snapshot);
 	const candidates: ValidatedCandidate[] = [];
 	const rejectedCandidates: RejectedCandidate[] = [];
 

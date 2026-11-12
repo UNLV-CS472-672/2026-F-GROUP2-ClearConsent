@@ -108,10 +108,10 @@ boolean `true` permits deployment. Missing configuration, redirects, HTTP errors
 (including 401/403), timeouts, invalid JSON, and any other result block release.
 Failure output omits keys, URLs, response bodies, and upstream exception details.
 
-The probe calls `GET /rest/v1/rpc/analysis_schema_ready_v1` with the existing public
+The probe calls `GET /rest/v1/rpc/analysis_schema_ready_v2` with the existing public
 publishable key. The reviewed migration
-`20261106172644_analysis_schema_readiness.sql` adds a stable, security-invoker
-function that reads catalog metadata only. It exposes one boolean and has no input
+`20261106172644_analysis_schema_readiness.sql` adds the preserved v1 base
+function, a stable, security-invoker function that reads catalog metadata only. It exposes one boolean and has no input
 parameters, user-row access, elevated privileges, or calls to analysis functions.
 It checks the real `public.analysis_runs` table, RLS enabled, required column types,
 and these exact named RPC signatures and return types:
@@ -121,6 +121,19 @@ and these exact named RPC signatures and return types:
 - `release_analysis_run(p_source_id uuid, p_run_id uuid) -> boolean`
 
 It also requires authenticated execute and anonymous denial on those three RPCs.
+The additive `20261112012221_paste_schema_readiness_v2.sql` migration preserves
+that already-applied v1 function and adds v2 for #94's paste-save requirements:
+
+- The `sources` table, enabled RLS, required column types, and authenticated
+  SELECT/INSERT grants.
+- `find_or_create_pasted_source(p_text text, p_title text) -> SETOF public.sources`,
+  security invoker, authenticated execute and anonymous denial.
+- The valid, ready `sources_paste_digest_idx` btree on `(owner_id, md5(text))`
+  restricted to `url IS NULL`.
+
+The v2 check reads catalogs only and never calls the paste RPC. The script requires
+v2 explicitly: an old v1 `true` cannot satisfy it, and there is no fallback to v1.
+The paste RPC/index themselves remain in #94's separate migration, not this PR.
 Existing grants, ownership policies and duplicate-run protections are unchanged.
 The new boolean function alone is callable anonymously. No service-role credential,
 test login, new identity, paid analysis, or automatic migration is used by the gate.
@@ -135,8 +148,18 @@ and [read-only HTTP transactions](https://docs.postgrest.org/en/stable/reference
 
 1. Review pending migrations against the exact validated main SHA and intended
    hosted project. In particular, the analysis-run migration from #69 and the new
-   readiness migration must both be applied before this gate can pass. Missing the
-   readiness function itself blocks release; there is no bootstrap bypass.
+   v1 readiness migration, #94's `20261111000000_pasted_source_rpc.sql`, and
+   `20261112012221_paste_schema_readiness_v2.sql` must be applied before this gate
+   can pass. Apply the reviewed #94 database migration first, then v2, then verify
+   HTTP 200 with JSON `true` using this revision's script **before merging #78**.
+   The old v1 confirmation is not sufficient for this updated contract. No hosted
+   application of either new migration is implied by this PR or local tests.
+   Missing v2 blocks release; installing v2 without the paste contract returns
+   `false`. Merging the guard early will deliberately block subsequent production
+   deployments, including unrelated changes, until the requirements are present.
+   Do not merge #94's application code first merely to install its SQL: apply its
+   reviewed migration separately through the normal authorized database process.
+   There is no bootstrap bypass.
 2. The database owner separately authorizes and applies reviewed migrations using
    the team's existing migration process. Verify migration history and SQL results;
    do not reset the hosted database or grant anonymous access to protected tables or

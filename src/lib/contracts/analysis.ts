@@ -102,6 +102,15 @@ export const TakeawaySchema = z.strictObject({
 
 export type Takeaway = z.infer<typeof TakeawaySchema>;
 
+// The model and reasoning effort that produced a result. Null for analyses saved before they were
+// recorded.
+export const AnalysisModelSchema = z.strictObject({
+	model: notBlank('Model is required'),
+	reasoningEffort: notBlank('Reasoning effort is required')
+});
+
+export type AnalysisModel = z.infer<typeof AnalysisModelSchema>;
+
 // Discriminated Union states for Analysis Result
 export const AnalysisInProgressSchema = z.object({
 	status: z.literal('in_progress'),
@@ -115,6 +124,7 @@ export const AnalysisSuccessSchema = z
 		analysisId: notBlank('Analysis requires an ID on success'),
 		schemaVersion: z.number().int().positive(),
 		summary: notBlank('Success state requires an overall readable summary'),
+		model: AnalysisModelSchema.nullable().optional(),
 		findings: z.array(FindingSchema).min(1, 'Success state requires at least one finding'),
 		takeaways: z.array(TakeawaySchema).min(1, 'Success state requires at least one takeaway')
 	})
@@ -151,7 +161,8 @@ export const AnalysisInsufficientSchema = z.strictObject({
 	schemaVersion: z.number().int().positive(),
 	reason: notBlank(
 		'Insufficient state requires an explanation for why analysis could not be completed'
-	)
+	),
+	model: AnalysisModelSchema.nullable().optional()
 });
 
 export const AnalysisFailedSchema = z.strictObject({

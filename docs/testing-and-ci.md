@@ -167,6 +167,14 @@ stable/security-invoker behavior, missing table/column/functions, disabled RLS,
 wrong argument types/names and return type, and execute permission drift. It never
 calls a state-changing analysis RPC or reads production data.
 
+`supabase/tests/database/paste-schema-readiness.test.sql` adds catalog-only
+fixtures for #94's contract. It verifies that v1 can pass while v2 blocks missing
+paste infrastructure, then checks a complete contract, missing/wrong RPC signatures
+and return types, permission drift, security-invoker/RLS requirements, required
+source columns, and a missing or incorrectly defined digest index. Fixtures are
+rolled back; they do not exercise user data or the paste RPC body. #94's database
+and browser tests remain necessary for end-to-end persistence and deduplication.
+
 The live `npm run check:schema-readiness` command is a separate release check, not
 part of offline PR validation. It requires the reviewed readiness migration on the
 hosted target. See [the release checklist and coverage boundaries](deployment.md#required-hosted-schema-gate-77).

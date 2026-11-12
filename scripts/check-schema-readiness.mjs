@@ -1,7 +1,7 @@
 import { pathToFileURL } from 'node:url';
 
 const guidance =
-	' Release blocked. Check the deployment project configuration, reviewed migrations (including analysis_schema_readiness), and PostgREST schema cache; see docs/deployment.md. Do not bypass this gate or run automatic migrations.';
+	' Release blocked. Check the deployment project configuration, reviewed migrations (including analysis_schema_readiness, paste_schema_readiness_v2, and pasted_source_rpc), and PostgREST schema cache; see docs/deployment.md. Do not bypass this gate or run automatic migrations.';
 
 // Accept only the public key format used by this deployment. Never send a service-role key.
 export async function checkSchemaReadiness(env = process.env, fetcher = fetch) {
@@ -27,7 +27,7 @@ export async function checkSchemaReadiness(env = process.env, fetcher = fetch) {
 	if (typeof key !== 'string' || !/^sb_publishable_[A-Za-z0-9_-]+$/.test(key)) {
 		throw new Error('Missing or invalid PUBLIC_SUPABASE_PUBLISHABLE_KEY.' + guidance);
 	}
-	url.pathname = '/rest/v1/rpc/analysis_schema_ready_v1';
+	url.pathname = '/rest/v1/rpc/analysis_schema_ready_v2';
 	let response;
 	let body;
 	try {

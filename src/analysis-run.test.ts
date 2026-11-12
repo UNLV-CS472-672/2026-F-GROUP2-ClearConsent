@@ -122,6 +122,12 @@ describe('POST /api/analyze', () => {
 			p_source_id: SOURCE_ID,
 			p_run_id: RUN_ID
 		});
+		expect(client.rpc).toHaveBeenCalledWith(
+			'save_analysis',
+			expect.objectContaining({
+				p_analysis: expect.objectContaining({ model: 'mock-model', reasoning_effort: 'medium' })
+			})
+		);
 	});
 
 	it.each(['running', 'failed', 'complete'])(

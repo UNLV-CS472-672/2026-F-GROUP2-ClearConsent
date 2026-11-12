@@ -12,7 +12,7 @@ test('successful contract uses one bounded read-only request and no user credent
 	let calls = 0;
 	await checkSchemaReadiness(env, async (url, options) => {
 		calls++;
-		assert.equal(url.href, env.PUBLIC_SUPABASE_URL + '/rest/v1/rpc/analysis_schema_ready_v1');
+		assert.equal(url.href, env.PUBLIC_SUPABASE_URL + '/rest/v1/rpc/analysis_schema_ready_v2');
 		assert.equal(options.method, 'GET');
 		assert.equal(options.redirect, 'error');
 		assert.equal(options.cache, 'no-store');
@@ -126,4 +126,18 @@ test('CI runs regression tests and release guard precedes Wrangler without conti
 	);
 	assert.ok(deploy.includes('run: npm run check:schema-readiness'));
 	assert.ok(!deploy.includes('continue-on-error'));
+});
+
+test('a passing legacy v1 endpoint cannot bypass a missing v2 contract', async () => {
+	const paths = [];
+	await assert.rejects(
+		checkSchemaReadiness(env, async (url) => {
+			paths.push(url.pathname);
+			return url.pathname.endsWith('analysis_schema_ready_v1')
+				? new Response('true')
+				: new Response(null, { status: 404 });
+		}),
+		/HTTP 404.*Release blocked/
+	);
+	assert.deepEqual(paths, ['/rest/v1/rpc/analysis_schema_ready_v2']);
 });
