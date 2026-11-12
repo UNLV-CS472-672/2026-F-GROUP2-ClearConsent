@@ -1,7 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { ANALYSIS_DEPENDENCY, type AnalysisState } from '$lib/analysis-run';
-import { type FindingRow, toAnalysisResult } from '$lib/server/db/analysis';
+import { type FindingRow, toAnalysisResult } from '$lib/server/analysis';
 import { readRunState, type RunState } from '$lib/server/db/analysis-runs';
 import { getSupabaseForUser } from '$lib/server/db/supabase';
 import type { PageServerLoad } from './$types';

@@ -4,7 +4,7 @@ import type { AnalysisResult } from '$lib/contracts/analysis';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { type RecentSource } from '$lib/components/DataTable';
 import { type SavedAnalysis } from '$lib/server/db/analysis-runs';
-import { type FindingRow, toAnalysisResult } from '$lib/server/db/analysis';
+import { type FindingRow, toAnalysisResult } from '$lib/server/analysis';
 
 async function findAnalysis(supabase: SupabaseClient, sourceId: string) {
 	const { data, error: findError } = await supabase
