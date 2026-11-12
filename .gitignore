@@ -32,3 +32,5 @@ ssl/
 .dev.vars
 .dev.vars*
 
+# Coverage file 
+coverage/
