@@ -120,4 +120,9 @@ describe('history page empty state', () => {
 		renderPage([]);
 		expect(screen.getByText('No saved analyses yet')).toBeTruthy();
 	});
+	it('ensures there is no synthetic data text or display button when there are no analyses', () => {
+		renderPage([]);
+		expect(screen.queryByText(/Synthetic( Data)?/i)).toBeNull();
+		expect(screen.queryByLabelText(/Display Synthetic .*/i)).toBeNull();
+	});
 });
