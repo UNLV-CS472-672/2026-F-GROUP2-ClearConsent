@@ -3,7 +3,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/svelte';
 import { successFixture } from '$lib/contracts/fixtures';
 import { type RecentSource } from '$lib/components/DataTable';
 
-const pageMock = vi.hoisted(() => ({ url: new URL('https://example.test/') }));
+const pageMock = vi.hoisted(() => ({ url: new URL('https://example.test/dashboard/history') }));
 vi.mock('$app/state', () => ({ page: pageMock }));
 
 import Page from './+page.svelte';
@@ -24,7 +24,7 @@ function renderPage(sources: RecentSource[], results = sources.map(() => success
 const lines = (c: HTMLElement) => c.querySelectorAll('.table-line');
 
 beforeEach(() => {
-	pageMock.url = new URL('https://example.test/');
+	pageMock.url = new URL('https://example.test/dashboard/history');
 	HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
 		this.setAttribute('open', '');
 	};
@@ -64,6 +64,8 @@ describe('history page layout', () => {
 });
 
 describe('history page data', () => {
+	// Duplicated Tests for DataTable
+	// However it covers the history page.
 	it('lists saved analyses with titles, urls and formatted dates', () => {
 		const { container } = renderPage([src(1), src(2)]);
 		expect(lines(container).length).toBe(2);
@@ -103,13 +105,7 @@ describe('history page data', () => {
 		expect(lines(container).length).toBe(10);
 		expect(screen.getByText('1/2')).toBeTruthy();
 	});
-
-	// Synthetic Results -- Either remove or migrate to demo page
-	it('does not show the synthetic button when there are real analyses', () => {
-		renderPage([src(1)]);
-		expect(screen.queryByLabelText('Display synthetic analyses')).toBeNull();
-	});
-
+	//  --
 	it('opens the modal with a details link for real data', async () => {
 		const { container } = renderPage([src(1)]);
 		await fireEvent.click(container.querySelector('.show-modal-button')!);
@@ -119,47 +115,9 @@ describe('history page data', () => {
 	// --
 });
 
-/*
- * More Synthetic result tests migrate to demo page or remove
- */
-describe('history page empty state and synthetic data', () => {
-	it('shows the empty state and synthetic button when there are no analyses', () => {
+describe('history page empty state', () => {
+	it('shows the empty state when there are no analyses', () => {
 		renderPage([]);
 		expect(screen.getByText('No saved analyses yet')).toBeTruthy();
-		expect(screen.getByLabelText('Display synthetic analyses')).toBeTruthy();
-		expect(screen.queryByText('Synthetic Data')).toBeNull();
-	});
-
-	it('reveals 10 synthetic rows by default when toggled', async () => {
-		const { container } = renderPage([]);
-		await fireEvent.click(screen.getByLabelText('Display synthetic analyses'));
-		expect(screen.getByText('Synthetic Data')).toBeTruthy();
-		expect(lines(container).length).toBe(10);
-		expect(screen.getByText('Company-1')).toBeTruthy();
-	});
-
-	it('toggles synthetic data off on a second click', async () => {
-		renderPage([]);
-		const btn = screen.getByLabelText('Display synthetic analyses');
-		await fireEvent.click(btn);
-		await fireEvent.click(btn);
-		expect(screen.queryByText('Synthetic Data')).toBeNull();
-	});
-
-	it.each(['0', '1', '20', '30'])('generates %s synthetic items', async (n) => {
-		const { container } = renderPage([]);
-		await fireEvent.click(screen.getByLabelText('Display synthetic analyses'));
-		const select = screen.getByText('# of synthetic items').parentElement!.querySelector('select')!;
-		await fireEvent.change(select, { target: { value: n } });
-		// the table page size is 10, so cap what is visible
-		expect(lines(container).length).toBe(Math.min(Number(n), 10));
-	});
-
-	it('hides the details link in synthetic modals', async () => {
-		const { container } = renderPage([]);
-		await fireEvent.click(screen.getByLabelText('Display synthetic analyses'));
-		await fireEvent.click(container.querySelector('.show-modal-button')!);
-		await vi.waitFor(() => expect(container.querySelector('dialog')).not.toBeNull());
-		expect(screen.queryByText('View more details')).toBeNull();
 	});
 });

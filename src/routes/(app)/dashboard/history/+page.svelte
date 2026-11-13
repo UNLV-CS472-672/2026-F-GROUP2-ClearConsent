@@ -3,13 +3,11 @@
 	import type { SourceAndResult, features } from '$lib/components/DataTable';
 	import { createColumnHelper, type ColumnDef } from '@tanstack/svelte-table';
 	import type { PageData } from './$types';
-	import { successFixture } from '$lib/contracts/fixtures';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { detailLevel } from '$lib/study/sample';
 
 	let { data }: { data: PageData } = $props();
-	let displaySnytheticData = $state(false);
 	const getRecentSources = () => data.recentSources;
 	const detail = $derived(detailLevel(page.url.searchParams.get('detail')));
 
@@ -43,19 +41,6 @@
 		})
 	]);
 	const sourcesFromData = getSourcesAndResults();
-	const syntheticSourcesandResults = (num: number) => {
-		return Array.from({ length: num }, (_, i) => {
-			const source = {
-				id: crypto.randomUUID(),
-				title: `Company-${i + 1}`,
-				url: `https://www.company${i + 1}.url`,
-				created_at: new Date(Date.now() - i * 86400000).toISOString()
-			};
-			return { source: source, result: successFixture } as SourceAndResult;
-		});
-	};
-	let genNum = $state('10');
-	const opts = ['0', '1', '10', '20', '30'];
 </script>
 
 <div class="page-frame">
@@ -85,33 +70,6 @@
 				<div class="flex w-full flex-col items-center justify-center pb-5">
 					<DataTable data={sourcesFromData} {columns}></DataTable>
 				</div>
-				<!-- TODO: Move synthetic results to its own page or remove entirely -->
-				{#if sourcesFromData.length === 0}
-					<button
-						class="default-button text-white"
-						onclick={() => (displaySnytheticData = !displaySnytheticData)}
-						aria-label="Display synthetic analyses"
-					>
-						Display synthetic analyses
-					</button>
-				{/if}
-
-				{#if displaySnytheticData}
-					<div class="flex w-full flex-col items-center justify-center pb-5">
-						<h1 class="font-lg mb-5 font-bold">Synthetic Data</h1>
-						<div class="inline-flex gap-5">
-							<span> # of synthetic items</span>
-							<select bind:value={genNum} class="border border-gray-500">
-								{#each opts as opt (opt)}
-									<option value={opt}>{opt}</option>
-								{/each}
-							</select>
-						</div>
-						<DataTable data={syntheticSourcesandResults(Number(genNum))} {columns} synthetic={true}
-						></DataTable>
-					</div>
-				{/if}
-				<!-- ------------------ -->
 			</section>
 		</div>
 		<footer>
@@ -121,17 +79,6 @@
 </div>
 
 <style>
-	.default-button {
-		background: #147f88;
-		border-radius: 7px;
-		padding: 0.5rem 1.5rem;
-		font-size: 13px;
-		font-weight: 700;
-		cursor: pointer;
-	}
-	.default-button:hover {
-		background: #0d6570;
-	}
 	.page-frame {
 		width: 100%;
 		min-height: 100vh;
