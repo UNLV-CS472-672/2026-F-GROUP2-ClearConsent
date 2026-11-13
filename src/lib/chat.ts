@@ -1,5 +1,6 @@
-// Types and constants for the chat panel (#76), matching docs/chat-api.md (#85).
+// Types, constants, and helpers for the chat panel (#76), matching docs/chat-api.md (#85).
 import type { ChatMessage, ChatState, PendingAnswer } from '$lib/server/db/chat';
+import { MAX_QUESTION_CHARACTERS, CHAT_QUESTION_LIMIT } from './constants';
 
 export type { ChatMessage, ChatState, PendingAnswer };
 
@@ -15,9 +16,6 @@ export type ChatConflict = { status: 'running' | 'nothing_to_retry' | 'question_
 
 // Other POST failures that carry a code, such as input_empty or analysis_disabled.
 export type ChatErrorBody = { error: { code: string; message: string; retryable: boolean } };
-
-// Matches MAX_QUESTION_CHARACTERS on the server
-export const MAX_QUESTION_CHARACTERS = 2_000;
 
 // Helper functions:
 
@@ -67,7 +65,7 @@ export type StateOutcome = { type: 'loaded'; state: ChatState } | ChatFailure;
 export const CONFLICT_MESSAGES: Record<ChatConflict['status'], string> = {
 	running: 'An answer is already being written.',
 	nothing_to_retry: 'There is no failed answer to retry.',
-	question_limit: `This chat has reached its 100-question limit. You can still read it and retry a failed answer.`
+	question_limit: `This chat has reached its ${CHAT_QUESTION_LIMIT}-question limit. You can still read it and retry a failed answer.`
 };
 
 // Messages written for users, keyed by API's error codes

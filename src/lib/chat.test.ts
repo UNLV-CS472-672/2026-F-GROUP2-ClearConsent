@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
 	CONFLICT_MESSAGES,
-	MAX_QUESTION_CHARACTERS,
 	UNKNOWN_KIND_LABEL,
 	checkQuestion,
 	kindLabel,
@@ -10,6 +9,7 @@ import {
 	type AnswerKind,
 	type ChatMessage
 } from './chat';
+import { MAX_QUESTION_CHARACTERS } from './constants';
 
 const question: ChatMessage = {
 	id: 'q1',

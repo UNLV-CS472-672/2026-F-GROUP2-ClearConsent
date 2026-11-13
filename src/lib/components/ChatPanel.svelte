@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import {
-		MAX_QUESTION_CHARACTERS,
 		chatErrorMessage,
 		checkQuestion,
 		kindLabel,
@@ -11,13 +10,10 @@
 		type ChatMessage,
 		type PendingAnswer
 	} from '$lib/chat';
+	import { MAX_QUESTION_CHARACTERS, CHAT_QUESTION_LIMIT, POLL_MS } from '$lib/constants';
 
 	// Document chat for a saved analysis (FR-11, #76). API reference: docs/chat-api.md.
 
-	// Polls while an answer is being written
-	const POLL_MS = 3000;
-	// Matches the server's per-chat question limit (docs/chat-api.md)
-	const QUESTION_LIMIT = 100;
 	const NETWORK_MESSAGE = "Couldn't reach the server. Check your connection and try again.";
 	const EXAMPLE_QUESTIONS = [
 		'Who does this policy share my data with?',
@@ -46,7 +42,7 @@
 	const failed = $derived(pending?.status === 'failed' ? pending : null);
 	const busy = $derived(sendingText !== null || retrying || runningId !== null);
 	const questionCount = $derived(messages.filter((message) => message.role === 'user').length);
-	const atLimit = $derived(limitReached || questionCount >= QUESTION_LIMIT);
+	const atLimit = $derived(limitReached || questionCount >= CHAT_QUESTION_LIMIT);
 	const canSend = $derived(status === 'ready' && !busy && !atLimit && check.ok);
 	// Questions followed by an answer
 	const answeredIds = $derived(
@@ -267,7 +263,7 @@
 			<div class="ask-footer">
 				<p id="chat-hint" class="hint">
 					{#if atLimit}
-						This chat has reached its {QUESTION_LIMIT}-question limit.
+						This chat has reached its {CHAT_QUESTION_LIMIT}-question limit.
 					{:else if busy}
 						Wait for the answer before asking another question.
 					{:else if !check.ok && check.reason === 'too_long'}

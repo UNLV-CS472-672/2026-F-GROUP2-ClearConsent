@@ -9,8 +9,7 @@
 	import type { AnalysisResult } from '$lib/contracts/analysis';
 	import { detailLevel } from '$lib/study/sample';
 	import type { PageData } from './$types';
-
-	const POLL_MS = 3000;
+	import { POLL_MS } from '$lib/constants';
 
 	type FailedResult = Extract<AnalysisResult, { status: 'failed' }>;
 	type ErrorBody = { error?: { code?: string; message?: string }; message?: string };
