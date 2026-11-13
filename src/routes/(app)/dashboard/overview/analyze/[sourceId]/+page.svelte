@@ -1,5 +1,6 @@
 <script lang="ts">
 	import AnalysisResultView from '$lib/components/AnalysisResultView.svelte';
+	import ChatPanel from '$lib/components/ChatPanel.svelte';
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import { invalidate } from '$app/navigation';
 	import { page } from '$app/state';
@@ -149,6 +150,11 @@
 		</p>
 
 		<AnalysisResultView result={data.analysis.result} {detail} />
+
+		<!-- Document chat for this saved analysis (FR-11, #76) -->
+		<div class="chat-section">
+			<ChatPanel analysisId={data.analysis.result.analysisId} />
+		</div>
 	{:else if failure}
 		<div class="failed-state">
 			<AnalysisResultView result={failure} {detail} />
@@ -302,6 +308,9 @@
 	.skeleton-card {
 		height: 120px;
 		border: 1px solid #d6e2e9;
+	}
+	.chat-section {
+		margin-top: 28px;
 	}
 	.result-actions {
 		display: flex;
