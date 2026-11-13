@@ -113,7 +113,7 @@
 						bg-[#f8fafc] hover:border-[#2ca6af] hover:shadow-lg hover:shadow-[#11788322]"
 				>
 					{#each row.getAllCells() as cell (cell.id)}
-						{@const isNameColumn = cell.column.id === 'name' ? true : false}
+						{@const isNameColumn = cell.column.id === 'name'}
 						{@const original = cell.row.original as SourceAndResult}
 						{@const url = urlOrText(original.source)}
 						<button
