@@ -40,7 +40,6 @@ describe('Helper functions', () => {
 		expect(urlOrText(source)).toBe(source.url);
 		expect(urlOrText(nullsource)).toBe('No URL Available');
 	});
-
 });
 
 // ---- Component tests ----
