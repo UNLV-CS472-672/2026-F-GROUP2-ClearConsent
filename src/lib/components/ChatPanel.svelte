@@ -35,6 +35,8 @@
 	let limitReached = $state(false);
 	let pollTick = $state(0);
 	let input = $state<HTMLTextAreaElement>();
+	let log = $state<HTMLDivElement>();
+	let stickToBottom = true;
 
 	const chatUrl = $derived(`/api/chat?analysisId=${encodeURIComponent(analysisId)}`);
 	const check = $derived(checkQuestion(draft));
@@ -75,6 +77,21 @@
 		}, POLL_MS);
 		return () => clearTimeout(timer);
 	});
+
+	// Scroll to newest message when chat loads/changes, unless the user scrolled up
+	$effect(() => {
+		void messages.length;
+		void sendingText;
+		void runningId;
+		void failed;
+		if (log && stickToBottom) log.scrollTop = log.scrollHeight;
+	});
+
+	// Determine if user is at the bottom of the chat
+	function onLogScroll() {
+		if (!log) return;
+		stickToBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 40;
+	}
 
 	// Reads the saved chat
 	// A quiet refresh keeps what is on screen if it fails
@@ -138,6 +155,7 @@
 
 	async function send() {
 		if (!canSend || !check.ok) return;
+		stickToBottom = true;
 		const question = check.question;
 		sendingText = question;
 		notice = '';
@@ -183,7 +201,16 @@
 			<button type="button" onclick={() => refresh(chatUrl)}>Try loading again</button>
 		</div>
 	{:else}
-		<div class="log" role="log" aria-label="Questions and answers">
+		<!-- The scrollable log is set to be keyboard accessible -->
+		<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+		<div
+			class="log"
+			role="log"
+			aria-label="Questions and answers"
+			bind:this={log}
+			onscroll={onLogScroll}
+			tabindex="0"
+		>
 			{#if messages.length === 0 && sendingText === null}
 				<div class="empty">
 					<p>No questions yet. Try one of these:</p>
@@ -302,6 +329,10 @@
 	.log {
 		display: grid;
 		gap: 12px;
+		max-height: min(32rem, 60vh);
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		padding-right: 4px;
 	}
 	.message {
 		max-width: 85%;
@@ -411,7 +442,8 @@
 		cursor: not-allowed;
 	}
 	button:focus-visible,
-	textarea:focus-visible {
+	textarea:focus-visible,
+	.log:focus-visible {
 		outline: 3px solid #0c737b;
 		outline-offset: 2px;
 	}
