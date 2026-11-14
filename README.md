@@ -65,15 +65,17 @@ The entry page at `/` links to registration and sign-in. A confirmed account
 opens the dashboard after sign-in; returning sessions go there directly. The
 dashboard opens the URL input by default and links to Paste Text, Preferences,
 and sign-out. URL input extracts policy text, and Paste Text accepts text for
-submission. The dashboard shows an empty state for recent analyses because
-saved history is not connected yet.
+submission. A non-sample submission opens live analysis when the deployed
+provider is enabled. Completed results appear in Recent analyses and History.
 
-Preferences is a temporary study preview. Its answer style and detail controls
-change an invented example on that page only; they are not saved and do not
-change analysis output. The current forms do not produce a completed policy
-analysis. Use this walkthrough to study navigation, layout, and expectations;
-evaluate analysis quality once a result is connected. The visual design is still
-in progress.
+Preferences saves presentation choices and changes the invented example on that
+page. Those choices do not yet personalize live analysis. The fixed study sample
+remains a prepared result, separate from a newly submitted policy.
+
+For DP III, see the [case matrix](docs/dp3-case-matrix.md) and the
+[hosted live evidence with screenshots](docs/evidence/dp3-live-2026-11-13/README.md).
+The latter records owner-observed paste and URL journeys on a specific deployed
+revision; it is separate from deterministic CI and participant evaluation.
 
 ## Stage 1 policy analysis
 
