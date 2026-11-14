@@ -19,6 +19,9 @@ export type ScorableFinding = {
 	recipientTypes?: readonly RecipientType[] | null;
 	purposeTypes?: readonly PurposeType[] | null;
 	evidence: readonly { excerpt: string }[];
+	// Used only for explanations. The contract and Stage 2 name this field differently.
+	plain_language_description?: string;
+	description?: string;
 };
 
 // A finding that passed the sect. 3 checks. tier is null for protects findings.
