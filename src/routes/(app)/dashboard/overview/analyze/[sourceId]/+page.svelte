@@ -1,5 +1,6 @@
 <script lang="ts">
 	import AnalysisResultView from '$lib/components/AnalysisResultView.svelte';
+	import ChatPanel from '$lib/components/ChatPanel.svelte';
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import { invalidate } from '$app/navigation';
 	import { page } from '$app/state';
@@ -8,8 +9,7 @@
 	import type { AnalysisResult } from '$lib/contracts/analysis';
 	import { detailLevel } from '$lib/study/sample';
 	import type { PageData } from './$types';
-
-	const POLL_MS = 3000;
+	import { POLL_MS } from '$lib/constants';
 
 	type FailedResult = Extract<AnalysisResult, { status: 'failed' }>;
 	type ErrorBody = { error?: { code?: string; message?: string }; message?: string };
@@ -149,6 +149,13 @@
 		</p>
 
 		<AnalysisResultView result={data.analysis.result} {detail} />
+
+		<!-- Document chat for this saved analysis (FR-11, #76) -->
+		<div class="chat-section">
+			{#key data.analysis.result.analysisId}
+				<ChatPanel analysisId={data.analysis.result.analysisId} />
+			{/key}
+		</div>
 	{:else if failure}
 		<div class="failed-state">
 			<AnalysisResultView result={failure} {detail} />
@@ -302,6 +309,9 @@
 	.skeleton-card {
 		height: 120px;
 		border: 1px solid #d6e2e9;
+	}
+	.chat-section {
+		margin-top: 28px;
 	}
 	.result-actions {
 		display: flex;
