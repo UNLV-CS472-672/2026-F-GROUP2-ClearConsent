@@ -152,7 +152,9 @@
 
 		<!-- Document chat for this saved analysis (FR-11, #76) -->
 		<div class="chat-section">
-			<ChatPanel analysisId={data.analysis.result.analysisId} />
+			{#key data.analysis.result.analysisId}
+				<ChatPanel analysisId={data.analysis.result.analysisId} />
+			{/key}
 		</div>
 	{:else if failure}
 		<div class="failed-state">

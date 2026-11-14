@@ -8,7 +8,8 @@
 		readStateResponse,
 		type AskOutcome,
 		type ChatMessage,
-		type PendingAnswer
+		type PendingAnswer,
+		type StateOutcome
 	} from '$lib/chat';
 	import { MAX_QUESTION_CHARACTERS, CHAT_QUESTION_LIMIT, POLL_MS } from '$lib/constants';
 
@@ -37,6 +38,10 @@
 	let input = $state<HTMLTextAreaElement>();
 	let log = $state<HTMLDivElement>();
 	let stickToBottom = true;
+	// Tracker whenever panel switches analyses
+	// Response from an older generation is ignored,
+	// so a slow request for a previous analysis can't overwrite the current one
+	let generation = 0;
 
 	const chatUrl = $derived(`/api/chat?analysisId=${encodeURIComponent(analysisId)}`);
 	const check = $derived(checkQuestion(draft));
@@ -59,10 +64,15 @@
 	$effect(() => {
 		const url = chatUrl;
 		untrack(() => {
+			generation += 1;
 			messages = [];
 			pending = null;
 			notice = '';
 			limitReached = false;
+			draft = '';
+			sendingText = null;
+			retrying = false;
+			stickToBottom = true;
 			void refresh(url);
 		});
 	});
@@ -96,20 +106,26 @@
 	// Reads the saved chat
 	// A quiet refresh keeps what is on screen if it fails
 	async function refresh(url: string, quiet = false) {
+		const startedIn = generation;
 		if (!quiet) status = 'loading';
+		let outcome: StateOutcome | null;
 		try {
-			const outcome = await readStateResponse(await fetch(url));
-			if (outcome.type === 'loaded') {
-				messages = outcome.state.messages;
-				pending = outcome.state.pending;
-				status = 'ready';
-				return;
-			}
-			if (!quiet) loadError = outcome.message;
+			outcome = await readStateResponse(await fetch(url));
 		} catch {
-			if (!quiet) loadError = NETWORK_MESSAGE;
+			outcome = null;
 		}
-		if (!quiet) status = 'error';
+		// Then panel moved to another analysis while loading
+		if (startedIn !== generation) return;
+		if (outcome?.type === 'loaded') {
+			messages = outcome.state.messages;
+			pending = outcome.state.pending;
+			status = 'ready';
+			return;
+		}
+		if (!quiet) {
+			loadError = outcome ? outcome.message : NETWORK_MESSAGE;
+			status = 'error';
+		}
 	}
 
 	// Adds messages, replacing any with the same ID
@@ -126,6 +142,7 @@
 
 	// Sends a question or a retry: returns true when an answer comes back
 	async function submit(body: { analysisId: string; question?: string; retry?: boolean }) {
+		const startedIn = generation;
 		let outcome: AskOutcome;
 		try {
 			const response = await fetch('/api/chat', {
@@ -137,6 +154,9 @@
 		} catch {
 			outcome = { type: 'error', status: 0, code: null, message: NETWORK_MESSAGE };
 		}
+		// Panel switched while sending, this result is now the old version
+		// leave the current chat untouched
+		if (startedIn !== generation) return false;
 
 		if (outcome.type === 'answered') {
 			messages = upsert(messages, outcome.question, outcome.answer);
@@ -148,6 +168,8 @@
 		notice = outcome.message;
 		// The question may have been saved before the failure; the saved state says what to show.
 		await refresh(chatUrl, true);
+		// Checking again, panel may have switched analyses while chat was reloaded
+		if (startedIn !== generation) return false;
 		// A saved, failed question shows its own error with Try again, so the notice would repeat it.
 		if (failed) notice = '';
 		return false;
@@ -155,23 +177,28 @@
 
 	async function send() {
 		if (!canSend || !check.ok) return;
+		const startedIn = generation;
 		stickToBottom = true;
 		const question = check.question;
 		sendingText = question;
 		notice = '';
 		draft = '';
 		const answered = await submit({ analysisId, question });
+		// Panel moved to another analysis while this was sending
+		if (startedIn !== generation) return;
 		sendingText = null;
 		// Keep the text if the server never saved it, nothing typed is lost
-		if (!answered && !failed) draft = question;
+		if (!answered && !failed && draft === '') draft = question;
 		input?.focus();
 	}
 
 	async function retry() {
 		if (busy) return;
+		const startedIn = generation;
 		retrying = true;
 		notice = '';
 		await submit({ analysisId, retry: true });
+		if (startedIn !== generation) return;
 		retrying = false;
 	}
 

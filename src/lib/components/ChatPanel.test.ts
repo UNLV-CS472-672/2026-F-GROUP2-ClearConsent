@@ -5,6 +5,24 @@ import ChatPanel from './ChatPanel.svelte';
 
 const ANALYSIS_ID = '72000000-0000-4000-8000-000000000001';
 
+// Variables and functions (deferred & settle)
+// to test delayed response and failed send behaviors
+const OTHER_ANALYSIS_ID = '72000000-0000-4000-8000-000000000002';
+const qB = question('qB', 'Is my email sold?');
+const aB = answer('aB', 'No. The policy says it does not sell email addresses.');
+
+// A response the test finishes later. Simulates a slow request
+function deferred() {
+	let resolve!: (response: Response) => void;
+	const promise = new Promise<Response>((done) => (resolve = done));
+	return { promise, resolve };
+}
+
+// Lets pending promises and the panel's updates to finish
+async function settle() {
+	await new Promise((done) => setTimeout(done, 0));
+}
+
 function question(id: string, content: string): ChatMessage {
 	return { id, role: 'user', content, kind: null, excerpts: [], createdAt: '2026-11-12T20:00:00Z' };
 }
@@ -311,5 +329,66 @@ describe('chat panel: running answers and limits', () => {
 		await renderPanel();
 		expect(questionBox().disabled).toBe(true);
 		expect(screen.getByText(/reached its 100-question limit/)).toBeTruthy();
+	});
+});
+
+describe('chat panel: switching analyses and drafts', () => {
+	it('ignores a slow chat load for the previous analysis', async () => {
+		const slowA = deferred();
+		fetch.mockImplementation((url: string) =>
+			url.includes(ANALYSIS_ID)
+				? slowA.promise
+				: Promise.resolve(Response.json({ messages: [qB, aB], pending: null }))
+		);
+		const { rerender } = render(ChatPanel, { analysisId: ANALYSIS_ID });
+		await rerender({ analysisId: OTHER_ANALYSIS_ID });
+		await vi.waitFor(() => expect(screen.getByText(aB.content)).toBeTruthy());
+
+		slowA.resolve(Response.json({ messages: [q1, a1], pending: null }));
+		await settle();
+
+		expect(screen.queryByText(a1.content)).toBeNull();
+		expect(screen.getByText(aB.content)).toBeTruthy();
+	});
+
+	it('ignores a slow answer for the previous analysis', async () => {
+		const slowAnswer = deferred();
+		fetch.mockImplementation((url: string, init?: RequestInit) => {
+			if (init?.method === 'POST') return slowAnswer.promise;
+			return Promise.resolve(
+				Response.json(
+					url.includes(ANALYSIS_ID)
+						? { messages: [], pending: null }
+						: { messages: [qB, aB], pending: null }
+				)
+			);
+		});
+		const { rerender } = render(ChatPanel, { analysisId: ANALYSIS_ID });
+		await vi.waitFor(() => expect(screen.getByLabelText('Your question')).toBeTruthy());
+		await ask('Who gets my location?');
+
+		await rerender({ analysisId: OTHER_ANALYSIS_ID });
+		await vi.waitFor(() => expect(screen.getByText(aB.content)).toBeTruthy());
+
+		slowAnswer.resolve(Response.json({ question: q1, answer: a1 }));
+		await settle();
+
+		expect(screen.queryByText(a1.content)).toBeNull();
+		expect(screen.getByText(aB.content)).toBeTruthy();
+		expect(questionBox().value).toBe('');
+	});
+
+	it('keeps a new draft when an earlier send fails', async () => {
+		const slowFailure = deferred();
+		postChat = () => slowFailure.promise;
+		await renderPanel();
+		await ask('First question');
+
+		await fireEvent.input(questionBox(), { target: { value: 'New draft I am writing' } });
+		slowFailure.resolve(Response.json(errorBody('analysis_disabled'), { status: 503 }));
+
+		await vi.waitFor(() => expect(screen.getByText(/Chat is turned off right now/)).toBeTruthy());
+		await settle();
+		expect(questionBox().value).toBe('New draft I am writing');
 	});
 });
