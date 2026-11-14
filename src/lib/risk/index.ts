@@ -1,5 +1,6 @@
 // Personalized risk indicators (#12, docs/scoring-model.md). Pure: no network, database, or model.
 export { classifyFindings, compareIds } from './classify';
+export { evaluatePreferences, type ProfileInput } from './evaluate';
 export {
 	CONFLICT_THRESHOLD,
 	TIER_TABLE,
