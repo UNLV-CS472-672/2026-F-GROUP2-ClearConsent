@@ -12,7 +12,15 @@ if (args.some((arg) => arg !== '--check')) {
 process.env.CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV = 'false';
 const { experimental_generateTypes } = await import('wrangler');
 
-const generated = await experimental_generateTypes({ config: 'wrangler.jsonc', path: output });
+// Wrangler also reads a private .dev.vars file when no envFile is given, which
+// would copy local secret names into the committed types. Passing an envFile
+// makes Wrangler skip .dev.vars. The path does not exist, so no local file is
+// read and the output is the same on every machine and in CI.
+const generated = await experimental_generateTypes({
+	config: 'wrangler.jsonc',
+	path: output,
+	envFile: ['.no-local-vars-for-types']
+});
 // Wrangler conditionally imports the compiled Worker after a build. That makes
 // TypeScript check SvelteKit output and makes generation depend on build order.
 // Remove only that import; keep all binding and runtime declarations intact.

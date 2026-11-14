@@ -28,3 +28,10 @@ vite.config.ts.timestamp-*
 ssl/
 
 .vscode
+
+# Wrangler local secrets (contains API keys)
+.dev.vars
+.dev.vars*
+
+# Coverage file 
+coverage/
