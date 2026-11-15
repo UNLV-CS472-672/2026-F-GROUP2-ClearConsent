@@ -89,12 +89,36 @@ describe('sharing tiers', () => {
 		expect(tierOf(exposes('sharing', [purpose], ['service_provider']))).toBe('serious');
 	});
 
-	it('treats empty types as unspecified', () => {
-		expect(tierOf(exposes('sharing', [], ['service_provider']))).toBe('notable');
+	// An empty purpose list means the purpose does not apply, so the recipient decides the tier.
+	it.each<[RecipientType, Tier]>([
+		['service_provider', 'routine'],
+		['government', 'routine'],
+		['affiliate', 'notable'],
+		['unspecified', 'notable'],
+		['advertiser', 'serious'],
+		['data_broker', 'serious']
+	])('rates %s with no purpose type by the recipient alone (%s)', (recipient, tier) => {
+		expect(tierOf(exposes('sharing', [], [recipient]))).toBe(tier);
+	});
+
+	it('treats an explicit unspecified purpose differently from an empty one', () => {
+		expect(tierOf(exposes('sharing', ['unspecified'], ['service_provider']))).toBe('notable');
+		expect(tierOf(exposes('sharing', [], ['service_provider']))).toBe('routine');
+	});
+
+	// Every sharing finding has a recipient, so an empty recipient list was left out, not inapplicable.
+	it('treats an empty recipient list as unspecified', () => {
 		expect(tierOf(exposes('sharing', ['service'], []))).toBe('notable');
-		expect(tierOf({ ...exposes('sharing'), purposeTypes: undefined, recipientTypes: null })).toBe(
-			'notable'
-		);
+		expect(tierOf(exposes('sharing', [], []))).toBe('notable');
+		expect(tierOf(exposes('sharing', ['advertising'], []))).toBe('serious');
+	});
+
+	it('treats missing lists as unspecified', () => {
+		const sharing = exposes('sharing', ['service'], ['service_provider']);
+		expect(tierOf({ ...sharing, purposeTypes: undefined })).toBe('notable');
+		expect(tierOf({ ...sharing, purposeTypes: null })).toBe('notable');
+		expect(tierOf({ ...sharing, recipientTypes: undefined })).toBe('notable');
+		expect(tierOf({ ...sharing, recipientTypes: null })).toBe('notable');
 	});
 
 	it('takes the highest tier across all types', () => {
@@ -124,8 +148,11 @@ describe('use tiers', () => {
 		expect(tierOf(exposes('use', ['service'], ['data_broker']))).toBe('routine');
 	});
 
-	it('treats empty purposes as unspecified', () => {
+	// Use is about purpose, so an empty purpose list was left out, not inapplicable.
+	it('treats empty and missing purposes as unspecified', () => {
 		expect(tierOf(exposes('use'))).toBe('notable');
+		expect(tierOf({ ...exposes('use'), purposeTypes: undefined })).toBe('notable');
+		expect(tierOf({ ...exposes('use'), purposeTypes: null })).toBe('notable');
 	});
 });
 
@@ -142,8 +169,9 @@ describe('collection tiers', () => {
 		expect(tierOf(exposes('collection', [purpose]))).toBe(tier);
 	});
 
-	it('is routine with no purposes', () => {
+	it('is routine with empty or missing purposes', () => {
 		expect(tierOf(exposes('collection'))).toBe('routine');
+		expect(tierOf({ ...exposes('collection'), purposeTypes: undefined })).toBe('routine');
 	});
 });
 
