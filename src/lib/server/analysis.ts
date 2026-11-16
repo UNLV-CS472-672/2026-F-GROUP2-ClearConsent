@@ -1,4 +1,10 @@
-import type { AnalysisResult, AttentionLabel, FindingCategory } from '$lib/contracts/analysis';
+import type {
+	AnalysisResult,
+	AttentionLabel,
+	FindingCategory,
+	PurposeType,
+	RecipientType
+} from '$lib/contracts/analysis';
 import { analysisModel, type SavedAnalysis } from './db/analysis-runs';
 
 const TOPICS: Record<FindingCategory, string> = {
@@ -10,6 +16,11 @@ const TOPICS: Record<FindingCategory, string> = {
 	security_practices: 'Security practices'
 };
 
+// The findings columns a saved result needs, including the scoring fields, so a reopened result
+// can be scored again (#101).
+export const FINDING_COLUMNS =
+	'id, category, plain_language_description, evidence, effect, ambiguous, conditional, data_categories, purposes, recipients, purpose_types, recipient_types';
+
 export type FindingRow = {
 	id: string;
 	category: FindingCategory;
@@ -17,9 +28,12 @@ export type FindingRow = {
 	evidence: { passageId: string; excerpt: string }[];
 	effect: 'exposes' | 'protects' | null;
 	ambiguous: boolean;
+	conditional: boolean;
 	data_categories: string[];
 	purposes: string[];
 	recipients: string[];
+	purpose_types: PurposeType[];
+	recipient_types: RecipientType[];
 };
 
 function plural(count: number, word: string) {
@@ -78,7 +92,13 @@ export function toAnalysisResult(analysis: SavedAnalysis, rows: FindingRow[]): A
 			dataCategories: row.data_categories,
 			purposes: row.purposes,
 			recipients: row.recipients,
-			evidence: row.evidence.map(({ passageId, excerpt }) => ({ passageId, excerpt }))
+			evidence: row.evidence.map(({ passageId, excerpt }) => ({ passageId, excerpt })),
+			// Scoring fields. Older rows have no effect, which the contract leaves out rather than null.
+			...(row.effect !== null && { effect: row.effect }),
+			ambiguous: row.ambiguous,
+			conditional: row.conditional,
+			purposeTypes: row.purpose_types,
+			recipientTypes: row.recipient_types
 		})),
 		takeaways
 	};
