@@ -1,7 +1,8 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { ANALYSIS_DEPENDENCY, type AnalysisState } from '$lib/analysis-run';
-import { type FindingRow, toAnalysisResult } from '$lib/server/analysis';
+import { FINDING_COLUMNS, type FindingRow, toAnalysisResult } from '$lib/server/analysis';
+import { loadPreferenceEvaluation } from '$lib/server/analysis/personalization';
 import { readRunState, type RunState } from '$lib/server/db/analysis-runs';
 import { getSupabaseForUser } from '$lib/server/db/supabase';
 import type { PageServerLoad } from './$types';
@@ -36,9 +37,7 @@ async function loadState(supabase: SupabaseClient, sourceId: string): Promise<An
 
 	const { data: findings, error: findingsError } = await supabase
 		.from('findings')
-		.select(
-			'id, category, plain_language_description, evidence, effect, ambiguous, data_categories, purposes, recipients'
-		)
+		.select(FINDING_COLUMNS)
 		.eq('analysis_id', analysis.id)
 		.order('display_order');
 
@@ -48,7 +47,21 @@ async function loadState(supabase: SupabaseClient, sourceId: string): Promise<An
 		error(500, 'Unable to load the findings.');
 	}
 
-	return { status: 'complete', result: toAnalysisResult(analysis, findings as FindingRow[]) };
+	const result = toAnalysisResult(analysis, findings as FindingRow[]);
+
+	let preferenceEvaluation;
+	try {
+		preferenceEvaluation = await loadPreferenceEvaluation(
+			supabase,
+			analysis.id,
+			result.status === 'success' ? result.findings : []
+		);
+	} catch (loadError) {
+		console.error((loadError as Error).message);
+		error(500, 'Unable to load the personalized indicators.');
+	}
+
+	return { status: 'complete', result, preferenceEvaluation };
 }
 
 export const load: PageServerLoad = async ({ params, locals, depends }) => {

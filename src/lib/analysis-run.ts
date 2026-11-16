@@ -1,8 +1,14 @@
 import type { AnalysisResult } from '$lib/contracts/analysis';
+import type { PreferenceEvaluation } from '$lib/contracts/preferences';
 
 // What the result page shows for a source. Only 'not_started' leads the page to request a run.
 export type AnalysisState =
-	| { status: 'complete'; result: AnalysisResult }
+	// preferenceEvaluation is null for analyses saved before personalized indicators were.
+	| {
+			status: 'complete';
+			result: AnalysisResult;
+			preferenceEvaluation: PreferenceEvaluation | null;
+	  }
 	| { status: 'running' }
 	| { status: 'failed'; result: Extract<AnalysisResult, { status: 'failed' }> }
 	| { status: 'not_started' };
