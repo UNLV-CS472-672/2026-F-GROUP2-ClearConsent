@@ -8,6 +8,9 @@ import type { ScorableFinding } from './types';
 type TypeRule = {
 	recipients?: Record<RecipientType, Tier>;
 	purposes: Record<PurposeType, Tier>;
+	// The type lists every finding in this category has. Stage 2 leaves a list empty when it does
+	// not apply, so an empty list only counts as unspecified when it always applies (sect. 3).
+	alwaysApplies: { recipients: boolean; purposes: boolean };
 };
 
 type CategoryRule = { fixed: Tier } | TypeRule;
@@ -46,9 +49,23 @@ const COLLECTION_PURPOSES: Record<PurposeType, Tier> = {
 };
 
 export const TIER_TABLE: Record<FindingCategory, CategoryRule> = {
-	sharing: { recipients: SHARING_RECIPIENTS, purposes: SHARING_AND_USE_PURPOSES },
-	use: { purposes: SHARING_AND_USE_PURPOSES },
-	collection: { purposes: COLLECTION_PURPOSES },
+	// Sharing always has a recipient, but its purpose may not apply: "we use a cloud hosting
+	// provider" is rated by the recipient alone.
+	sharing: {
+		recipients: SHARING_RECIPIENTS,
+		purposes: SHARING_AND_USE_PURPOSES,
+		alwaysApplies: { recipients: true, purposes: false }
+	},
+	// Use is about purpose, so a use finding with no purpose type was not classified.
+	use: {
+		purposes: SHARING_AND_USE_PURPOSES,
+		alwaysApplies: { recipients: false, purposes: true }
+	},
+	// Unspecified collection is routine anyway, so an empty list gives the same tier either way.
+	collection: {
+		purposes: COLLECTION_PURPOSES,
+		alwaysApplies: { recipients: false, purposes: false }
+	},
 	retention: { fixed: 'notable' },
 	// An exposes finding here is a missing or restricted right, or a missing or weak protection.
 	user_rights: { fixed: 'serious' },
@@ -63,9 +80,23 @@ export function higherTier(a: Tier, b: Tier): Tier {
 	return TIER_RANK[a] >= TIER_RANK[b] ? a : b;
 }
 
-// An empty type list means the policy didn't say, which counts as unspecified (sect. 3).
-function typesOrUnspecified<T extends string>(types: readonly T[] | null | undefined): T[] {
-	return types && types.length > 0 ? [...types] : ['unspecified' as T];
+// The types a finding is rated on (sect. 3):
+// - a missing list (null or undefined) means the finding was never classified, so it counts as
+//   unspecified rather than as safe (FR-7);
+// - an empty list means the types do not apply, unless the category always has them, in which
+//   case the type was left out and also counts as unspecified;
+// - otherwise the listed types, including an explicit 'unspecified'.
+function typesToRate<T extends string>(
+	types: readonly T[] | null | undefined,
+	alwaysApplies: boolean
+): T[] {
+	if (types === null || types === undefined) {
+		return ['unspecified' as T];
+	}
+	if (types.length === 0) {
+		return alwaysApplies ? ['unspecified' as T] : [];
+	}
+	return [...types];
 }
 
 function baseTier(finding: ScorableFinding): Tier {
@@ -77,12 +108,12 @@ function baseTier(finding: ScorableFinding): Tier {
 
 	let tier: Tier = 'routine';
 
-	for (const purpose of typesOrUnspecified(finding.purposeTypes)) {
+	for (const purpose of typesToRate(finding.purposeTypes, rule.alwaysApplies.purposes)) {
 		tier = higherTier(tier, rule.purposes[purpose]);
 	}
 
 	if (rule.recipients) {
-		for (const recipient of typesOrUnspecified(finding.recipientTypes)) {
+		for (const recipient of typesToRate(finding.recipientTypes, rule.alwaysApplies.recipients)) {
 			tier = higherTier(tier, rule.recipients[recipient]);
 		}
 	}
