@@ -41,6 +41,19 @@ function errorBody(code: string) {
 	return { error: { code, message: 'Server wording.', retryable: false } };
 }
 
+// What fetch returns after following a redirect: the page it landed on, with a 200.
+function redirectedTo(url: string): Response {
+	const response = new Response('<html>Log in</html>', {
+		headers: { 'content-type': 'text/html' }
+	});
+	return Object.defineProperties(response, {
+		redirected: { value: true },
+		url: { value: url }
+	});
+}
+
+const SESSION_ENDED = 'Your session has ended. Sign in again to use chat.';
+
 describe('checkQuestion', () => {
 	it('rejects an empty question', () => {
 		expect(checkQuestion('')).toEqual({ ok: false, reason: 'empty' });
@@ -156,6 +169,17 @@ describe('readAskResponse', () => {
 		const outcome = await readAskResponse(new Response('<h1>Error</h1>', { status: 500 }));
 		expect(outcome).toMatchObject({ type: 'error', status: 500, code: null });
 	});
+
+	it('says the session ended when a signed-out request lands on the login page', async () => {
+		const outcome = await readAskResponse(redirectedTo('http://localhost:5173/login'));
+		expect(outcome).toEqual({ type: 'error', status: 401, code: null, message: SESSION_ENDED });
+	});
+
+	it('does not treat a redirect somewhere else as a sign-out', async () => {
+		const outcome = await readAskResponse(redirectedTo('http://localhost:5173/dashboard'));
+		expect(outcome).toMatchObject({ type: 'error', status: 200 });
+		expect(outcome.type === 'error' && outcome.message).not.toBe(SESSION_ENDED);
+	});
 });
 
 describe('readStateResponse', () => {
@@ -192,5 +216,10 @@ describe('readStateResponse', () => {
 	it('treats a malformed 200 as a failure', async () => {
 		const outcome = await readStateResponse(Response.json({ messages: 'nope' }));
 		expect(outcome.type).toBe('error');
+	});
+
+	it('says the session ended when a signed-out read lands on the login page', async () => {
+		const outcome = await readStateResponse(redirectedTo('http://localhost:5173/login'));
+		expect(outcome).toEqual({ type: 'error', status: 401, code: null, message: SESSION_ENDED });
 	});
 });
