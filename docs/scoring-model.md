@@ -122,6 +122,13 @@ For the MVP, users pick one of three built-in profiles (FR-2). Custom levels per
 
 The snapshot copies the actual levels. If a built-in profile changes later, old saved results still show what was used at the time, as FR-12 requires.
 
+**Saving and loading** (`src/lib/server/analysis/personalization.ts`):
+
+- The analyze routes read the profile before a run starts. If it can't be read, the request fails before any model call instead of assuming Balanced (FR-2). A user with no saved preferences gets Balanced.
+- Only complete results are scored. The indicators and snapshot are saved in the same `save_analysis` call as the findings.
+- Reopening shows the saved indicators and explanations, not a new evaluation, so later preference changes don't alter them (FR-12). The tier, review list, counts, and summary aren't stored; they're recomputed from the saved findings.
+- The results page gets `personalization`: `ready` with the evaluation, `not_saved` for analyses saved before indicators were, or `unavailable` if they couldn't be loaded. The findings still show in the last two cases (FR-9).
+
 ## 6. Rules
 
 For each concern:

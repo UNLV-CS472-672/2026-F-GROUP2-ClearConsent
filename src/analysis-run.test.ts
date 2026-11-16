@@ -1,8 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Finding } from '$lib/contracts/analysis';
-import { createPreferenceSnapshot } from '$lib/contracts/preferences';
+import { createPreferenceSnapshot, type PreferenceEvaluation } from '$lib/contracts/preferences';
 import { evaluatePreferences } from '$lib/risk';
-import { runConsolidation, toFindingRows } from '$lib/server/analysis/consolidation';
+import {
+	runConsolidation,
+	toFindingRows,
+	type ConsolidationResult
+} from '$lib/server/analysis/consolidation';
 import { buildPreferenceSave } from '$lib/server/analysis/personalization';
 import {
 	consolidationProviderWith,
@@ -500,13 +504,13 @@ describe('result page load', () => {
 			status: 'complete',
 			result: { status: 'insufficient' },
 			// Saved before personalized indicators were.
-			preferenceEvaluation: null
+			personalization: { status: 'not_saved' }
 		});
 	});
 
 	// The tables as the analyze route saved them for a Strict user.
-	async function savedStrictAnalysis() {
-		const result = await completeResult();
+	async function savedStrictAnalysis(result?: ConsolidationResult) {
+		result ??= await completeResult();
 		const { rows, idMap } = toFindingRows(result, 'analysis');
 		const saved = buildPreferenceSave(result.findings, 'strict', idMap);
 		return {
@@ -527,44 +531,71 @@ describe('result page load', () => {
 		};
 	}
 
+	type Loaded = {
+		result: { status: string; findings?: Finding[] };
+		personalization: { status: string; evaluation: PreferenceEvaluation };
+	};
+
 	it('shows a saved analysis with the indicators saved for it', async () => {
 		const tables = await savedStrictAnalysis();
 
-		const analysis = (await load(tables)) as {
-			result: { findings: { id: string }[] };
-			preferenceEvaluation: { profile: { id: string }; indicators: { indicator: string }[] };
-		};
+		const analysis = (await load(tables)) as Loaded;
 
-		expect(analysis.preferenceEvaluation.profile.id).toBe('strict');
-		expect(analysis.preferenceEvaluation.indicators.map((item) => item.indicator)).toEqual(
+		expect(analysis.personalization.status).toBe('ready');
+		const { evaluation } = analysis.personalization;
+		expect(evaluation.profile.id).toBe('strict');
+		expect(evaluation.indicators.map((item) => item.indicator)).toEqual(
 			tables.preference_evaluations.map((row) => row.indicator)
 		);
-		expect(analysis.preferenceEvaluation).toEqual(
-			evaluatePreferences(analysis.result.findings as Finding[], 'strict')
-		);
+		expect(evaluation).toEqual(evaluatePreferences(analysis.result.findings!, 'strict'));
+	});
+
+	it('shows the saved indicators for an analysis with no findings', async () => {
+		// Every concern is insufficient evidence, with no linked finding.
+		const tables = await savedStrictAnalysis({ ...(await completeResult()), findings: [] });
+
+		const analysis = (await load({ ...tables, findings: [] })) as Loaded;
+
+		expect(analysis.result.status).toBe('insufficient');
+		expect(analysis.personalization.status).toBe('ready');
+		expect(analysis.personalization.evaluation.counts).toEqual({
+			conflict: 0,
+			alignment: 0,
+			insufficient_evidence: 6
+		});
 	});
 
 	it('keeps showing the saved indicators after the user changes their profile', async () => {
 		const tables = await savedStrictAnalysis();
-		const before = (await load(tables)) as { preferenceEvaluation: unknown };
+		const before = (await load(tables)) as Loaded;
 
 		// The user switches from Strict to Relaxed after the analysis was saved.
 		const after = (await load({
 			...tables,
 			privacy_preferences: { preferences: { profile: 'relaxed' }, schema_version: 1 }
-		})) as { preferenceEvaluation: { profile: { id: string } } };
+		})) as Loaded;
 
-		expect(after.preferenceEvaluation.profile.id).toBe('strict');
-		expect(after.preferenceEvaluation).toEqual(before.preferenceEvaluation);
+		expect(after.personalization.evaluation.profile.id).toBe('strict');
+		expect(after.personalization).toEqual(before.personalization);
 	});
 
-	it('fails instead of showing no indicators when they cannot be read', async () => {
-		const tables = await savedStrictAnalysis();
+	it.each([
+		['cannot be read', new Error('timeout')],
+		['do not fit the snapshot', [{ preference_key: 'sharing', indicator: 'conflict' }]]
+	])(
+		'still shows the findings, with personalization unavailable, when the indicators %s',
+		async (_label, rows) => {
+			vi.spyOn(console, 'error').mockImplementation(() => {});
+			const tables = await savedStrictAnalysis();
 
-		await expect(
-			load({ ...tables, preference_evaluations: new Error('timeout') })
-		).rejects.toMatchObject({ status: 500 });
-	});
+			const analysis = (await load({ ...tables, preference_evaluations: rows })) as Loaded;
+
+			expect(analysis.result.status).toBe('success');
+			expect(analysis.result.findings).toHaveLength(tables.findings.length);
+			// Never shown as no concerns.
+			expect(analysis.personalization).toEqual({ status: 'unavailable' });
+		}
+	);
 
 	it('fails instead of reporting not started when the run state cannot be read', async () => {
 		await expect(load({ analysis_runs: new Error('read failed') })).rejects.toMatchObject({
