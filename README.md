@@ -4,8 +4,7 @@ ClearConsent is a signed-in privacy-policy workspace built with SvelteKit,
 TypeScript, Tailwind, Supabase, and Cloudflare Workers. Users can submit pasted
 text or a public URL, inspect source-linked analysis, ask questions about a saved
 result, and reopen it from History. Live AI analysis requires server-side
-configuration. The fixed study sample is a prepared example, and saved
-preferences do not yet personalize live analysis.
+configuration. Saved preferences do not yet personalize live analysis.
 
 ## Prerequisites
 
@@ -78,12 +77,11 @@ The entry page at `/` links to registration and sign-in. A confirmed account
 opens the dashboard after sign-in; returning sessions go there directly. The
 dashboard opens the URL input by default and links to Paste Text, Preferences,
 and sign-out. URL input extracts policy text, and Paste Text accepts text for
-submission. A non-sample submission opens live analysis when the deployed
-provider is enabled. Completed results appear in Recent analyses and History.
+submission. Each submission opens live analysis when the deployed provider is enabled. Completed results appear in Recent analyses and History.
 
 Preferences saves presentation choices and changes the invented example on that
-page. Those choices do not yet personalize live analysis. The fixed study sample
-remains a prepared result, separate from a newly submitted policy.
+page. Those choices do not yet personalize live analysis. The former fixed study sample and its prepared result are gone. Old result
+links redirect to the input page.
 
 For DP III, see the [case matrix](docs/dp3-case-matrix.md) and the
 [hosted live evidence with screenshots](docs/evidence/dp3-live-2026-11-13/README.md).

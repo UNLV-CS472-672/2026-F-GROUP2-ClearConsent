@@ -6,7 +6,7 @@
 	import { successFixture } from '$lib/contracts/fixtures';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { detailLevel } from '$lib/study/sample';
+	import { detailLevel } from '$lib/detail-level';
 
 	let { data }: { data: PageData } = $props();
 	let displaySnytheticData = $state(false);

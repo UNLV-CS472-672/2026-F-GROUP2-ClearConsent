@@ -80,8 +80,11 @@ for (const viewport of [
 			await expect(urlCard).toBeFocused();
 			expect(await page.evaluate(() => window.scrollY)).toBe(scrolled);
 
-			await page.getByRole('link', { name: /Submit study sample/ }).click();
-			await expect(page).toHaveURL(/\/dashboard\/overview\/result/);
+			await page
+				.getByRole('navigation', { name: 'Dashboard links' })
+				.getByRole('link', { name: 'Preferences' })
+				.click();
+			await expect(page).toHaveURL(/\/preferences$/);
 			await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
 		}
 	);

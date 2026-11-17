@@ -2,12 +2,9 @@
 	import type { LayoutProps } from './$types';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { detailLevel } from '$lib/study/sample';
-	const studyQuery = $derived('?detail=' + detailLevel(page.url.searchParams.get('detail')));
-	const showingResult = $derived(
-		page.url.pathname === '/dashboard/overview/result' ||
-			page.url.pathname.startsWith('/dashboard/overview/analyze/')
-	);
+	import { detailLevel } from '$lib/detail-level';
+	const detailQuery = $derived('?detail=' + detailLevel(page.url.searchParams.get('detail')));
+	const showingResult = $derived(page.url.pathname.startsWith('/dashboard/overview/analyze/'));
 	let { children, data }: LayoutProps = $props();
 
 	const formatDate = (iso: string) =>
@@ -68,36 +65,13 @@
 						<div>
 							<p class="section-label">01 / SUBMIT</p>
 							<h2 id="submission-title">Start with a policy</h2>
-							<p>
-								These forms currently validate text or extract it from a URL. Full analysis is still
-								being connected.
-							</p>
-						</div>
-					</div>
-					<div class="study-callout">
-						<div>
-							<p class="section-label">USER STUDY / FIXED SAMPLE</p>
-							<h3>Try the sample policy</h3>
-							<p>
-								Open the prepared result for the same fictional policy every participant will use.
-								No live analysis or saving takes place.
-							</p>
-						</div>
-						<div class="study-actions">
-							<a class="sample-link" href={resolve(`/study-sample?${studyQuery.slice(1)}`)}
-								>Read sample policy</a
-							>
-							<a
-								class="sample-submit"
-								href={resolve(`/dashboard/overview/result?${studyQuery.slice(1)}`)}
-								>Submit study sample <span aria-hidden="true">→</span></a
-							>
+							<p>Submit a policy URL or paste its text. Each submission is saved, then analyzed.</p>
 						</div>
 					</div>
 					<nav aria-label="Policy input methods" class="input-nav">
 						{#each INPUT_METHODS as method, index (method.name)}
 							<a
-								href={resolve(`${method.href}?${studyQuery.slice(1)}`)}
+								href={resolve(`${method.href}?${detailQuery.slice(1)}`)}
 								data-sveltekit-noscroll
 								data-sveltekit-keepfocus
 								class="method-card"
@@ -140,7 +114,7 @@
 									<a
 										class="history-item"
 										href={resolve(
-											`/dashboard/overview/analyze/${source.id}?${studyQuery.slice(1)}`
+											`/dashboard/overview/analyze/${source.id}?${detailQuery.slice(1)}`
 										)}
 									>
 										<span class="history-text">
@@ -162,7 +136,7 @@
 						</div>
 					{/if}
 					<div class="history-redirect">
-						<a class="sample-submit" href={resolve('/dashboard/history')}> View All </a>
+						<a class="view-all" href={resolve('/dashboard/history')}> View All </a>
 					</div>
 				</section>
 			{/if}
@@ -350,50 +324,7 @@
 		font-size: 13px;
 		line-height: 1.55;
 	}
-	.study-callout {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 24px;
-		margin-top: 22px;
-		padding: 20px 22px;
-		border: 1px solid #a8d7d8;
-		border-radius: 8px;
-		background: linear-gradient(120deg, #effaf9, #f7fbfd);
-	}
-	.study-callout .section-label {
-		margin-bottom: 7px;
-	}
-	.study-callout h3 {
-		margin: 0 0 7px;
-		font-size: 18px;
-		letter-spacing: -0.025em;
-	}
-	.study-callout p:last-child {
-		max-width: 580px;
-		margin: 0;
-		color: #4d6574;
-		font-size: 13px;
-		line-height: 1.5;
-	}
-	.study-actions {
-		display: flex;
-		flex: 0 0 auto;
-		align-items: center;
-		gap: 14px;
-	}
-	.study-actions a {
-		font-size: 12px;
-		font-weight: 750;
-		text-decoration: none;
-	}
-	.sample-link {
-		color: #0d6771;
-	}
-	.sample-link:hover {
-		text-decoration: underline;
-	}
-	.sample-submit {
+	.view-all {
 		display: inline-flex;
 		align-items: center;
 		justify-content: space-between;
@@ -405,7 +336,7 @@
 		color: white;
 		box-shadow: 0 4px 12px #147f8829;
 	}
-	.sample-submit:hover {
+	.view-all:hover {
 		background: #0d6570;
 	}
 	.input-nav {
@@ -605,14 +536,6 @@
 		outline-offset: 3px;
 	}
 	@media (max-width: 720px) {
-		.study-callout,
-		.study-actions {
-			align-items: stretch;
-			flex-direction: column;
-		}
-		.study-actions {
-			gap: 12px;
-		}
 		.dashboard-frame {
 			padding: 0;
 		}
