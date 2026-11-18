@@ -129,7 +129,7 @@
 								<span class="history-text">
 									<strong
 										class={isNameColumn
-											? 'text-[14px] font-[750] whitespace-nowrap'
+											? 'text-[14px] font-[750] wrap-anywhere'
 											: 'text-[11px] text-[#137b80]'}
 									>
 										{#if isNameColumn}

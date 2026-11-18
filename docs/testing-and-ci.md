@@ -96,7 +96,10 @@ npm run build
   back to the dashboard.
 - `tests/e2e/layout-width.spec.ts` uses that test account with visible scrollbars
   to check that signed-in pages have no sideways scroll on desktop and phone
-  widths. The six authenticated cases are tagged `@authenticated`; anonymous
+  widths. History's load response is replaced in the browser with fixed long
+  titles (including one without spaces) and a long URL, so coverage does not
+  depend on the account's saved analyses or write any rows. The six authenticated
+  cases are tagged `@authenticated`; anonymous
   cases do not need credentials.
 - `tests/e2e/count-reporter.ts` prints selected, passed, failed, skipped, and
   not-run counts. CI requires every selected case to pass without a skip.
