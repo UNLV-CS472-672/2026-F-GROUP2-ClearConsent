@@ -257,16 +257,26 @@ export function evaluatePreferences(
 		explanation: explain(draft, findingsById)
 	}));
 
-	const counts = { conflict: 0, alignment: 0, insufficient_evidence: 0 };
-	for (const item of indicators) counts[item.indicator] += 1;
-
 	return {
 		rulesVersion: RULES_VERSION,
 		profile: resolved,
 		indicators,
-		counts,
 		needsReview,
 		ungrounded,
-		summary: summarize(indicators, counts, needsReview.length, findingsById)
+		...countAndSummarize(indicators, needsReview.length, findings)
 	};
+}
+
+// The counts and summary for indicators already in display order. Also used to rebuild a saved
+// evaluation, whose indicators come from the database instead of the scorer (#101).
+export function countAndSummarize(
+	indicators: PreferenceIndicator[],
+	reviewCount: number,
+	findings: readonly ScorableFinding[]
+): Pick<PreferenceEvaluation, 'counts' | 'summary'> {
+	const counts = { conflict: 0, alignment: 0, insufficient_evidence: 0 };
+	for (const item of indicators) counts[item.indicator] += 1;
+
+	const findingsById = new Map(findings.map((finding) => [finding.id, finding]));
+	return { counts, summary: summarize(indicators, counts, reviewCount, findingsById) };
 }

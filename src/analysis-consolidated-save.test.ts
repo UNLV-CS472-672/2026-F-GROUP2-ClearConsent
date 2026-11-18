@@ -17,7 +17,10 @@ vi.mock('$lib/server/db/supabase', () => ({
 			const chain = {
 				insert: () => chain,
 				select: () => chain,
-				single: async () => ({ data: { id: 'source-id' }, error: null })
+				eq: () => chain,
+				single: async () => ({ data: { id: 'source-id' }, error: null }),
+				// No saved preferences, so the profile is Balanced.
+				maybeSingle: async () => ({ data: null, error: null })
 			};
 			return chain;
 		},

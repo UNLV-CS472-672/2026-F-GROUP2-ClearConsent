@@ -6,6 +6,11 @@ import {
 	toFindingRows,
 	type ConsolidationResult
 } from '$lib/server/analysis/consolidation';
+import {
+	PreferenceLoadError,
+	buildPreferenceSave,
+	loadProfile
+} from '$lib/server/analysis/personalization';
 import { getSupabaseForUser } from '$lib/server/db/supabase';
 import type { RequestHandler } from './$types';
 
@@ -16,13 +21,19 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		error(401, 'Unauthorized');
 	}
 
+	const supabase = getSupabaseForUser(session.access_token);
+	// Read the profile before the analysis runs, so a failed read costs no provider call.
+	const profile = await loadProfile(supabase, user.id).catch((loadError: unknown) => {
+		if (loadError instanceof PreferenceLoadError) error(loadError.status, loadError.message);
+		throw loadError;
+	});
+
 	const response = await handleConsolidatedAnalysisHttpRequest(request, env);
 	if (!response.ok) return response;
 
 	const result = (await response.json()) as ConsolidationResult;
 	if (result.analysisStatus !== 'complete') return Response.json(result);
 
-	const supabase = getSupabaseForUser(session.access_token);
 	const fields = toAnalysisResultFields(result);
 
 	const submittedUrl = result.extraction.source.url;
@@ -44,10 +55,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 
 	const analysisId = crypto.randomUUID();
-	const { rows } = toFindingRows(result, analysisId);
+	const { rows, idMap } = toFindingRows(result, analysisId);
+	const preferences = buildPreferenceSave(result.findings, profile, idMap);
 
-	// save_analysis writes the analysis and its findings in one transaction, so a failure leaves
-	// neither behind. The source stays as separately ingested input.
+	// save_analysis writes the analysis, its findings, and its indicators in one transaction, so a
+	// failure leaves none behind. The source stays as separately ingested input.
 	const { error: saveError } = await supabase.rpc('save_analysis', {
 		p_analysis: {
 			id: analysisId,
@@ -59,11 +71,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			outcome: fields.outcome,
 			model: fields.model,
 			reasoning_effort: fields.reasoning_effort,
-			analysis_status: 'complete'
+			analysis_status: 'complete',
+			preference_snapshot: preferences.snapshot,
+			preference_schema_version: preferences.snapshotVersion
 		},
 		p_findings: rows,
-		// No personalization runs on this route yet.
-		p_evaluations: []
+		p_evaluations: preferences.evaluations
 	});
 
 	if (saveError) {

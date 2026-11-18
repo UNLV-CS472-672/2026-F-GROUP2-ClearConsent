@@ -4,7 +4,7 @@ import type { AnalysisResult } from '$lib/contracts/analysis';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { type RecentSource } from '$lib/components/DataTable';
 import { type SavedAnalysis } from '$lib/server/db/analysis-runs';
-import { type FindingRow, toAnalysisResult } from '$lib/server/analysis';
+import { FINDING_COLUMNS, type FindingRow, toAnalysisResult } from '$lib/server/analysis';
 
 async function findAnalysis(supabase: SupabaseClient, sourceId: string) {
 	const { data, error: findError } = await supabase
@@ -31,9 +31,7 @@ async function loadResult(supabase: SupabaseClient, sourceId: string): Promise<A
 
 	const { data: findings, error: findingsError } = await supabase
 		.from('findings')
-		.select(
-			'id, category, plain_language_description, evidence, effect, ambiguous, data_categories, purposes, recipients'
-		)
+		.select(FINDING_COLUMNS)
 		.eq('analysis_id', analysis.id)
 		.order('display_order');
 

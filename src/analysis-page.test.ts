@@ -143,6 +143,7 @@ describe('analysis result page', () => {
 			Page,
 			data({
 				status: 'complete',
+				personalization: { status: 'not_saved' },
 				result: {
 					status: 'insufficient',
 					analysisId: 'analysis',
@@ -162,6 +163,7 @@ describe('analysis result page', () => {
 			Page,
 			data({
 				status: 'complete',
+				personalization: { status: 'not_saved' },
 				result: {
 					status: 'insufficient',
 					analysisId: 'analysis',
