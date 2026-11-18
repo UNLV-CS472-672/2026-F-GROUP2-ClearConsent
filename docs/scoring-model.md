@@ -69,7 +69,22 @@ Each finding is checked in this order:
 1. **No evidence** (no excerpt with real text): put in the `ungrounded` list and ignored.
 2. **Missing `effect`**: put in `needsReview` with reason `missing_effect` and ignored.
 3. **`ambiguous: true`**: put in `needsReview` with reason `ambiguous` and ignored. FR-7 says unclear text must not be treated as fact, so the concern falls back to insufficient evidence instead of guessing.
-4. **Everything else** is used. Empty recipient or purpose types count as `unspecified`, and a missing `conditional` counts as false.
+4. **Everything else** is used. A missing `conditional` counts as false. Empty and missing type lists are covered below.
+
+### Empty, missing, and unspecified types
+
+Stage 2 leaves a type list empty when it does not apply, and uses `unspecified` when the policy does not say. The scorer keeps that difference:
+
+| Value                                     | Meaning                                                  | Scored as                                                                                                       |
+| ----------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Contains `unspecified`                    | The policy does not say                                  | `unspecified`                                                                                                   |
+| Missing (`null` or `undefined`)           | The finding was never classified (for example, old data) | `unspecified`, so an unclassified finding is never treated as safe (FR-7)                                       |
+| Empty, for a list the category always has | The type was left out                                    | `unspecified`. This applies to sharing recipients (sharing always has a recipient) and use purposes             |
+| Empty, for any other list                 | The types do not apply                                   | Nothing; the other list decides. Sharing to a service provider with no purpose type is routine (recipient only) |
+
+So a data broker or advertiser stays serious with no purpose type, and a sharing finding with no recipient type is still notable. The table lives in `src/lib/risk/tiers.ts` (`alwaysApplies`).
+
+Contract and database impact: none. Stage 2 validation, the public `Finding` schema, and `rows.ts` all keep `[]` and `['unspecified']` apart, and the `findings` columns already store both. Rows saved before the type columns existed have no `effect`, so they go to `needsReview` and are never tiered. Saved results that are loaded without their type columns count as missing, which is the cautious choice.
 
 Only call the function for a result with status `success` or `insufficient`. An `insufficient` result has no findings, so every concern comes back `insufficient_evidence`. `in_progress` and `failed` results are never evaluated, so a failed analysis is never shown as an evaluation (NFR-5).
 
@@ -77,14 +92,14 @@ Only call the function for a result with status `success` or `insufficient`. An 
 
 Only `exposes` findings get a tier. For `sharing`, take the highest tier any recipient or purpose type reaches.
 
-| Category             | Serious                                                                     | Notable                                                                                          | Routine                                                                    |
-| -------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
-| `sharing`            | Recipient `data_broker` or `advertiser`, or purpose `sale` or `advertising` | Recipient `affiliate`, `other`, or `unspecified`; purpose `analytics`, `other`, or `unspecified` | Only `service_provider` or `government`, for `service` or `legal_security` |
-| `use`                | Purpose `advertising` or `sale`                                             | Purpose `analytics`, `other`, or `unspecified`                                                   | Purpose `service` or `legal_security`                                      |
-| `collection`         | (sensitive data, later)                                                     | Purpose `advertising` or `sale`                                                                  | Everything else                                                            |
-| `retention`          | —                                                                           | Always                                                                                           | —                                                                          |
-| `user_rights`        | Always (a missing or restricted right)                                      | —                                                                                                | —                                                                          |
-| `security_practices` | Always (a missing or weak protection)                                       | —                                                                                                | —                                                                          |
+| Category             | Serious                                                                     | Notable                                                                                          | Routine                                                                                            |
+| -------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| `sharing`            | Recipient `data_broker` or `advertiser`, or purpose `sale` or `advertising` | Recipient `affiliate`, `other`, or `unspecified`; purpose `analytics`, `other`, or `unspecified` | Only `service_provider` or `government`, for `service` or `legal_security` or with no purpose type |
+| `use`                | Purpose `advertising` or `sale`                                             | Purpose `analytics`, `other`, or `unspecified`                                                   | Purpose `service` or `legal_security`                                                              |
+| `collection`         | (sensitive data, later)                                                     | Purpose `advertising` or `sale`                                                                  | Everything else                                                                                    |
+| `retention`          | —                                                                           | Always                                                                                           | —                                                                                                  |
+| `user_rights`        | Always (a missing or restricted right)                                      | —                                                                                                | —                                                                                                  |
+| `security_practices` | Always (a missing or weak protection)                                       | —                                                                                                | —                                                                                                  |
 
 `conditional: true` drops a finding one tier (serious to notable, notable to routine). The table lives in its own data file so it can be tuned without touching the logic.
 
@@ -247,6 +262,7 @@ What this shows:
 - **Tier table.** Whether each recipient and purpose type sits in the right tier. Check by having teammates sort example findings by hand.
 - **Profiles.** Whether these three cover what users actually want.
 - **Retention.** Whether every retention finding should be notable, or whether stated short periods should be routine.
+- **Opt-in retention.** Retention is notable, and `conditional` drops it to routine, so opt-in retention never conflicts, even under Strict. This is intended for now because the user chose it; tests record it so it isn't changed by accident.
 
 ## 12. Decisions needed
 

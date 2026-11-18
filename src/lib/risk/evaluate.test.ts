@@ -1,12 +1,19 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { FindingCategory } from '$lib/contracts/analysis';
+import {
+	FindingSchema,
+	type FindingCategory,
+	type PurposeType,
+	type RecipientType
+} from '$lib/contracts/analysis';
 import {
 	BUILT_IN_PROFILES,
 	PreferenceEvaluationSchema,
 	ProfileIdEnum,
 	createPreferenceSnapshot,
+	type Indicator,
 	type PreferenceEvaluation,
-	type ProfileId
+	type ProfileId,
+	type Tier
 } from '$lib/contracts/preferences';
 import { fitnessBalancedEvaluation, fitnessFindings } from '$lib/contracts/scoring-fixtures';
 import { runConsolidation } from '$lib/server/analysis/consolidation/pipeline';
@@ -15,7 +22,10 @@ import {
 	consolidationProviderWith,
 	extractionResult,
 	fitnessCandidates,
-	fitnessFindings as stage2ModelFindings
+	fitnessFindings as stage2ModelFindings,
+	modelFinding,
+	sentence,
+	stage1Candidate
 } from '$lib/server/analysis/consolidation/test-fixtures';
 import { evaluatePreferences } from './evaluate';
 import { causesConflict, tierOf } from './tiers';
@@ -541,6 +551,149 @@ describe('sect. 8 fitness example', () => {
 				fromContract.indicators.map((i) => [i.concern, i.indicator, i.tier])
 			);
 			expectConsistent(fromStage2);
+		}
+	});
+});
+
+// Empty, missing, and explicitly unspecified type lists (sect. 3). An empty list means the types
+// do not apply, unless the category always has them (sharing recipients, use purposes); a missing
+// list means the finding was never classified. Both of those last cases count as unspecified.
+describe('empty, missing, and unspecified type lists', () => {
+	// Indicator for the finding's concern under Balanced, Strict, and Relaxed, in that order.
+	type Expected = [Indicator, Indicator, Indicator];
+	const ORDER: ProfileId[] = ['balanced', 'strict', 'relaxed'];
+
+	function indicatorsFor(f: ScorableFinding) {
+		return ORDER.map((profile) => {
+			const evaluation = evaluatePreferences([f], profile);
+			expectConsistent(evaluation);
+			return indicatorFor(evaluation, f.category);
+		});
+	}
+
+	function expectIndicators(f: ScorableFinding, tier: Tier, expected: Expected) {
+		const indicators = indicatorsFor(f);
+		expect(indicators.map((i) => i.indicator)).toEqual(expected);
+		expect(indicators.map((i) => i.tier)).toEqual([tier, tier, tier]);
+		expect(indicators.map((i) => i.findingId)).toEqual(['F01', 'F01', 'F01']);
+	}
+
+	// Sharing levels: Balanced major, Strict major, Relaxed concern.
+	it.each<[string, PurposeType[] | undefined, Tier, Expected]>([
+		['known service purpose', ['service'], 'routine', ['alignment', 'alignment', 'alignment']],
+		[
+			'explicitly unspecified purpose',
+			['unspecified'],
+			'notable',
+			['conflict', 'conflict', 'alignment']
+		],
+		['empty (inapplicable) purpose', [], 'routine', ['alignment', 'alignment', 'alignment']],
+		['missing purpose', undefined, 'notable', ['conflict', 'conflict', 'alignment']]
+	])('sharing with a service provider, %s', (_label, purposeTypes, tier, expected) => {
+		const f = finding('F01', { recipientTypes: ['service_provider'], purposeTypes });
+		expectIndicators(f, tier, expected);
+	});
+
+	it.each<[string, RecipientType[]]>([
+		['data broker', ['data_broker']],
+		['advertiser', ['advertiser']]
+	])('keeps sharing with a %s serious when purposes are empty', (_label, recipientTypes) => {
+		const f = finding('F01', { recipientTypes, purposeTypes: [] });
+		expectIndicators(f, 'serious', ['conflict', 'conflict', 'conflict']);
+	});
+
+	it('treats sharing with no recipient types as unspecified, even with no purpose types', () => {
+		const f = finding('F01', { recipientTypes: [], purposeTypes: [] });
+		expectIndicators(f, 'notable', ['conflict', 'conflict', 'alignment']);
+	});
+
+	// Use levels: Balanced concern, Strict major, Relaxed acceptable. Every use finding has a
+	// purpose, so an empty list means it was left out and counts as unspecified.
+	it.each<[string, PurposeType[] | undefined, Tier, Expected]>([
+		['known service purpose', ['service'], 'routine', ['alignment', 'alignment', 'alignment']],
+		[
+			'explicitly unspecified purpose',
+			['unspecified'],
+			'notable',
+			['alignment', 'conflict', 'alignment']
+		],
+		['empty purpose', [], 'notable', ['alignment', 'conflict', 'alignment']],
+		['missing purpose', undefined, 'notable', ['alignment', 'conflict', 'alignment']]
+	])('use, %s', (_label, purposeTypes, tier, expected) => {
+		const f = finding('F01', { category: 'use', recipientTypes: [], purposeTypes });
+		expectIndicators(f, tier, expected);
+	});
+
+	// Current intended rule, recorded here so it isn't changed by accident: opt-in retention drops
+	// from notable to routine, which never conflicts, even under Strict (sect. 11, to calibrate).
+	it('characterizes retention: notable, and routine when opt-in', () => {
+		const retention = finding('F01', {
+			category: 'retention',
+			recipientTypes: [],
+			purposeTypes: []
+		});
+		expectIndicators(retention, 'notable', ['alignment', 'conflict', 'alignment']);
+		expectIndicators({ ...retention, conditional: true }, 'routine', [
+			'alignment',
+			'alignment',
+			'alignment'
+		]);
+	});
+
+	it('keeps the distinction through the contract Finding schema', () => {
+		const base = {
+			id: 'F01',
+			category: 'sharing',
+			plain_language_description: 'Data is shared with a cloud hosting provider.',
+			evidence: [{ passageId: 'P001', excerpt: 'We use a cloud hosting provider.' }],
+			effect: 'exposes',
+			recipientTypes: ['service_provider']
+		};
+		const empty = FindingSchema.parse({ ...base, purposeTypes: [] });
+		const unknown = FindingSchema.parse({ ...base, purposeTypes: ['unspecified'] });
+		const missing = FindingSchema.parse(base);
+
+		expect(empty.purposeTypes).toEqual([]);
+		expect(missing.purposeTypes).toBeUndefined();
+		expect(tierOf(empty)).toBe('routine');
+		expect(tierOf(unknown)).toBe('notable');
+		expect(tierOf(missing)).toBe('notable');
+	});
+
+	it('keeps the distinction through mocked Stage 2 validation', async () => {
+		const candidates = [0, 1, 2, 3].map((i) => stage1Candidate(sentence(i), [sentence(i)]));
+		const sharing = (candidateId: string, overrides: Parameters<typeof modelFinding>[0]) =>
+			modelFinding({ candidateIds: [candidateId], purposes: [], ...overrides });
+
+		// Duplicated types are part of what validation cleans, so the unspecified purpose is listed twice.
+		const result = await runConsolidation(
+			await extractionResult(candidates),
+			consolidationProviderWith({
+				summary: SUMMARY,
+				findings: [
+					sharing('C001', { purposeTypes: [] }),
+					sharing('C002', { purposeTypes: ['unspecified', 'unspecified'] }),
+					sharing('C003', { purposeTypes: [], recipientTypes: ['data_broker'] }),
+					sharing('C004', { purposeTypes: ['service'] })
+				],
+				exclusions: []
+			})
+		);
+
+		expect(result.stageStatus).toBe('complete');
+		const byCandidate = (id: string) => result.findings.find((f) => f.candidateIds[0] === id)!;
+		const cases: [string, PurposeType[], Tier, Expected][] = [
+			['C001', [], 'routine', ['alignment', 'alignment', 'alignment']],
+			['C002', ['unspecified'], 'notable', ['conflict', 'conflict', 'alignment']],
+			['C003', [], 'serious', ['conflict', 'conflict', 'conflict']],
+			['C004', ['service'], 'routine', ['alignment', 'alignment', 'alignment']]
+		];
+		for (const [id, purposeTypes, tier, expected] of cases) {
+			const f = byCandidate(id);
+			expect(f.purposeTypes).toEqual(purposeTypes);
+			const indicators = indicatorsFor(f);
+			expect(indicators.map((i) => i.indicator)).toEqual(expected);
+			expect(indicators.map((i) => i.tier)).toEqual([tier, tier, tier]);
 		}
 	});
 });
