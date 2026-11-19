@@ -18,6 +18,8 @@ Open [PR #119](https://github.com/UNLV-CS472-672/2026-F-GROUP2-ClearConsent/pull
 
 Tests: [History loader](../src/routes/%28app%29/dashboard/history/history.server.test.ts), [account actions](../src/routes/auth-actions.test.ts), [account pages](../src/routes/auth-pages.test.ts), and [Preferences page](../src/routes/preferences/preferences.page.test.ts). The [existing preferences browser case](../tests/e2e/preferences-preview.spec.ts) covers save/reload on the trusted-main lane; #118 adds failed-save presentation and mocked action cases without using credentials.
 
+Separately, open [PR #120](https://github.com/UNLV-CS472-672/2026-F-GROUP2-ClearConsent/pull/120) addresses the page-chrome extraction case in [#117](https://github.com/UNLV-CS472-672/2026-F-GROUP2-ClearConsent/issues/117). Its mocked tests pass locally; a hosted retest and merged-main CI are pending.
+
 ## Case matrix
 
 “Partial” means some implementation or evidence exists, while the stated exit cases remain open. An open issue may also need its acceptance checklist reconciled after merged work.
