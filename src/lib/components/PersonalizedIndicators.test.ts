@@ -5,7 +5,7 @@ import type { PreferenceEvaluation } from '$lib/contracts/preferences';
 import { fitnessBalancedEvaluation, fitnessFindings } from '$lib/contracts/scoring-fixtures';
 import PersonalizedIndicators from './PersonalizedIndicators.svelte';
 
-// Utilizing the docs/scoring-model.md sect. 8 example: 
+// Utilizing the docs/scoring-model.md sect. 8 example:
 // two conflicts, two alignments, two without evidence,
 // and finding E set aside for review
 const ready: Personalization = { status: 'ready', evaluation: fitnessBalancedEvaluation };
@@ -20,7 +20,7 @@ function cards() {
 	return within(list).getAllByRole('listitem');
 }
 
-// The card for one topic 
+// The card for one topic
 // found by its heading
 function card(topic: string) {
 	const match = cards().find((item) => within(item).queryByRole('heading', { name: topic }));
