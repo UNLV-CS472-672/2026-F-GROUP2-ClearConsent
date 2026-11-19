@@ -10,6 +10,12 @@ Every committed FR-1–FR-12 behavior has a case and an outcome. Critical paths 
 
 The historical `5d182f3` Vitest baseline was **55.57% lines (843/1,517)** and **61.83% branches (559/904)**. On exact local `main` `17dabb9`, `npm run test:coverage` passed **705 tests** with **82.86% lines (1,804/2,177)** and **82.25% branches (1,173/1,426)**. [Main CI](https://github.com/UNLV-CS472-672/2026-F-GROUP2-ClearConsent/actions/runs/44560950423) passed with the same percentages, four anonymous and five authenticated browser cases. None of the nine browser cases is the ordinary E1 journey. Browser, database and offline suites are separate from these Vitest percentages.
 
+### In-flight coverage slice: #118
+
+[Issue #118](https://github.com/UNLV-CS472-672/2026-F-GROUP2-ClearConsent/issues/118) adds synthetic, mocked tests for the History server loader, account actions/pages, and the Preferences page. On the local branch based on `17dabb9`, `npm run test:coverage` passed **717 tests** with **88.01% lines (1,917/2,178)** and **84.71% branches (1,208/1,426)**. The History loader rose from **0/25** to **24/26 lines** and now raises a source-read error instead of rendering a false empty History. These are proposed-branch results; they are **not** merged-main or final-revision CI evidence. The remaining uncovered areas include the overview layout/server loader, auth callback/logout, database source helper, and parts of the analysis pipeline. The new tests do not establish a fresh confirmed account, cross-user API isolation, or an E1 browser journey.
+
+Tests: [History loader](../src/routes/%28app%29/dashboard/history/history.server.test.ts), [account actions](../src/routes/auth-actions.test.ts), [account pages](../src/routes/auth-pages.test.ts), and [Preferences page](../src/routes/preferences/preferences.page.test.ts). The [existing preferences browser case](../tests/e2e/preferences-preview.spec.ts) covers save/reload on the trusted-main lane; #118 adds failed-save presentation and mocked action cases without using credentials.
+
 ## Case matrix
 
 “Partial” means some implementation or evidence exists, while the stated exit cases remain open. An open issue may also need its acceptance checklist reconciled after merged work.
