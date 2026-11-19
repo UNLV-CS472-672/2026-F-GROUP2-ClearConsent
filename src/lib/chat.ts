@@ -120,6 +120,12 @@ async function readJson(response: Response): Promise<unknown> {
 	}
 }
 
+// A signed-out request is redirected to /login (hooks.server.ts). fetch follows the redirect,
+// so the panel gets the login page with a 200 instead of a 401.
+function sentToLogin(response: Response): boolean {
+	return response.redirected && new URL(response.url).pathname === '/login';
+}
+
 function toFailure(status: number, body: unknown): ChatFailure {
 	const error = isRecord(body) && isRecord(body.error) ? body.error : null;
 	const code = error && typeof error.code === 'string' ? error.code : null;
@@ -128,6 +134,7 @@ function toFailure(status: number, body: unknown): ChatFailure {
 
 // POST /api/chat. A 200 without both messages counts as a failure
 export async function readAskResponse(response: Response): Promise<AskOutcome> {
+	if (sentToLogin(response)) return toFailure(401, null);
 	const body = await readJson(response);
 	if (response.ok && isRecord(body) && isRecord(body.question) && isRecord(body.answer)) {
 		return {
@@ -144,6 +151,7 @@ export async function readAskResponse(response: Response): Promise<AskOutcome> {
 
 // GET /api/chat. A failed read is a failure not an empty chat
 export async function readStateResponse(response: Response): Promise<StateOutcome> {
+	if (sentToLogin(response)) return toFailure(401, null);
 	const body = await readJson(response);
 	if (response.ok && isRecord(body) && Array.isArray(body.messages) && 'pending' in body) {
 		return { type: 'loaded', state: body as ChatState };

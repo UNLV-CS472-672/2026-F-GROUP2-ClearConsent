@@ -224,6 +224,23 @@ describe('chat panel: asking', () => {
 		expect(screen.queryByText(KIND_LABELS.answered)).toBeNull();
 	});
 
+	it('asks to sign in again when the session ended, and keeps the question', async () => {
+		// Signed-out requests are redirected to the login page, which fetch follows.
+		const loginPage = () =>
+			Object.defineProperties(new Response('<html>Log in</html>'), {
+				redirected: { value: true },
+				url: { value: 'http://localhost/login' }
+			});
+		await renderPanel();
+		postChat = async () => loginPage();
+		getChat = async () => loginPage();
+		await ask('Who gets my location?');
+
+		await vi.waitFor(() => expect(screen.getByText(/Your session has ended/)).toBeTruthy());
+		expect(screen.queryByText('Something went wrong. Try again.')).toBeNull();
+		await vi.waitFor(() => expect(questionBox().value).toBe('Who gets my location?'));
+	});
+
 	it('keeps the question when the server cannot be reached', async () => {
 		postChat = async () => {
 			throw new TypeError('Failed to fetch');
