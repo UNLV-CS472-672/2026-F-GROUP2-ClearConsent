@@ -117,6 +117,23 @@ describe('URL extraction boundary', () => {
 		});
 	});
 
+	it('does not count long navigation chrome against a policy inside main', async () => {
+		fetchMock.mockResolvedValue(
+			html(
+				`<nav>${'x'.repeat(60_001)}</nav><main><h1>Privacy</h1><section>We retain data for 30 days.</section></main>`
+			)
+		);
+		const result = await extractFromUrl('https://policies.example.com/privacy');
+		expect(result.text).toBe('Privacy We retain data for 30 days.');
+	});
+
+	it('still rejects a genuinely oversized main policy', async () => {
+		fetchMock.mockResolvedValue(html(`<nav>Menu</nav><main>${'x'.repeat(60_001)}</main>`));
+		await expect(extractFromUrl('https://policies.example.com/privacy')).rejects.toMatchObject({
+			status: 413
+		});
+	});
+
 	it('distinguishes a timeout from a general retrieval failure', async () => {
 		fetchMock.mockRejectedValue(new DOMException('Timed out', 'TimeoutError'));
 		await expect(extractFromUrl('https://policies.example.com/')).rejects.toMatchObject({

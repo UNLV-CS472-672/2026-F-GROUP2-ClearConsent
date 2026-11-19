@@ -16,4 +16,25 @@ describe('HTML text extraction', () => {
 			).text
 		).toBe('A & B &#39;');
 	});
+
+	it('uses one visible main region and keeps its nested final section', () => {
+		const result = htmlToText(
+			'<title>Terms</title><nav>Site menu</nav><aside>Related links</aside>' +
+				'<main><h1>Terms</h1><section><p>We collect account data.</p></section>' +
+				'<section><h2>Final section</h2><p>You can request deletion.</p></section></main>' +
+				'<div>More products</div>'
+		);
+		expect(result).toEqual({
+			title: 'Terms',
+			text: 'Terms We collect account data. Final section You can request deletion.'
+		});
+	});
+
+	it('falls back to the full page when main is missing, empty, or ambiguous', () => {
+		expect(htmlToText('<nav>Menu</nav><p>Policy text</p>').text).toBe('Menu Policy text');
+		expect(htmlToText('<nav>Menu</nav><main><div></div></main><p>Policy text</p>').text).toBe(
+			'Menu Policy text'
+		);
+		expect(htmlToText('<main>First</main><main>Second</main>').text).toBe('First Second');
+	});
 });
