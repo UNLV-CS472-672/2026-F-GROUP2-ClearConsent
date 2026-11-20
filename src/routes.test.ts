@@ -11,5 +11,8 @@ describe('study entry page', () => {
 			screen.getByRole('heading', { level: 1, name: 'A clearer way to inspect a privacy policy.' })
 		).toBeTruthy();
 		expect(screen.getByRole('link', { name: 'Sign in' })).toBeTruthy();
+		expect(screen.getByRole('link', { name: /Inspect a sample policy/ }).getAttribute('href')).toBe(
+			'/sample'
+		);
 	});
 });

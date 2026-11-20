@@ -86,6 +86,7 @@ npm run build
 - `src/entry-handoff.test.ts` checks the returning-session redirect.
 - `playwright.config.ts` selects Chromium and starts Vite on port 4173.
 - `tests/e2e/welcome.spec.ts` checks the signed-out entry and confirmation callback.
+- `tests/e2e/guest-sample.spec.ts` covers the public sample without an account: landing to sample policy to prepared result and back, at desktop and phone widths and by keyboard. It records requests and fails on any POST, analysis, chat, extraction, or save call, and checks that protected routes and the protected analyze API still require sign-in.
 - `tests/e2e/dashboard-navigation.spec.ts` checks the anonymous redirect. With
   `STUDY_TEST_EMAIL` and `STUDY_TEST_PASSWORD` for a confirmed test account, it
   also follows the dashboard links to the current forms in a real browser. It
@@ -121,7 +122,7 @@ listed above. Playwright retains traces on the first retry to help diagnose a
 browser failure for anonymous cases. Authenticated runs disable traces so the
 test password cannot enter a trace snapshot. Authenticated cases use one worker
 because the sign-out case can revoke the shared account's other sessions. Pull
-requests and other untrusted contexts run four anonymous browser cases with no
+requests and other untrusted contexts run eight anonymous browser cases with no
 test credentials. A push to `main` also runs the five
 authenticated cases. Missing account secrets, a skip, or a failed case fails that
 run; a green anonymous pull request does not claim authenticated coverage.
@@ -165,7 +166,7 @@ npm run test:e2e -- --grep-invert @authenticated
 ```
 
 Record the tested commit, CI run URL, and the reporter's selected/passed/skipped
-counts. The current expected counts are six authenticated and four anonymous
+counts. The current expected counts are six authenticated and eight anonymous
 cases. First-time signup and email verification, ordinary paste/URL analysis,
 and save/reopen coverage remain separate work in issue #10.
 
