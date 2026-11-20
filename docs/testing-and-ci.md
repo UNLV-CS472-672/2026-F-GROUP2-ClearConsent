@@ -93,8 +93,14 @@ npm run build
 - `tests/e2e/preferences-preview.spec.ts` uses that test account to check that
   the format preview responds to choices, saves and restores them on reload,
   discards unsaved edits, and links
-  back to the dashboard. The five authenticated cases are tagged
-  `@authenticated`; anonymous cases do not need credentials.
+  back to the dashboard.
+- `tests/e2e/layout-width.spec.ts` uses that test account with visible scrollbars
+  to check that signed-in pages have no sideways scroll on desktop and phone
+  widths. History's load response is replaced in the browser with fixed long
+  titles (including one without spaces) and a long URL, so coverage does not
+  depend on the account's saved analyses or write any rows. The six authenticated
+  cases are tagged `@authenticated`; anonymous
+  cases do not need credentials.
 - `tests/e2e/count-reporter.ts` prints selected, passed, failed, skipped, and
   not-run counts. CI requires every selected case to pass without a skip.
 - `.github/workflows/ci.yml` installs dependencies and Chromium, then runs
@@ -156,7 +162,7 @@ npm run test:e2e -- --grep-invert @authenticated
 ```
 
 Record the tested commit, CI run URL, and the reporter's selected/passed/skipped
-counts. The current expected counts are five authenticated and four anonymous
+counts. The current expected counts are six authenticated and four anonymous
 cases. First-time signup and email verification, ordinary paste/URL analysis,
 and save/reopen coverage remain separate work in issue #10.
 

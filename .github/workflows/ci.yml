@@ -59,7 +59,7 @@ jobs:
       - name: Run authenticated end-to-end tests
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
-          CI_E2E_EXPECTED: '5'
+          CI_E2E_EXPECTED: '6'
           PUBLIC_SUPABASE_URL: 'https://eccdgjwsllkkdvsqtlzq.supabase.co'
           PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_KXwbXRolrFfu8y2gsWgsfA_DykUtsV8'
           STUDY_TEST_EMAIL: ${{ secrets.STUDY_TEST_EMAIL }}
