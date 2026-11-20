@@ -51,7 +51,7 @@ jobs:
       - name: Run anonymous end-to-end tests
         run: npm run test:e2e -- --grep-invert @authenticated
         env:
-          CI_E2E_EXPECTED: '4'
+          CI_E2E_EXPECTED: '8'
           PUBLIC_SUPABASE_URL: 'https://eccdgjwsllkkdvsqtlzq.supabase.co'
           PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_KXwbXRolrFfu8y2gsWgsfA_DykUtsV8'
       # Only validated code on main can read the dedicated, non-admin test account.

@@ -62,7 +62,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	const { session } = await event.locals.safeGetSession();
 
-	const publicRoutes = ['/', '/login', '/register', '/auth/callback'];
+	// Exact paths only. The public sample is read-only and loads no account data; everything else,
+	// including /sample/* variants, still requires a session.
+	const publicRoutes = ['/', '/login', '/register', '/auth/callback', '/sample', '/sample/result'];
 	const isPublicRoute = publicRoutes.includes(event.url.pathname);
 
 	if (!session && !isPublicRoute) {
