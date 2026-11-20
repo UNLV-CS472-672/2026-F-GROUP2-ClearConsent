@@ -5,12 +5,20 @@
 
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
-	import type { SubmitFunction } from './$types';
+	import type { PageProps, SubmitFunction } from './$types';
+	let { form }: PageProps = $props();
 	let loading: boolean = $state(false);
 	let error: string = $state('');
+	let enhancedSubmission = $state(false);
+	// Native submissions use the server action's form data; enhanced ones use local feedback.
+	const formError = $derived(
+		form && 'error' in form && typeof form.error === 'string' ? form.error : ''
+	);
+	const visibleError = $derived(enhancedSubmission ? error : formError);
 	let input = $state('');
 
 	const submit: SubmitFunction = async () => {
+		enhancedSubmission = true;
 		loading = true;
 		error = '';
 
@@ -89,8 +97,8 @@
 		>
 	</form>
 	<div class="w-200 items-center justify-center">
-		{#if error}
-			<p role="alert" class="mt-4 bg-red-50 p-3 text-red-700">{error}</p>
+		{#if visibleError}
+			<p role="alert" class="mt-4 bg-red-50 p-3 text-red-700">{visibleError}</p>
 		{/if}
 	</div>
 </div>
