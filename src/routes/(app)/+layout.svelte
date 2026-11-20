@@ -2,6 +2,6 @@
 	let { children } = $props();
 </script>
 
-<main class="flex min-h-screen min-w-screen">
+<main class="flex min-h-screen w-full">
 	{@render children()}
 </main>

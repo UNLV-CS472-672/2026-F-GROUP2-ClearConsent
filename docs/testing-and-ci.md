@@ -90,11 +90,21 @@ npm run build
   `STUDY_TEST_EMAIL` and `STUDY_TEST_PASSWORD` for a confirmed test account, it
   also follows the dashboard links to the current forms in a real browser. It
   does not call an external policy site or assert that analysis or history work.
+- `tests/e2e/policy-input.spec.ts` uses the test account to check that pasted and URL
+  input follow the ordinary save path and keep validation errors visible. It stubs
+  only the save and extraction endpoints, so it writes nothing and fetches no
+  external page. Old prepared-result links redirect to the input page.
 - `tests/e2e/preferences-preview.spec.ts` uses that test account to check that
   the format preview responds to choices, saves and restores them on reload,
   discards unsaved edits, and links
-  back to the dashboard. The five authenticated cases are tagged
-  `@authenticated`; anonymous cases do not need credentials.
+  back to the dashboard.
+- `tests/e2e/layout-width.spec.ts` uses that test account with visible scrollbars
+  to check that signed-in pages have no sideways scroll on desktop and phone
+  widths. History's load response is replaced in the browser with fixed long
+  titles (including one without spaces) and a long URL, so coverage does not
+  depend on the account's saved analyses or write any rows. The six authenticated
+  cases are tagged `@authenticated`; anonymous
+  cases do not need credentials.
 - `tests/e2e/count-reporter.ts` prints selected, passed, failed, skipped, and
   not-run counts. CI requires every selected case to pass without a skip.
 - `.github/workflows/ci.yml` installs dependencies and Chromium, then runs
@@ -121,9 +131,8 @@ run; a green anonymous pull request does not claim authenticated coverage.
 Create one confirmed, non-admin test user in the ClearConsent Supabase Auth
 project, with an inbox the team controls. Do not use a teammate's personal
 account, the Supabase service role, or the project admin account. Keep this
-identity for synthetic browser checks only. The current five cases read UI and
-use a fixed study sample; they make no paid analysis call and need no seeded
-history. The dashboard navigation test works with either empty or populated
+identity for synthetic browser checks only. The current five cases read UI, exercise ordinary input through mocked save and
+extraction endpoints, make no paid analysis call, and need no seeded history. The dashboard navigation test works with either empty or populated
 history. The preferences case saves changed presentation choices and restores
 the original choices in a finally block, without submitting or changing the
 scoring profile. If the account had no preferences row, cleanup leaves an
@@ -156,7 +165,7 @@ npm run test:e2e -- --grep-invert @authenticated
 ```
 
 Record the tested commit, CI run URL, and the reporter's selected/passed/skipped
-counts. The current expected counts are five authenticated and four anonymous
+counts. The current expected counts are six authenticated and four anonymous
 cases. First-time signup and email verification, ordinary paste/URL analysis,
 and save/reopen coverage remain separate work in issue #10.
 

@@ -1,7 +1,7 @@
 <script lang="ts" generics="TData extends RowData">
 	import { createTable, FlexRender, type ColumnDef, type RowData } from '@tanstack/svelte-table';
 	import { features, type SourceAndResult, titleOrId, urlOrText } from '$lib/components/DataTable';
-	import { detailLevel } from '$lib/study/sample';
+	import { detailLevel } from '$lib/detail-level';
 	import { tick } from 'svelte';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
@@ -129,7 +129,7 @@
 								<span class="history-text">
 									<strong
 										class={isNameColumn
-											? 'text-[14px] font-[750] whitespace-nowrap'
+											? 'text-[14px] font-[750] wrap-anywhere'
 											: 'text-[11px] text-[#137b80]'}
 									>
 										{#if isNameColumn}

@@ -7,7 +7,7 @@
 	import { resolve } from '$app/paths';
 	import { ANALYSIS_DEPENDENCY } from '$lib/analysis-run';
 	import type { AnalysisResult } from '$lib/contracts/analysis';
-	import { detailLevel } from '$lib/study/sample';
+	import { detailLevel } from '$lib/detail-level';
 	import type { PageData } from './$types';
 	import { POLL_MS } from '$lib/constants';
 
