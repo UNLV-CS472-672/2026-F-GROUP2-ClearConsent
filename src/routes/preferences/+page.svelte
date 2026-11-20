@@ -53,7 +53,7 @@
 </script>
 
 <svelte:head>
-	<title>ClearConsent | Preferences preview</title>
+	<title>ClearConsent | Preferences</title>
 </svelte:head>
 
 <main class="page-frame">
@@ -76,20 +76,13 @@
 
 		<div class="content">
 			<div class="notice" role="note">
-				<strong>Study preview</strong>
+				<strong>Saved for later</strong>
 				<span>
-					Use Save preferences to keep your choices for future visits. The level of detail carries
-					into the study example when you continue below. Saving these choices does not yet change
-					live AI analyses. Answer style applies only to this preview, and privacy interests do not
-					change this example.
+					Use Save preferences to keep your choices for future visits. Saving these choices does not
+					yet change live AI analyses. Answer style is shown only in the example below.
 				</span>
 			</div>
 
-			<p class="mb-4">
-				<a class="back-link" href={resolve(`/dashboard/overview/extract?detail=${detail}`)}
-					>Continue with study sample →</a
-				>
-			</p>
 			<div class="columns">
 				<form method="POST" class="controls">
 					<section class="panel" aria-labelledby="topics-title">
@@ -185,7 +178,7 @@
 		</div>
 
 		<footer>
-			<strong>ClearConsent</strong><span>Preferences study preview</span>
+			<strong>ClearConsent</strong><span>Preferences</span>
 		</footer>
 	</div>
 </main>

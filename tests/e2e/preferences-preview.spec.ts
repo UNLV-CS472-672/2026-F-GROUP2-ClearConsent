@@ -11,7 +11,7 @@ test(
 		// The layout invalidates page data on initial auth; let that refresh finish before editing.
 		await page.waitForLoadState('networkidle');
 		await expect(page.getByRole('note')).toContainText(
-			'Use Save preferences to keep your choices for future visits. The level of detail carries into the study example when you continue below. Saving these choices does not yet change live AI analyses. Answer style applies only to this preview, and privacy interests do not change this example.'
+			'Use Save preferences to keep your choices for future visits. Saving these choices does not yet change live AI analyses. Answer style is shown only in the example below.'
 		);
 
 		// Restore the dedicated account's presentation choices even if an assertion fails.

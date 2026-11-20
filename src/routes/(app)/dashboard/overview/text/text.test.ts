@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/svelte';
+import { cleanup, fireEvent, render, screen } from '@testing-library/svelte';
 import { tick } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import TextPage from './+page.svelte';
@@ -22,6 +22,44 @@ afterEach(() => {
 
 const policy =
 	'Privacy Policy. We collect personal information. Cookies and tracking. We retain data. You may access or correct your information.';
+
+// The text of the retired fixed sample. It is ordinary pasted input now and must not be special-cased.
+const formerSample =
+	'ClearConsent Study Sample Privacy Policy\n\nWe collect approximate location from your IP address to operate the service.\nWe share approximate location with advertising partners only if you enable personalized ads.\nYou can disable personalized ads in Settings; this stops that sharing.\nWe do not sell personal data.\nWe delete your account data within 30 days of a verified deletion request, except records we must keep for legal obligations.';
+
+describe('former sample text', () => {
+	it('is accepted by the server as an ordinary policy', async () => {
+		const form = new FormData();
+		form.set('text_submission', formerSample);
+		const result = (await actions.default!({
+			request: new Request('https://example.test', { method: 'POST', body: form })
+		} as any)) as Record<string, unknown>;
+		expect(result).toMatchObject({ success: true });
+		// Form encoding turns line breaks into CRLF, so compare with them normalized.
+		expect(String(result.data).replace(/\r\n/g, '\n')).toBe(formerSample);
+	});
+
+	it('goes to the save path on submit instead of opening a prepared result', async () => {
+		const fetch = vi.fn().mockResolvedValue({
+			ok: true,
+			json: async () => ({ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' })
+		});
+		vi.stubGlobal('fetch', fetch);
+		render(TextPage);
+		await fireEvent.input(screen.getByRole('textbox'), { target: { value: formerSample } });
+		const cancel = vi.fn();
+		const callback = await mocks.submit({ cancel });
+		expect(cancel).not.toHaveBeenCalled();
+		expect(typeof callback).toBe('function');
+		expect(mocks.goto).not.toHaveBeenCalled();
+	});
+
+	it('shows no fixed-sample shortcut or study copy', () => {
+		render(TextPage);
+		expect(screen.queryByRole('button', { name: /study sample/i })).toBeNull();
+		expect(screen.queryByText(/prepared study/i)).toBeNull();
+	});
+});
 
 describe('paste validation', () => {
 	it.each(['', '   ', 'x'.repeat(50001)])('rejects empty or over-limit input', async (text) => {

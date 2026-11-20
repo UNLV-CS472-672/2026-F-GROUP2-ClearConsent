@@ -5,7 +5,7 @@
 	import type { PageData } from './$types';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { detailLevel } from '$lib/study/sample';
+	import { detailLevel } from '$lib/detail-level';
 
 	let { data }: { data: PageData } = $props();
 	const getRecentSources = () => data.recentSources;
