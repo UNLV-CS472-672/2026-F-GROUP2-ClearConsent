@@ -55,13 +55,14 @@ export const load = async ({ locals, url }) => {
 	if (!session) return { recentSources: [] as RecentSource[], results: [] as AnalysisResult[] };
 	const supabase = await getSupabaseForUser(session.access_token);
 
-	const { data, error: recentError } = await getSupabaseForUser(session.access_token)
+	const { data, error: recentError } = await supabase
 		.from('sources')
 		.select('id, title, url, created_at, analyses!inner(id), owner_id')
 		.order('created_at', { ascending: false });
 
 	if (recentError) {
 		console.error('Failed to load recent analyses:', recentError.message);
+		throw new Error('Unable to load recent analyses.');
 	}
 
 	const recentSources = (data ?? []).map(({ id, title, url, created_at }) => ({

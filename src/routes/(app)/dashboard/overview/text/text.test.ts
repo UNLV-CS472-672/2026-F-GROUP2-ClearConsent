@@ -62,6 +62,18 @@ describe('former sample text', () => {
 });
 
 describe('paste validation', () => {
+	it('rejects an ordinary non-policy phrase before trying to save it', async () => {
+		const form = new FormData();
+		form.set('text_submission', 'Hello, this is not a policy.');
+		const result = await actions.default!({
+			request: new Request('https://example.test', { method: 'POST', body: form })
+		} as any);
+		expect(result).toMatchObject({
+			status: 400,
+			data: { success: false, error: 'Input does not appear to be a policy.' }
+		});
+	});
+
 	it.each(['', '   ', 'x'.repeat(50001)])('rejects empty or over-limit input', async (text) => {
 		const form = new FormData();
 		form.set('text_submission', text);
@@ -83,6 +95,18 @@ describe('paste validation', () => {
 });
 
 describe('paste save feedback', () => {
+	it('shows a server validation error before enhancement and clears it on retry', async () => {
+		render(TextPage, {
+			form: { success: false, error: 'Input does not appear to be a policy.' }
+		} as never);
+		expect(screen.getByRole('alert').textContent).toContain(
+			'Input does not appear to be a policy.'
+		);
+		await mocks.submit({ cancel: vi.fn() });
+		await tick();
+		expect(screen.queryByRole('alert')).toBeNull();
+	});
+
 	async function complete(response: unknown) {
 		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response));
 		render(TextPage);
