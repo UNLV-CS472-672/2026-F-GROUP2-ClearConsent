@@ -108,3 +108,18 @@ describe('optional callback logging', () => {
 		expect(mocks.getUser).toHaveBeenCalledOnce();
 	});
 });
+
+describe('public sample routes', () => {
+	it.each(['/sample', '/sample/result'])('serves %s without a session', async (path) => {
+		expect((await request(path)).response.status).toBe(200);
+	});
+	it.each([
+		'/sample/',
+		'/sample/other',
+		'/sample/result/other',
+		'/preferences',
+		'/dashboard/history'
+	])('still requires a session for %s', async (path) => {
+		await expect(request(path)).rejects.toMatchObject({ status: 303, location: '/login' });
+	});
+});

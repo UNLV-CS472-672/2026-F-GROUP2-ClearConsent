@@ -25,6 +25,14 @@
 					Bring a policy by URL or paste its text. Explore a workspace designed to make the details
 					easier to find and understand.
 				</p>
+				<a class="sample-entry" href={resolve('/sample')}>
+					<span class="sample-tag">FICTIONAL SAMPLE</span>
+					<span class="sample-entry-text">
+						<strong>Inspect a sample policy and its prepared result</strong>
+						<small>No account needed. Nothing is saved.</small>
+					</span>
+					<span aria-hidden="true">→</span>
+				</a>
 				<div class="signal" aria-label="Workspace steps">
 					<div><span>01</span><strong>Bring a policy</strong></div>
 					<div><span>02</span><strong>Explore the layout</strong></div>
@@ -210,6 +218,49 @@
 		color: #c1d5e2;
 		font-size: 15px;
 		line-height: 1.7;
+	}
+	.sample-entry {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		max-width: 540px;
+		margin-top: 26px;
+		padding: 16px 18px;
+		border: 1px solid #3aa5a8;
+		border-radius: 8px;
+		background: #10233d;
+		color: #f4fafb;
+		text-decoration: none;
+	}
+	.sample-entry:hover {
+		border-color: #70ebe0;
+		background: #163052;
+	}
+	.sample-tag {
+		flex: 0 0 auto;
+		padding: 5px 8px;
+		border: 1px solid #62d7d0;
+		border-radius: 4px;
+		color: #70ebe0;
+		font-size: 9px;
+		font-weight: 800;
+		letter-spacing: 0.12em;
+	}
+	.sample-entry-text {
+		display: grid;
+		flex: 1 1 auto;
+		gap: 4px;
+	}
+	.sample-entry-text strong {
+		font-size: 15px;
+	}
+	.sample-entry-text small {
+		color: #a9c0d1;
+		font-size: 12px;
+	}
+	.sample-entry:focus-visible {
+		outline: 3px solid #42cabc;
+		outline-offset: 3px;
 	}
 	.signal {
 		position: relative;
