@@ -10,6 +10,7 @@
 	import { detailLevel } from '$lib/detail-level';
 	import type { PageData } from './$types';
 	import { POLL_MS } from '$lib/constants';
+	import PersonalizedIndicators from '$lib/components/PersonalizedIndicators.svelte';
 
 	type FailedResult = Extract<AnalysisResult, { status: 'failed' }>;
 	type ErrorBody = { error?: { code?: string; message?: string }; message?: string };
@@ -149,6 +150,14 @@
 		</p>
 
 		<AnalysisResultView result={data.analysis.result} {detail} />
+
+		<!-- Personalized indicators for this saved analysis (FR-9, #101) -->
+		<div class="indicators-section">
+			<PersonalizedIndicators
+				personalization={data.analysis.personalization}
+				findings={data.analysis.result.status === 'success' ? data.analysis.result.findings : []}
+			/>
+		</div>
 
 		<!-- Document chat for this saved analysis (FR-11, #76) -->
 		<div class="chat-section">
@@ -309,6 +318,9 @@
 	.skeleton-card {
 		height: 120px;
 		border: 1px solid #d6e2e9;
+	}
+	.indicators-section {
+		margin-top: 28px;
 	}
 	.chat-section {
 		margin-top: 28px;
